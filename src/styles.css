@@ -1,3 +1,90 @@
-/* You can add global styles to this file, and also import other style files */
-
 @import 'tailwindcss';
+
+@theme {
+  --color-error-container: #ffdad6;
+  --color-tertiary: #001a0e;
+  --color-secondary-container: #356ee7;
+  --color-tertiary-fixed-dim: #71dba6;
+  --color-on-primary-fixed: #0b1d2d;
+  --color-error: #ba1a1a;
+  --color-inverse-surface: #2e3132;
+  --color-on-primary: #ffffff;
+  --color-surface-dim: #d9dadc;
+  --color-inverse-primary: #b7c8de;
+  --color-on-surface: #191c1e;
+  --color-inverse-on-surface: #f0f1f3;
+  --color-tertiary-fixed: #8df7c1;
+  --color-on-secondary-fixed-variant: #0040a2;
+  --color-outline: #74777d;
+  --color-surface-variant: #e1e2e4;
+  --color-surface-container-lowest: #ffffff;
+  --color-on-tertiary: #ffffff;
+  --color-surface-container-high: #e7e8ea;
+  --color-primary: #041627;
+  --color-on-error-container: #93000a;
+  --color-on-tertiary-container: #35a374;
+  --color-surface-tint: #4f6073;
+  --color-on-primary-container: #8192a7;
+  --color-primary-fixed: #d2e4fb;
+  --color-on-secondary-fixed: #001848;
+  --color-surface-container-low: #f3f4f6;
+  --color-primary-container: #1a2b3c;
+  --color-secondary-fixed: #dae2ff;
+  --color-outline-variant: #c4c6cd;
+  --color-tertiary-container: #00311e;
+  --color-on-primary-fixed-variant: #38485a;
+  --color-on-background: #191c1e;
+  --color-on-secondary-container: #fefcff;
+  --color-on-tertiary-fixed-variant: #005235;
+  --color-on-secondary: #ffffff;
+  --color-surface: #f8f9fb;
+  --color-surface-bright: #f8f9fb;
+  --color-on-error: #ffffff;
+  --color-background: #f8f9fb;
+  --color-on-surface-variant: #44474c;
+  --color-on-tertiary-fixed: #002113;
+  --color-surface-container: #edeef0;
+  --color-surface-container-highest: #e1e2e4;
+  --color-secondary-fixed-dim: #b2c5ff;
+  --color-secondary: #0453cd;
+  --color-primary-fixed-dim: #b7c8de;
+
+  --font-inter: "Inter", sans-serif;
+}
+
+@layer base {
+  html, body {
+    @apply font-inter bg-surface text-on-surface antialiased;
+  }
+}
+
+.tonal-layer-1 {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+    border: 1px solid #EBECF0;
+}
+
+.tonal-layer-2 {
+    background-color: #ffffff;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    border: 1px solid #EBECF0;
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 3s infinite ease-in-out;
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.material-fill {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
