@@ -93,107 +93,107 @@ export class PlatformStateService {
   private initialWorkers: WorkerProfile[] = [
     { 
       id: 'w1', 
-      name: 'Alexander Wright', 
-      initials: 'AW', 
-      email: 'alex.w@pro.com', 
-      category: 'Senior Systems Architect', 
+      name: 'John Kamau', 
+      initials: 'JK', 
+      email: 'john.k@worker.com', 
+      category: 'Master Plumber', 
       status: 'Verified',
-      rate: 125,
-      rating: 4.9,
-      reviews: 142,
-      skills: ['Cloud Arch', 'Kubernetes', 'AWS'],
-      bio: 'Certified Master Architect with focused expertise in high-availability systems.',
+      rate: 15,
+      rating: 4.8,
+      reviews: 32,
+      skills: ['Pipe Fitting', 'Water Heater Repair', 'Drain Cleaning'],
+      bio: 'Experienced plumber serving the local community for over 10 years. Fast, reliable, and affordable.',
       isAvailable: true,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBy6YijrrB8egg9iMON59IDboaSCReeUM0Fa28M7fV4jQkotoOslkEbG9OQL0y3naIpx5BTH4RDt61poe8DeTTmeyCaZcYcmFfy1KfhL2I7Zt5j77uagFT17SoCQE9gImOffHTwTNEb6fIEpQiO5skgZIHOC3AxwJLLTXkX27j6Ker8RQOzU7-oNMRj9X4EJS4q4jKlIE9dhppMrysfEql05J_CYnqq8h8GGF03egVGwuby7a3awL0SuF42o0CFwI5AEyvhbe8LLEY'
+      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=200&auto=format&fit=crop'
     },
     { 
       id: 'w2', 
-      name: 'Elena Rodriguez', 
-      initials: 'ER', 
-      email: 'elena.r@design.io', 
-      category: 'Interior Architect', 
+      name: 'Grace Wanjiku', 
+      initials: 'GW', 
+      email: 'grace.w@worker.com', 
+      category: 'Professional Cleaner', 
       status: 'Verified',
-      rate: 120,
+      rate: 10,
       rating: 5.0,
-      reviews: 94,
-      skills: ['3D Modeling', 'Lighting', 'Interiors'],
-      bio: 'Transforming spaces with precision and artistic vision.',
+      reviews: 84,
+      skills: ['Deep Cleaning', 'Office Cleaning', 'Laundry'],
+      bio: 'Detail-oriented cleaner providing spotless results for homes and small businesses.',
       isAvailable: true,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuA2YGDYTRVcemqvUjwv6-GmO7OMaPmPEohT4Akg3ahLE7Svv-5pyo19Swyr8v-ug7lyDfhiPgj_2ejPNs3leZKz3jDBE9vH98kypN2ec2eOkthFJyJX0mKKqR35WBZI5O5X7EVQclGgHbg-yqo2lggxm1vpd-h8Z6jZPCwOyg1sVhgeKwd6ZMbV5LvH_n6PwosJh_sibBuJetvuYeZVVc5zRpX_vKQD8uOvSrD4KtZwF5wmNbk4XzN0vrwIExhs4WDBMT3IyLIQto4'
+      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=200&auto=format&fit=crop'
     },
     { 
       id: 'w3', 
-      name: 'Sarah Jenkins', 
-      initials: 'SJ', 
-      email: 'sarah.j@security.io', 
-      category: 'Enterprise Security Lead', 
+      name: 'Samuel Ochieng', 
+      initials: 'SO', 
+      email: 'sam.o@worker.com', 
+      category: 'Electrician', 
       status: 'Verified',
-      rate: 195,
+      rate: 18,
       rating: 4.9,
-      reviews: 215,
-      skills: ['Cybersecurity', 'SOC2', 'Azure'],
-      bio: 'Enterprise security specialist with over 15 years of infrastructure hardening experience.',
+      reviews: 45,
+      skills: ['Wiring', 'Fault Finding', 'Panel Upgrades'],
+      bio: 'Certified electrician specializing in residential wiring and quick emergency repairs.',
       isAvailable: true,
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAcuq8zz7T8AZVH5TUwgdKehTUJSSyK9AWXGyv-jPQDhzm-bkZwDvfewYuXfl_xGiiwZ7PEZESBpj9yrfCxL_rEGlEUVPGG8cCn3wXtYxM0C75JWAlipyFH3ufJXIgi1WvcW0sMTN5BRDI9xvnSjdncLYle9zQNe3CNoMlqwOAIfyAyFVDuFXvuOlZjEmN0P4VKGaaarZsOW3B0zhWuqvE1mtfjbj95EEvgu8ly7IpOFDnPZnHi5d0_1AclqEhGVz8bJdEdLN8vyTs'
+      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=200&auto=format&fit=crop'
     },
-    { id: 'p1', name: 'Julianne Devis', initials: 'JD', email: 'j.devis@enterprise.com', category: 'Senior Architect', status: 'Priority', rate: 95, rating: 0, reviews: 0, skills: ['AutoCAD'], bio: 'Structural expert.', isAvailable: true, 
+    { id: 'p1', name: 'Peter Njoroge', initials: 'PN', email: 'peter.n@worker.com', category: 'Mechanic', status: 'Priority', rate: 20, rating: 0, reviews: 0, skills: ['Engine Repair'], bio: 'Specialist in all car models.', isAvailable: true, 
       uploadedDocuments: [
-        { name: 'Architecture License', status: 'uploaded' } as any,
-        { name: 'ID Proof', status: 'uploaded' } as any
+        { name: 'Mechanic Certificate', status: 'uploaded' } as any,
+        { name: 'National ID', status: 'uploaded' } as any
       ] 
     },
-    { id: 'p2', name: 'Marcus Thorne', initials: 'MT', email: 'm.thorne@design.io', category: 'UI Specialist', status: 'Pending', rate: 85, rating: 0, reviews: 0, skills: ['Figma'], bio: 'UI designer.', isAvailable: true, 
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC6joI_sdN7x2Lo6qyBXTuI22FNUFx5x1HZ9F64P1NBebadVOZPnQYVUoatMXbMmbdZWWC6wvjUL0R9icy8SQcAVNNILc1t2YH30fH_9xlqh2kJ5WBF2HVfHpWHqJ-2WXAo90c_Eqjlls7K7vE6rUREM9qBCXgnozUpGkd36-OrakUOWle1qxF6OjzdD5I3ntExrUuA-ckIH9JwaEWl2EQUbwgGbMoMjnhjf-WbZFR0AfF1X9WzgwqTtc2F-gjsDg-76uUeXgdbDlc',
+    { id: 'p2', name: 'Mary Atieno', initials: 'MA', email: 'mary.a@worker.com', category: 'Farm Worker', status: 'Pending', rate: 8, rating: 0, reviews: 0, skills: ['Harvesting', 'Planting'], bio: 'Hardworking farm assistant.', isAvailable: true, 
+      image: 'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?q=80&w=200&auto=format&fit=crop',
       uploadedDocuments: [
-        { name: 'Portfolio Link', status: 'uploaded' } as any,
-        { name: 'ID Proof', status: 'uploaded' } as any
+        { name: 'Reference Letter', status: 'uploaded' } as any,
+        { name: 'National ID', status: 'uploaded' } as any
       ]
     }
   ];
 
   workers = signal<WorkerProfile[]>(this.initialWorkers);
   clients = signal<ClientProfile[]>([
-    { id: 'c1', name: 'Jonathan Davis', email: 'j.davis@enterprise.com', status: 'Active', tier: 'VIP Account', progress: 100 },
-    { id: 'c2', name: 'Elena Lundberg', email: 'elena@creativehub.es', status: 'Active', tier: 'Standard', progress: 85 }
+    { id: 'c1', name: 'James Mutua', email: 'james@home.com', status: 'Active', tier: 'Homeowner', progress: 100 },
+    { id: 'c2', name: 'City Garage', email: 'manager@citygarage.co.ke', status: 'Active', tier: 'Business', progress: 85 }
   ]);
   notifications = signal<Notification[]>([]);
   activityLogs = signal<ActivityLog[]>([]);
   bookings = signal<Booking[]>([
-    { id: 'b1', clientId: 'c1', clientName: 'Jonathan Davis', clientInitials: 'JD', workerId: 'w1', workerName: 'Alexander Wright', workerInitials: 'AW', service: 'Cloud Architecture', date: 'Oct 24, 2026', earnings: 450, rating: 5, status: 'Approved' }
+    { id: 'b1', clientId: 'c1', clientName: 'James Mutua', clientInitials: 'JM', workerId: 'w1', workerName: 'John Kamau', workerInitials: 'JK', service: 'Plumbing Repair', date: 'Oct 24, 2026', earnings: 45, rating: 5, status: 'Approved' }
   ]);
   
   chats = signal<Chat[]>([
     {
       id: 'c1',
       workerId: 'w1',
-      name: 'Alexander Wright',
-      initials: 'AW',
-      image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBy6YijrrB8egg9iMON59IDboaSCReeUM0Fa28M7fV4jQkotoOslkEbG9OQL0y3naIpx5BTH4RDt61poe8DeTTmeyCaZcYcmFfy1KfhL2I7Zt5j77uagFT17SoCQE9gImOffHTwTNEb6fIEpQiO5skgZIHOC3AxwJLLTXkX27j6Ker8RQOzU7-oNMRj9X4EJS4q4jKlIE9dhppMrysfEql05J_CYnqq8h8GGF03egVGwuby7a3awL0SuF42o0CFwI5AEyvhbe8LLEY',
-      lastMessage: 'The API documentation is ready...',
+      name: 'John Kamau',
+      initials: 'JK',
+      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=200&auto=format&fit=crop',
+      lastMessage: 'I can come tomorrow morning to check the pipes.',
       time: '10:45 AM',
       active: true,
       online: true,
       messages: [
-        { id: 'm1', text: "Hello! I've completed the initial design sprint for the dashboard UI. I wanted to share the project brief with you for feedback.", time: '10:42 AM', sent: false },
-        { id: 'm2', text: "That sounds great, Alexander. Looking forward to seeing the progress. Did you include the dark mode variants?", time: '10:44 AM', sent: true },
-        { id: 'm3', text: "Yes, I've added a separate section for the dark mode themes. You can see how the elevation levels translate between the modes.", time: '10:45 AM', sent: false, attachment: { name: 'Project_Brief_v2.pdf', size: '4.2 MB' } }
+        { id: 'm1', text: "Hello! My kitchen sink is leaking heavily. Are you available today?", time: '10:42 AM', sent: false },
+        { id: 'm2', text: "I'm currently on another job, but I can come tomorrow morning at 9 AM.", time: '10:44 AM', sent: true },
+        { id: 'm3', text: "That works for me. See you then.", time: '10:45 AM', sent: false }
       ]
     }
   ]);
   
   currentWorker = signal<WorkerProfile>({
     id: 'dw1',
-    name: 'David Harrison',
-    initials: 'DH',
-    email: 'david.h@pro.com',
-    category: 'Master Electrician',
+    name: 'Kevin Omondi',
+    initials: 'KO',
+    email: 'worker@pro.com',
+    category: 'Mechanic',
     status: 'Draft',
-    rate: 85,
+    rate: 25,
     rating: 0,
     reviews: 0,
     isAvailable: true,
-    skills: ['Panel Upgrades'],
-    bio: 'Professional electrician.'
+    skills: ['Brake Replacement'],
+    bio: 'Automotive mechanic.'
   });
 
   currentClient = signal<ClientProfile | null>(null);

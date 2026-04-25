@@ -33,8 +33,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
       <!-- Hero & Search Filters -->
       <section class="mb-12 space-y-6">
         <div class="max-w-2xl">
-          <h1 class="text-5xl font-black text-[#041627] mb-4 tracking-tight">Find Elite Professionals</h1>
-          <p class="text-lg text-slate-500 font-medium">Connect with the top 1% of enterprise-grade experts ready to scale your infrastructure and operations.</p>
+          <h1 class="text-5xl font-black text-[#041627] mb-4 tracking-tight">Find Trusted Local Workers</h1>
+          <p class="text-lg text-slate-500 font-medium">Connect with verified plumbers, electricians, mechanics, and cleaners ready to help with your next job.</p>
         </div>
         
         <!-- Filter Bar -->
@@ -78,8 +78,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           </div>
           <div class="flex items-end">
             <button (click)="loadMore()" class="w-full bg-[#041627] text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-slate-900/20">
-              <mat-icon class="!text-sm">filter_list</mat-icon>
-              Search Talent
+              Search Workers
             </button>
           </div>
         </div>
@@ -111,9 +110,9 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           <div class="relative rounded-[2.5rem] overflow-hidden aspect-[3/4] group shadow-2xl">
             <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcuq8zz7T8AZVH5TUwgdKehTUJSSyK9AWXGyv-jPQDhzm-bkZwDvfewYuXfl_xGiiwZ7PEZESBpj9yrfCxL_rEGlEUVPGG8cCn3wXtYxM0C75JWAlipyFH3ufJXIgi1WvcW0sMTN5BRDI9xvnSjdncLYle9zQNe3CNoMlqwOAIfyAyFVDuFXvuOlZjEmN0P4VKGaaarZsOW3B0zhWuqvE1mtfjbj95EEvgu8ly7IpOFDnPZnHi5d0_1AclqEhGVz8bJdEdLN8vyTs">
             <div class="absolute inset-0 bg-gradient-to-t from-[#041627]/90 via-[#041627]/20 to-transparent flex flex-col justify-end p-8">
-              <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Featured Architect</p>
-              <h4 class="text-2xl font-black text-white leading-tight">Sarah Jenkins</h4>
-              <p class="text-sm font-medium text-slate-300">Enterprise Security Lead</p>
+              <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Top Rated</p>
+              <h4 class="text-2xl font-black text-white leading-tight">Samuel Ochieng</h4>
+              <p class="text-sm font-medium text-slate-300">Certified Electrician</p>
             </div>
           </div>
         </aside>
@@ -121,7 +120,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
         <!-- Professional Grid -->
         <section class="col-span-12 lg:col-span-9">
           <div class="flex items-center justify-between mb-8">
-            <h2 class="text-3xl font-black text-[#041627] tracking-tight">Available Professionals</h2>
+            <h2 class="text-3xl font-black text-[#041627] tracking-tight">Available Workers</h2>
             <div class="flex items-center gap-2 text-slate-400">
               <span class="text-[10px] font-black uppercase tracking-widest">Sort by:</span>
               <select class="bg-transparent border-none font-black text-[#041627] text-xs focus:ring-0 cursor-pointer uppercase tracking-widest"
@@ -178,7 +177,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           @if (filteredWorkers().length === 0) {
             <div class="p-20 text-center bg-slate-50 rounded-[3rem] border-2 border-dashed border-slate-200 mt-8">
               <mat-icon class="!text-6xl !w-auto !h-auto text-slate-200 mb-6">search_off</mat-icon>
-              <h3 class="text-2xl font-black text-slate-900 mb-2">No Professionals Found</h3>
+              <h3 class="text-2xl font-black text-slate-900 mb-2">No Workers Found</h3>
               <p class="text-slate-500 font-medium">Try adjusting your skill filters or location search.</p>
             </div>
           }
@@ -186,7 +185,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           <!-- Pagination -->
           <div class="mt-12 flex justify-center">
             <button (click)="loadMore()" class="text-[#041627] font-black text-[10px] uppercase tracking-widest border-2 border-slate-100 px-10 py-4 rounded-2xl hover:bg-slate-50 active:scale-95 transition-all">
-              Load More Professionals
+              Load More Workers
             </button>
           </div>
         </section>

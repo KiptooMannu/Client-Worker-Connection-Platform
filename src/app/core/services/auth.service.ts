@@ -22,9 +22,9 @@ export class AuthService {
   userRole = computed(() => this.userSignal()?.role || null);
   
   private users: User[] = [
-    { email: 'admin@pro.com', role: 'Admin', name: 'System Admin', password: 'admin123' } as any,
-    { email: 'worker@pro.com', role: 'Worker', name: 'David Harrison', password: 'worker123' } as any,
-    { email: 'client@pro.com', role: 'Client', name: 'Infrastructure Client', password: 'client123' } as any
+    { email: 'admin@worker.com', role: 'Admin', name: 'System Admin', password: 'admin123' } as any,
+    { email: 'worker@pro.com', role: 'Worker', name: 'Kevin Omondi', password: 'worker123' } as any,
+    { email: 'client@home.com', role: 'Client', name: 'James Mutua', password: 'client123' } as any
   ];
 
   private platformId = inject(PLATFORM_ID);
