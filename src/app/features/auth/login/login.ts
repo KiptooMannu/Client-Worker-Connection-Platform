@@ -16,17 +16,17 @@ import { AuthService } from '../../../core/services/auth.service';
       <!-- Simple Header -->
       <header class="h-20 flex items-center px-12 border-b border-slate-100 bg-white shadow-sm">
         <div class="flex items-center gap-3 cursor-pointer" routerLink="/">
-          <div class="w-10 h-10 bg-[#041627] rounded-xl flex items-center justify-center text-white shadow-lg">
+          <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg">
             <mat-icon>corporate_fare</mat-icon>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#041627]">ProMarket</span>
+          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">ProMarket</span>
         </div>
       </header>
 
       <main class="flex-grow flex items-center justify-center p-6">
         <div class="w-full max-w-md bg-white rounded-[2.5rem] p-10 shadow-[0_8px_48px_rgba(4,22,39,0.08)] border border-slate-100">
           <div class="text-center mb-10">
-            <h1 class="text-3xl font-black text-[#041627] tracking-tight mb-2">Welcome Back</h1>
+            <h1 class="text-3xl font-black text-[#0f172a] tracking-tight mb-2">Welcome Back</h1>
             <p class="text-slate-400 font-medium text-sm">Access your secure professional dashboard.</p>
           </div>
 
@@ -64,7 +64,7 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
 
             <button type="submit" [disabled]="loading()"
-                    class="w-full bg-[#041627] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 hover:shadow-2xl disabled:opacity-50 cursor-pointer">
+                    class="w-full bg-[#0f172a] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 hover:shadow-2xl disabled:opacity-50 cursor-pointer">
               {{ loading() ? 'Verifying Credentials...' : 'Sign In' }}
             </button>
           </form>

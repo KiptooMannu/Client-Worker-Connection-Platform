@@ -55,8 +55,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       </mat-card>
 
       <!-- Status Hero Card -->
-      <mat-card class="!rounded-[2.5rem] overflow-hidden !border-none !shadow-2xl shadow-blue-900/20" 
-                [ngClass]="worker().status === 'Verified' ? '!bg-teal-600' : (worker().status === 'Pending' ? '!bg-amber-500' : '!bg-blue-600')">
+      <mat-card class="!rounded-[2.5rem] overflow-hidden !border-none !shadow-2xl shadow-slate-200" 
+                [ngClass]="worker().status === 'Verified' ? '!bg-emerald-700' : (worker().status === 'Pending' ? '!bg-slate-700' : '!bg-indigo-900')">
         <mat-card-content class="!p-10 text-white relative">
           <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
             <div class="flex items-center gap-8 text-center md:text-left flex-col md:flex-row">
@@ -168,7 +168,21 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       </div>
     </div>
   `,
-  styles: [`:host { display: block; }`]
+  styles: [`
+    :host { display: block; }
+    
+    @media (max-width: 768px) {
+      .text-5xl { font-size: 2.5rem !important; }
+      .text-4xl { font-size: 2rem !important; }
+      .text-3xl { font-size: 1.75rem !important; }
+      .p-10 { padding: 1.5rem !important; }
+      .p-20 { padding: 2rem !important; }
+      .gap-8 { gap: 1rem !important; }
+      .w-32 { width: 5rem !important; height: 5rem !important; }
+      .rounded-[3rem] { border-radius: 1.5rem !important; }
+      .rounded-[2.5rem] { border-radius: 1.5rem !important; }
+    }
+  `]
 })
 export class WorkerDashboardOverviewPage {
   state = inject(PlatformStateService);

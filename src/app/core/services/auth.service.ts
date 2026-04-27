@@ -16,11 +16,11 @@ export interface User {
 })
 export class AuthService {
   private userSignal = signal<User | null>(null);
-  
+
   currentUser = computed(() => this.userSignal());
   isAuthenticated = computed(() => !!this.userSignal());
   userRole = computed(() => this.userSignal()?.role || null);
-  
+
   private users: User[] = [
     { email: 'admin@worker.com', role: 'Admin', name: 'System Admin', password: 'admin123' } as any,
     { email: 'worker@pro.com', role: 'Worker', name: 'Kevin Omondi', password: 'worker123' } as any,
@@ -47,9 +47,9 @@ export class AuthService {
     const foundUser = this.users.find(u => u.email === email && (u as any).password === password);
 
     if (foundUser) {
-      const user: User = { 
-        email: foundUser.email, 
-        role: foundUser.role, 
+      const user: User = {
+        email: foundUser.email,
+        role: foundUser.role,
         name: foundUser.name,
         token: 'mock-jwt-token-' + btoa(email)
       };
@@ -57,7 +57,7 @@ export class AuthService {
       if (isPlatformBrowser(this.platformId)) {
         localStorage.setItem('pro_user', JSON.stringify(user));
       }
-      
+
       this.redirectByRole(foundUser.role);
       return true;
     }
@@ -65,25 +65,25 @@ export class AuthService {
   }
 
   register(name: string, email: string, role: UserRole): boolean {
-    const newUser: any = { 
-      email, 
-      role, 
+    const newUser: any = {
+      email,
+      role,
       name,
-      password: 'password123' // Mock default password for all registrations
+      password: 'password123'
     };
-    
+
     this.users.push(newUser);
 
     if (isPlatformBrowser(this.platformId)) {
       const stored = JSON.parse(localStorage.getItem('nestfind_users') || '[]');
       stored.push(newUser);
       localStorage.setItem('nestfind_users', JSON.stringify(stored));
-      
+
       const userSession: User = { email, role, name, token: 'mock-jwt-token-' + btoa(email) };
       this.userSignal.set(userSession);
       localStorage.setItem('pro_user', JSON.stringify(userSession));
     }
-    
+
     this.redirectByRole(role);
     return true;
   }

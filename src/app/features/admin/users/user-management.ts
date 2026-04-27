@@ -37,8 +37,8 @@ import { inject, signal } from '@angular/core';
     <div class="space-y-8 animate-in fade-in duration-500">
       <!-- Detailed Profile Panel (Sticky at top when open) -->
       @if (selectedUser()) {
-        <mat-card class="!rounded-[2.5rem] !border-4 !border-blue-600 !shadow-2xl animate-in slide-in-from-top duration-500 overflow-hidden mb-12">
-          <div class="p-8 bg-blue-600 text-white flex justify-between items-center">
+        <mat-card class="!rounded-[2.5rem] !border-4 !border-indigo-900 !shadow-2xl animate-in slide-in-from-top duration-500 overflow-hidden mb-12">
+          <div class="p-8 bg-indigo-900 text-white flex justify-between items-center">
             <div class="flex items-center gap-6">
               <div class="w-16 h-16 rounded-3xl bg-white/20 backdrop-blur-md flex items-center justify-center text-2xl font-black border border-white/30 shadow-2xl">
                 @if (selectedUser().image) { <img [src]="selectedUser().image" class="w-full h-full object-cover rounded-3xl"> } @else { {{ selectedUser().initials }} }
@@ -116,7 +116,7 @@ import { inject, signal } from '@angular/core';
                     <button mat-flat-button color="primary" 
                             [disabled]="selectedUser().status === 'Verified' || selectedUser().status === 'Active'"
                             (click)="promoteUser(selectedUser())"
-                            class="!py-8 !rounded-2xl !font-black !text-[11px] !uppercase !tracking-widest shadow-xl shadow-blue-600/20">
+                            class="!py-8 !rounded-2xl !font-black !text-[11px] !uppercase !tracking-widest shadow-xl shadow-indigo-600/20">
                       {{ selectedUser().status === 'Verified' ? 'Account Verified' : 'Verify & Promote' }}
                     </button>
                     <button mat-stroked-button color="warn" class="!py-8 !rounded-2xl !font-black !text-[11px] !uppercase !tracking-widest" (click)="suspendUser(selectedUser())">Suspend Access</button>
@@ -280,8 +280,20 @@ import { inject, signal } from '@angular/core';
   styles: [`
     :ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
     ::ng-deep .mat-mdc-progress-bar.health-teal { --mdc-linear-progress-active-indicator-color: #14b8a6; }
-    ::ng-deep .mat-mdc-progress-bar.health-blue { --mdc-linear-progress-active-indicator-color: #2563eb; }
+    ::ng-deep .mat-mdc-progress-bar.health-blue { --mdc-linear-progress-active-indicator-color: #4f46e5; }
     ::ng-deep .mat-mdc-progress-bar.health-red { --mdc-linear-progress-active-indicator-color: #ef4444; }
+
+    @media (max-width: 768px) {
+      .text-4xl { font-size: 2.25rem !important; }
+      .p-10, .p-8 { padding: 1.5rem !important; }
+      .grid-cols-4 { grid-template-columns: 1fr !important; }
+      .grid-cols-3 { grid-template-columns: 1fr !important; }
+      
+      .mat-mdc-table { display: block; overflow-x: auto; }
+      .mat-mdc-header-row, .mat-mdc-row { min-width: 800px; }
+      
+      .w-64 { width: 100% !important; }
+    }
   `]
 })
 export class AdminUserManagementPage {

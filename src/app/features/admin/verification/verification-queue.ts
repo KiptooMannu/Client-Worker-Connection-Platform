@@ -141,7 +141,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       <!-- Detailed Review Panel -->
       @if (detailedReview) {
         <mat-card class="!rounded-[2.5rem] !border !border-slate-100 !shadow-2xl animate-in zoom-in mt-8">
-          <mat-card-header class="!p-8 !bg-blue-50/50 !border-b !border-slate-100 flex justify-between items-center">
+          <mat-card-header class="!p-8 !bg-slate-50/50 !border-b !border-slate-100 flex justify-between items-center">
             <mat-card-title class="!text-xl !font-black !text-slate-900">Reviewing: {{ detailedReview.name }}</mat-card-title>
             <button mat-icon-button (click)="detailedReview = null"><mat-icon>close</mat-icon></button>
           </mat-card-header>
@@ -150,10 +150,12 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <div class="space-y-6">
                 <div>
                   <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Profile Overview</h4>
-                  <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                  <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 space-y-4 text-sm">
                     <p><strong>Email:</strong> {{ detailedReview.email }}</p>
                     <p><strong>Service Category:</strong> {{ detailedReview.category }}</p>
                     <p><strong>Hourly Rate:</strong> \${{ detailedReview.rate }}/hr</p>
+                    <p><strong>Primary Location:</strong> {{ detailedReview.location }}</p>
+                    <p><strong>Preferred Areas:</strong> {{ detailedReview.preferredLocations.join(', ') }}</p>
                     <div>
                       <strong>Skills:</strong>
                       <div class="flex flex-wrap gap-2 mt-2">
@@ -164,18 +166,52 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                     </div>
                   </div>
                 </div>
+
+                <div>
+                  <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Work History</h4>
+                  <div class="space-y-3">
+                    @for (work of detailedReview.workHistory; track $index) {
+                      <div class="p-4 bg-white border border-slate-200 rounded-xl">
+                        <p class="font-black text-slate-900">{{ work.role }} @ {{ work.company }}</p>
+                        <p class="text-[10px] text-slate-500 uppercase font-bold">{{ work.period }}</p>
+                        <p class="text-xs text-slate-600 mt-2">{{ work.description }}</p>
+                      </div>
+                    }
+                    @if (detailedReview.workHistory.length === 0) {
+                      <p class="text-xs text-slate-400 italic">No work history provided.</p>
+                    }
+                  </div>
+                </div>
               </div>
               <div class="space-y-6">
+                <div>
+                  <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Certifications</h4>
+                  <div class="space-y-3">
+                    @for (cert of detailedReview.certifications; track $index) {
+                      <div class="p-4 bg-white border border-slate-200 rounded-xl flex justify-between items-center">
+                        <div>
+                          <p class="font-black text-slate-900">{{ cert.name }}</p>
+                          <p class="text-[10px] text-slate-500 uppercase font-bold">{{ cert.issuer }}</p>
+                        </div>
+                        <span class="text-xs font-black text-blue-600">{{ cert.year }}</span>
+                      </div>
+                    }
+                    @if (detailedReview.certifications.length === 0) {
+                      <p class="text-xs text-slate-400 italic">No certifications provided.</p>
+                    }
+                  </div>
+                </div>
+
                 <div>
                   <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Uploaded Documents</h4>
                   <div class="space-y-3">
                     @for (doc of detailedReview.uploadedDocuments; track doc.name) {
                       <div class="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between">
                         <div class="flex items-center gap-3">
-                          <mat-icon class="text-blue-600">{{ doc.name.toLowerCase().includes('id') ? 'badge' : 'workspace_premium' }}</mat-icon>
+                          <mat-icon class="text-blue-600">{{ doc.type.toLowerCase().includes('identification') ? 'badge' : 'workspace_premium' }}</mat-icon>
                           <div>
                             <p class="text-sm font-bold text-slate-900">{{ doc.name }}</p>
-                            <p class="text-[10px] text-slate-500 uppercase">{{ doc.status }}</p>
+                            <p class="text-[10px] text-slate-500 uppercase">{{ doc.type }} • {{ doc.status }}</p>
                           </div>
                         </div>
                         <button mat-button class="!text-[10px] !font-black !uppercase !text-blue-600">View File</button>
@@ -219,7 +255,21 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       }
     </div>
   `,
-  styles: [`:host { display: block; } :ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }`]
+  styles: [`
+    :host { display: block; } 
+    :ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
+    
+    @media (max-width: 768px) {
+      .text-5xl { font-size: 2.5rem !important; }
+      .p-8, .p-10, .p-20 { padding: 1.5rem !important; }
+      .grid-cols-2 { grid-template-columns: 1fr !important; }
+      
+      /* Table Handling */
+      .mat-mdc-table { display: block; overflow-x: auto; }
+      .mat-mdc-header-row { min-width: 600px; }
+      .mat-mdc-row { min-width: 600px; }
+    }
+  `]
 })
 export class AdminVerificationPage {
   state = inject(PlatformStateService);

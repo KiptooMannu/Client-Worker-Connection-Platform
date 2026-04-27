@@ -144,12 +144,12 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         <!-- Sidebar / Actions -->
         <div class="col-span-12 lg:col-span-4 space-y-8">
           <!-- Action Card -->
-          <mat-card class="!rounded-[2.5rem] !bg-blue-600 !text-white !shadow-2xl shadow-blue-900/30 !border-none !p-10 sticky top-10">
+          <mat-card class="!rounded-[2.5rem] !bg-indigo-900 !text-white !shadow-2xl shadow-indigo-900/30 !border-none !p-10 sticky top-10">
             <h3 class="text-3xl font-black mb-4 tracking-tight">Hire {{ worker()?.name?.split(' ')?.[0] || 'Professional' }}</h3>
-            <p class="text-blue-100 font-medium mb-10 text-lg">Available for new projects starting next week. Book a consultation now.</p>
+            <p class="text-indigo-100 font-medium mb-10 text-lg">Available for new projects starting next week. Book a consultation now.</p>
             
             <div class="space-y-4">
-              <button mat-flat-button class="w-full !bg-white !text-blue-700 !py-8 !rounded-2xl !font-black !text-sm !shadow-xl" (click)="hire()">
+              <button mat-flat-button class="w-full !bg-white !text-indigo-900 !py-8 !rounded-2xl !font-black !text-sm !shadow-xl" (click)="hire()">
                 Hire Professional
               </button>
               <button mat-stroked-button class="w-full !border-white/30 !text-white !py-8 !rounded-2xl !font-black !text-sm" (click)="message()">
@@ -202,6 +202,18 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   `,
   styles: [`
     :host { display: block; }
+    
+    @media (max-width: 768px) {
+      .text-4xl { font-size: 2.25rem !important; }
+      .text-3xl { font-size: 1.75rem !important; }
+      .p-10 { padding: 1.5rem !important; }
+      .gap-10 { gap: 1.5rem !important; }
+      .w-40 { width: 8rem !important; height: 8rem !important; }
+      .grid-cols-3 { grid-cols-1 !important; gap: 1rem !important; }
+      .col-span-12.lg\\:col-span-4.space-y-8 {
+        margin-top: 2rem !important;
+      }
+    }
   `]
 })
 export class ClientWorkerProfilePage {
@@ -223,9 +235,9 @@ export class ClientWorkerProfilePage {
   ];
 
   certs = [
-    { name: 'AWS Solutions Architect', issuer: 'Professional', year: '2023', icon: 'cloud' },
-    { name: 'Google Cloud Engineer', issuer: 'Professional', year: '2022', icon: 'storage' },
-    { name: 'CKA: Kubernetes Admin', issuer: 'CNCF', year: '2021', icon: 'architecture' }
+    { name: 'NCA Master License', issuer: 'Gov Compliance', year: '2023', icon: 'verified_user' },
+    { name: 'Safety First Certification', issuer: 'Red Cross', year: '2022', icon: 'health_and_safety' },
+    { name: 'Trade Skill Master', issuer: 'Polytechnic', year: '2021', icon: 'construction' }
   ];
 
   history = [

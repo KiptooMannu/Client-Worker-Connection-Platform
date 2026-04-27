@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,6 +15,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
   standalone: true,
   imports: [
     CommonModule, 
+    RouterLink,
     MatCardModule, 
     MatButtonModule, 
     MatIconModule, 
@@ -49,10 +51,10 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
             <p class="text-4xl font-black text-slate-900 tracking-tighter">$\{{ totalSpent }}</p>
             <p class="text-xs text-slate-500 font-medium mt-2">Fiscal year 2026</p>
         </mat-card>
-        <mat-card class="!rounded-3xl !bg-blue-600 !text-white !shadow-xl !p-8">
-            <p class="text-[10px] font-black text-blue-100 uppercase tracking-widest mb-2">Pending Requests</p>
+        <mat-card class="!rounded-3xl !bg-indigo-900 !text-white !shadow-xl !p-8">
+            <p class="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-2">Pending Requests</p>
             <p class="text-4xl font-black text-white tracking-tighter">{{ pendingCount }}</p>
-            <p class="text-xs text-blue-200 font-medium mt-2">Awaiting worker response</p>
+            <p class="text-xs text-indigo-200 font-medium mt-2">Awaiting worker response</p>
         </mat-card>
       </div>
 
@@ -66,9 +68,9 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
           <!-- Worker Column -->
           <ng-container matColumnDef="worker">
             <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Professional</th>
-            <td mat-cell *matCellDef="let booking">
+            <td mat-cell *matCellDef="let booking" data-label="Professional">
               <div class="flex items-center gap-4 py-6">
-                <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-700 font-black text-[11px] uppercase border border-blue-100 shadow-sm">{{ booking.workerInitials }}</div>
+                <div class="h-10 w-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-700 font-black text-[11px] uppercase border border-indigo-100 shadow-sm">{{ booking.workerInitials }}</div>
                 <div>
                   <p class="text-sm font-black text-slate-900 leading-tight">{{ booking.workerName }}</p>
                   <p class="text-[10px] text-slate-400 font-black uppercase mt-1">{{ booking.service }}</p>
@@ -80,19 +82,19 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
           <!-- Date Column -->
           <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Date</th>
-            <td mat-cell *matCellDef="let booking" class="text-sm font-bold text-slate-500">{{ booking.date }}</td>
+            <td mat-cell *matCellDef="let booking" data-label="Date" class="text-sm font-bold text-slate-500">{{ booking.date }}</td>
           </ng-container>
 
           <!-- Cost Column -->
           <ng-container matColumnDef="cost">
             <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Cost</th>
-            <td mat-cell *matCellDef="let booking" class="text-sm font-black text-slate-900">$\{{ booking.earnings }}</td>
+            <td mat-cell *matCellDef="let booking" data-label="Cost" class="text-sm font-black text-slate-900">$\{{ booking.earnings }}</td>
           </ng-container>
 
           <!-- Status Column -->
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Status</th>
-            <td mat-cell *matCellDef="let booking" class="text-right">
+            <td mat-cell *matCellDef="let booking" data-label="Status" class="text-right">
               <span class="inline-block px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" 
                     [ngClass]="getStatusClasses(booking.status)">
                 {{ booking.status }}
@@ -115,7 +117,40 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
       </mat-card>
     </div>
   `,
-  styles: [`:host { display: block; }`]
+  styles: [`
+    :host { display: block; }
+    
+    @media (max-width: 768px) {
+      .text-5xl { font-size: 2.5rem !important; }
+      .p-8, .p-20 { padding: 1.5rem !important; }
+      .grid-cols-3 { grid-template-columns: 1fr !important; }
+      
+      /* Mobile Table Handling */
+      .mat-mdc-table { display: block; }
+      .mat-mdc-header-row { display: none; }
+      .mat-mdc-row {
+        display: flex;
+        flex-direction: column;
+        padding: 1.5rem;
+        border-bottom: 1px solid #f1f5f9;
+        height: auto !important;
+      }
+      .mat-mdc-cell {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.5rem 0 !important;
+        border: none !important;
+        text-align: left !important;
+      }
+      .mat-mdc-cell::before {
+        content: attr(data-label);
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 10px;
+        color: #64748b;
+      }
+    }
+  `]
 })
 export class ClientBookingsPage {
   state = inject(PlatformStateService);

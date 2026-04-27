@@ -37,20 +37,20 @@ import { NavbarComponent } from '../../shared/components/navbar';
             
             <mat-nav-list class="!p-0 space-y-2">
               <a mat-list-item routerLink="dashboard" routerLinkActive="active-link" class="!rounded-2xl group cursor-pointer">
-                <mat-icon matListItemIcon class="group-[.active-link]:!text-blue-600 transition-colors">dashboard</mat-icon>
-                <div matListItemTitle class="text-sm font-black text-slate-600 group-[.active-link]:!text-blue-700">Platform Overview</div>
+                <mat-icon matListItemIcon class="group-[.active-link]:!text-indigo-600 transition-colors">dashboard</mat-icon>
+                <div matListItemTitle class="text-sm font-black text-slate-600 group-[.active-link]:!text-indigo-700">Platform Overview</div>
               </a>
               <a mat-list-item routerLink="verification" routerLinkActive="active-link" class="!rounded-2xl group cursor-pointer">
-                <mat-icon matListItemIcon class="group-[.active-link]:!text-blue-600 transition-colors">fact_check</mat-icon>
-                <div matListItemTitle class="text-sm font-black text-slate-600 group-[.active-link]:!text-blue-700">Verification Queue</div>
+                <mat-icon matListItemIcon class="group-[.active-link]:!text-indigo-600 transition-colors">fact_check</mat-icon>
+                <div matListItemTitle class="text-sm font-black text-slate-600 group-[.active-link]:!text-indigo-700">Verification Queue</div>
               </a>
               <a mat-list-item routerLink="users" routerLinkActive="active-link" class="!rounded-2xl group cursor-pointer">
-                <mat-icon matListItemIcon class="group-[.active-link]:!text-blue-600 transition-colors">group</mat-icon>
-                <div matListItemTitle class="text-sm font-black text-slate-600 group-[.active-link]:!text-blue-700">User Management</div>
+                <mat-icon matListItemIcon class="group-[.active-link]:!text-indigo-600 transition-colors">group</mat-icon>
+                <div matListItemTitle class="text-sm font-black text-slate-600 group-[.active-link]:!text-indigo-700">User Management</div>
               </a>
               <a mat-list-item routerLink="activity" routerLinkActive="active-link" class="!rounded-2xl group cursor-pointer">
-                <mat-icon matListItemIcon class="group-[.active-link]:!text-blue-600 transition-colors">history_edu</mat-icon>
-                <div matListItemTitle class="text-sm font-black text-slate-600 group-[.active-link]:!text-blue-700">System Activity</div>
+                <mat-icon matListItemIcon class="group-[.active-link]:!text-indigo-600 transition-colors">history_edu</mat-icon>
+                <div matListItemTitle class="text-sm font-black text-slate-600 group-[.active-link]:!text-indigo-700">System Activity</div>
               </a>
             </mat-nav-list>
           </div>
@@ -64,7 +64,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
                   <mat-icon>menu</mat-icon>
                 </button>
               }
-              <div class="bg-blue-600 px-6 py-3 rounded-2xl shadow-xl shadow-blue-900/20 flex items-center gap-3">
+              <div class="bg-indigo-900 px-6 py-3 rounded-2xl shadow-xl shadow-indigo-900/20 flex items-center gap-3">
                 <mat-icon class="!text-white !text-sm !w-auto !h-auto">security</mat-icon>
                 <span class="text-[10px] font-black text-white uppercase tracking-widest">Admin Control</span>
               </div>
@@ -79,7 +79,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
     </div>
   `,
   styles: [`
-    .active-link { background: #f0f7ff !important; }
+    .active-link { background: #f5f3ff !important; }
     :host { display: block; }
   `]
 })

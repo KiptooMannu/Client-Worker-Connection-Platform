@@ -1,5 +1,6 @@
 import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterLink, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,7 +15,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   selector: 'app-worker-verification',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
+    RouterLink,
     MatCardModule, 
     MatButtonModule, 
     MatIconModule, 
@@ -50,17 +52,17 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       }
 
       <!-- Security Banner -->
-      <mat-card class="!rounded-3xl !bg-slate-900 !text-white !shadow-2xl overflow-hidden !border !border-blue-500/20">
+      <mat-card class="!rounded-3xl !bg-slate-800 !text-white !shadow-2xl overflow-hidden !border !border-slate-700">
         <mat-card-content class="!p-10 flex items-center gap-8 relative">
           <div class="absolute right-0 top-0 opacity-10 pointer-events-none transform translate-x-1/4 -translate-y-1/4">
             <mat-icon class="!text-[160px] !w-auto !h-auto">encrypted</mat-icon>
           </div>
-          <div class="flex-shrink-0 bg-blue-600/20 p-6 rounded-3xl border border-blue-500/30">
-            <mat-icon class="!text-blue-400 !text-5xl !w-auto !h-auto">lock</mat-icon>
+          <div class="flex-shrink-0 bg-slate-700 p-6 rounded-3xl border border-slate-600">
+            <mat-icon class="!text-slate-400 !text-5xl !w-auto !h-auto">lock</mat-icon>
           </div>
           <div class="relative z-10">
-            <h3 class="text-2xl font-black mb-3 tracking-tight">Secure Document Handling</h3>
-            <p class="text-slate-400 text-sm max-w-2xl leading-relaxed font-medium">Your privacy is our priority. All uploaded documents are strictly encrypted using <strong class="text-white">AES-256 standards</strong>. Data is stored on disconnected secure servers and is only used for compliance verification.</p>
+            <h3 class="text-2xl font-black mb-3 tracking-tight text-white">Secure Document Handling</h3>
+            <p class="text-slate-300 text-sm max-w-2xl leading-relaxed font-medium">Your privacy is our priority. All uploaded documents are strictly encrypted using <strong class="text-white">AES-256 standards</strong>. Data is stored on disconnected secure servers and is only used for compliance verification.</p>
           </div>
         </mat-card-content>
       </mat-card>
@@ -73,27 +75,28 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-10">
               <div class="flex items-center gap-4 mb-10">
                 <div class="p-3 bg-blue-50 text-blue-600 rounded-2xl"><mat-icon class="!w-6 !h-6">badge</mat-icon></div>
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Government ID</h2>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Identification Documents</h2>
               </div>
+              <p class="text-sm text-slate-500 mb-8 font-medium italic">Please upload a clear copy of your National ID or Passport for identity verification. This is mandatory for profile approval.</p>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div 
                   (click)="fileInputFront.click()"
                   class="border-2 border-dashed border-slate-200 rounded-3xl p-12 flex flex-col items-center justify-center text-center hover:border-blue-600 hover:bg-slate-50 transition-all cursor-pointer group">
-                  <input #fileInputFront type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Front')" class="hidden">
+                  <input #fileInputFront type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'Identification-Front')" class="hidden">
                   <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <mat-icon class="text-slate-400 group-hover:text-blue-600 !text-[32px] !w-auto !h-auto">upload_file</mat-icon>
                   </div>
-                  <p class="text-sm font-black text-slate-900 uppercase tracking-widest">Front Side</p>
+                  <p class="text-sm font-black text-slate-900 uppercase tracking-widest">ID Front Side</p>
                   <p class="text-[10px] text-slate-400 mt-2 font-black uppercase">PNG, JPG, PDF UP TO 10MB</p>
                 </div>
                 <div 
                   (click)="fileInputBack.click()"
                   class="border-2 border-dashed border-slate-200 rounded-3xl p-12 flex flex-col items-center justify-center text-center hover:border-blue-600 hover:bg-slate-50 transition-all cursor-pointer group">
-                  <input #fileInputBack type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Back')" class="hidden">
+                  <input #fileInputBack type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'Identification-Back')" class="hidden">
                   <div class="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <mat-icon class="text-slate-400 group-hover:text-blue-600 !text-[32px] !w-auto !h-auto">upload_file</mat-icon>
                   </div>
-                  <p class="text-sm font-black text-slate-900 uppercase tracking-widest">Back Side</p>
+                  <p class="text-sm font-black text-slate-900 uppercase tracking-widest">ID Back Side</p>
                   <p class="text-[10px] text-slate-400 mt-2 font-black uppercase">PNG, JPG, PDF UP TO 10MB</p>
                 </div>
               </div>
@@ -139,8 +142,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                         <div matListItemIcon class="p-3 rounded-2xl" [ngClass]="getStatusClasses(file.status).bg">
                           <mat-icon class="!text-sm !w-auto !h-auto" [ngClass]="getStatusClasses(file.status).color">
                             @switch (file.status) {
-                              @case ('uploaded') { <span>hourglass_empty</span> }
-                              @case ('validating') { <span>history</span> }
+                              @case ('uploaded') { <span>check_circle</span> }
+                              @case ('validating') { <span>hourglass_empty</span> }
                               @case ('approved') { <span>check_circle</span> }
                               @case ('rejected') { <span>error</span> }
                             }
@@ -149,7 +152,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                         <div matListItemTitle class="flex justify-between items-start w-full">
                           <div class="min-w-0 pr-4 flex-1">
                             <p class="text-xs font-black text-slate-900 truncate">{{ file.name }}</p>
-                            <p class="text-[9px] text-slate-400 font-black uppercase mt-1">{{ file.type }} • {{ (file.file.size / 1024 / 1024).toFixed(1) }} MB</p>
+                            <p class="text-[9px] text-slate-400 font-black uppercase mt-1">{{ file.type }} • {{ (file.file?.size / 1024 / 1024 || 0).toFixed(1) }} MB</p>
                             <mat-chip class="!min-h-0 !p-0 !mt-3 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest" [ngClass]="getStatusClasses(file.status).bg + ' ' + getStatusClasses(file.status).color">
                               {{ file.status | titlecase }}
                             </mat-chip>
@@ -211,18 +214,31 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         </mat-card>
       }
     </div>
-  `
+  `,
+  styles: [`
+    :host { display: block; }
+    
+    @media (max-width: 768px) {
+      .text-5xl { font-size: 2.25rem !important; }
+      .text-4xl { font-size: 1.75rem !important; }
+      .p-10 { padding: 1.5rem !important; }
+      .p-20 { padding: 2rem !important; }
+      .gap-8 { gap: 1rem !important; }
+      .w-32 { width: 5rem !important; height: 5rem !important; }
+      .rounded-[3rem] { border-radius: 1.5rem !important; }
+    }
+  `]
 })
 export class WorkerVerificationPage {
   state = inject(PlatformStateService);
   private snackBar = inject(MatSnackBar);
+  private router = inject(Router);
 
   get workerStatus() {
     return this.state.currentWorker().status;
   }
 
   get rejectionReason() {
-    // Cast to any to prevent strict template IDE errors if language server is stale
     return (this.state.currentWorker() as any).rejectionReason;
   }
 
@@ -232,7 +248,7 @@ export class WorkerVerificationPage {
 
   getStatusClasses(status: string) {
     const statusMap: { [key: string]: { bg: string; color: string } } = {
-      'uploaded': { bg: 'bg-slate-50', color: 'text-slate-500' },
+      'uploaded': { bg: 'bg-teal-50', color: 'text-teal-700' },
       'validating': { bg: 'bg-amber-50', color: 'text-amber-800' },
       'approved': { bg: 'bg-teal-50', color: 'text-teal-700' },
       'rejected': { bg: 'bg-red-50', color: 'text-red-700' }
@@ -241,62 +257,36 @@ export class WorkerVerificationPage {
   }
 
   get totalSize(): number {
-    return this.uploadedFiles().reduce((sum: number, f: any) => sum + (f.file.size / 1024 / 1024), 0);
+    return this.uploadedFiles().reduce((sum: number, f: any) => sum + (f.file?.size / 1024 / 1024 || 0), 0);
   }
 
-  onFileSelected(event: Event, type: string) {
+  async onFileSelected(event: Event, type: string) {
     const input = event.target as HTMLInputElement;
     if (!input.files) return;
 
     for (let i = 0; i < input.files.length; i++) {
       const file = input.files[i];
       
-      // Validate file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         this.snackBar.open('❌ File too large. Max 10MB allowed.', 'Close', { duration: 4000 });
         continue;
       }
 
-      // Validate file type
-      const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
-      if (!validTypes.includes(file.type)) {
-        this.snackBar.open('❌ Invalid file type. Use PNG, JPG, or PDF.', 'Close', { duration: 4000 });
-        continue;
-      }
-
-      const fileName = `${type}-${Date.now()}-${file.name}`;
       const newFile: any = { 
         name: file.name, 
-        file, 
         type, 
-        status: 'uploaded' as const,
-        error: undefined
+        status: 'uploaded',
+        url: URL.createObjectURL(file),
+        file: file
       };
 
       this.state.currentWorker.update(w => ({
         ...w,
         uploadedDocuments: [...(w.uploadedDocuments || []), newFile]
       }));
-      this.snackBar.open(`✓ ${file.name} uploaded successfully`, 'Close', { duration: 3000 });
-
-      // Simulate validation after 2 seconds
-      setTimeout(() => {
-        this.state.currentWorker.update(w => ({
-          ...w,
-          uploadedDocuments: (w.uploadedDocuments || []).map(f => f.name === file.name ? { ...f, status: 'validating' as any } : f)
-        }));
-      }, 1000);
-
-      // Simulate approval after 4 seconds
-      setTimeout(() => {
-        this.state.currentWorker.update(w => ({
-          ...w,
-          uploadedDocuments: (w.uploadedDocuments || []).map(f => f.name === file.name ? { ...f, status: 'approved' as any } : f)
-        }));
-      }, 3000);
+      
+      this.snackBar.open(`✓ ${file.name} attached successfully!`, 'Dismiss', { duration: 3000 });
     }
-
-    // Clear input
     input.value = '';
   }
 
@@ -309,7 +299,6 @@ export class WorkerVerificationPage {
   }
 
   dismissRejection() {
-    // Clear rejection reason from display
     this.state.currentWorker.update(w => ({...w, rejectionReason: undefined}));
   }
 
@@ -320,16 +309,15 @@ export class WorkerVerificationPage {
     }
 
     if (this.uploadedFiles().length === 0) {
-      this.snackBar.open('❌ Please upload at least one document before submitting.', 'Close', { duration: 4000 });
+      this.snackBar.open('❌ Please upload at least one document.', 'Close', { duration: 4000 });
       return;
     }
     
     if (this.state.currentWorker().status === 'Rejected') {
       this.state.resubmitWorker(this.state.currentWorker().id);
-      this.snackBar.open('✓ Application resubmitted successfully', 'Close', { duration: 4000 });
     } else {
       this.state.submitForVerification();
-      this.snackBar.open('✓ Application submitted successfully! Please wait for Admin approval.', 'Great', { 
+      this.snackBar.open('✓ Application submitted!', 'Great', { 
         duration: 5000,
         panelClass: ['!bg-teal-900', '!text-white', '!rounded-2xl']
       });

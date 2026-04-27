@@ -2,6 +2,19 @@ import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angu
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService } from './auth.service';
 
+export interface WorkHistory {
+  company: string;
+  role: string;
+  period: string;
+  description: string;
+}
+
+export interface Certification {
+  name: string;
+  issuer: string;
+  year: string;
+}
+
 export interface WorkerProfile {
   id: string;
   name: string;
@@ -16,13 +29,22 @@ export interface WorkerProfile {
   skills: string[];
   bio: string;
   rejectionReason?: string;
-  uploadedDocuments?: { name: string; file: File; type: string; status: 'uploaded' | 'validating' | 'approved' | 'rejected'; error?: string }[];
+  uploadedDocuments?: { name: string; file?: File; type: string; status: 'uploaded' | 'validating' | 'approved' | 'rejected'; error?: string }[];
   isAvailable: boolean;
+  location: string;
+  preferredLocations: string[];
+  workHistory: WorkHistory[];
+  certifications: Certification[];
+  availabilityDetails: {
+    weekdays: boolean;
+    weekends: boolean;
+    evenings: boolean;
+  };
 }
 
 export interface Notification {
   id: string;
-  userId?: string; // Target specific user
+  userId?: string;
   title: string;
   message: string;
   time: string;
@@ -91,12 +113,12 @@ export interface ClientProfile {
 })
 export class PlatformStateService {
   private initialWorkers: WorkerProfile[] = [
-    { 
-      id: 'w1', 
-      name: 'John Kamau', 
-      initials: 'JK', 
-      email: 'john.k@worker.com', 
-      category: 'Master Plumber', 
+    {
+      id: 'w1',
+      name: 'John Kamau',
+      initials: 'JK',
+      email: 'john.k@worker.com',
+      category: 'Plumber',
       status: 'Verified',
       rate: 15,
       rating: 4.8,
@@ -104,14 +126,19 @@ export class PlatformStateService {
       skills: ['Pipe Fitting', 'Water Heater Repair', 'Drain Cleaning'],
       bio: 'Experienced plumber serving the local community for over 10 years. Fast, reliable, and affordable.',
       isAvailable: true,
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=200&auto=format&fit=crop'
+      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=200&auto=format&fit=crop',
+      location: 'Nairobi',
+      preferredLocations: ['Westlands', 'Kilimani'],
+      workHistory: [{ company: 'City Plumbers', role: 'Lead Plumber', period: '2015 - 2022', description: 'Handled residential and commercial repairs.' }],
+      certifications: [{ name: 'Master Plumbing License', issuer: 'NCA', year: '2014' }],
+      availabilityDetails: { weekdays: true, weekends: true, evenings: false }
     },
-    { 
-      id: 'w2', 
-      name: 'Grace Wanjiku', 
-      initials: 'GW', 
-      email: 'grace.w@worker.com', 
-      category: 'Professional Cleaner', 
+    {
+      id: 'w2',
+      name: 'Grace Wanjiku',
+      initials: 'GW',
+      email: 'grace.w@worker.com',
+      category: 'Cleaner',
       status: 'Verified',
       rate: 10,
       rating: 5.0,
@@ -119,14 +146,19 @@ export class PlatformStateService {
       skills: ['Deep Cleaning', 'Office Cleaning', 'Laundry'],
       bio: 'Detail-oriented cleaner providing spotless results for homes and small businesses.',
       isAvailable: true,
-      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=200&auto=format&fit=crop'
+      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=200&auto=format&fit=crop',
+      location: 'Mombasa',
+      preferredLocations: ['Nyali', 'Bamburi'],
+      workHistory: [{ company: 'Sparkle Clean', role: 'Cleaning Supervisor', period: '2018 - 2023', description: 'Managed a team of 5 cleaners.' }],
+      certifications: [{ name: 'Industrial Cleaning Cert', issuer: 'Kenyatta Univ', year: '2017' }],
+      availabilityDetails: { weekdays: true, weekends: false, evenings: true }
     },
-    { 
-      id: 'w3', 
-      name: 'Samuel Ochieng', 
-      initials: 'SO', 
-      email: 'sam.o@worker.com', 
-      category: 'Electrician', 
+    {
+      id: 'w3',
+      name: 'Samuel Ochieng',
+      initials: 'SO',
+      email: 'sam.o@worker.com',
+      category: 'Electrician',
       status: 'Verified',
       rate: 18,
       rating: 4.9,
@@ -134,19 +166,36 @@ export class PlatformStateService {
       skills: ['Wiring', 'Fault Finding', 'Panel Upgrades'],
       bio: 'Certified electrician specializing in residential wiring and quick emergency repairs.',
       isAvailable: true,
-      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=200&auto=format&fit=crop'
+      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=200&auto=format&fit=crop',
+      location: 'Kisumu',
+      preferredLocations: ['Milimani', 'Kondele'],
+      workHistory: [{ company: 'Power Grid Ltd', role: 'Technician', period: '2010 - 2019', description: 'Maintained substation components.' }],
+      certifications: [{ name: 'Class A Electrician', issuer: 'EPRA', year: '2010' }],
+      availabilityDetails: { weekdays: true, weekends: true, evenings: true }
     },
-    { id: 'p1', name: 'Peter Njoroge', initials: 'PN', email: 'peter.n@worker.com', category: 'Mechanic', status: 'Priority', rate: 20, rating: 0, reviews: 0, skills: ['Engine Repair'], bio: 'Specialist in all car models.', isAvailable: true, 
+    {
+      id: 'p1', name: 'Peter Njoroge', initials: 'PN', email: 'peter.n@worker.com', category: 'Mechanic', status: 'Priority', rate: 20, rating: 0, reviews: 0, skills: ['Engine Repair'], bio: 'Specialist in all car models.', isAvailable: true,
+      location: 'Nairobi',
+      preferredLocations: ['Industrial Area', 'South B'],
+      workHistory: [],
+      certifications: [],
+      availabilityDetails: { weekdays: true, weekends: true, evenings: false },
       uploadedDocuments: [
-        { name: 'Mechanic Certificate', status: 'uploaded' } as any,
-        { name: 'National ID', status: 'uploaded' } as any
-      ] 
+        { name: 'Mechanic Certificate', status: 'uploaded', type: 'Certification' },
+        { name: 'National ID', status: 'uploaded', type: 'Identification' }
+      ]
     },
-    { id: 'p2', name: 'Mary Atieno', initials: 'MA', email: 'mary.a@worker.com', category: 'Farm Worker', status: 'Pending', rate: 8, rating: 0, reviews: 0, skills: ['Harvesting', 'Planting'], bio: 'Hardworking farm assistant.', isAvailable: true, 
+    {
+      id: 'p2', name: 'Mary Atieno', initials: 'MA', email: 'mary.a@worker.com', category: 'Farm Worker', status: 'Pending', rate: 8, rating: 0, reviews: 0, skills: ['Harvesting', 'Planting'], bio: 'Hardworking farm assistant.', isAvailable: true,
       image: 'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?q=80&w=200&auto=format&fit=crop',
+      location: 'Nakuru',
+      preferredLocations: ['Njoro', 'Molo'],
+      workHistory: [],
+      certifications: [],
+      availabilityDetails: { weekdays: true, weekends: true, evenings: false },
       uploadedDocuments: [
-        { name: 'Reference Letter', status: 'uploaded' } as any,
-        { name: 'National ID', status: 'uploaded' } as any
+        { name: 'Reference Letter', status: 'uploaded', type: 'Work History' },
+        { name: 'National ID', status: 'uploaded', type: 'Identification' }
       ]
     }
   ];
@@ -161,7 +210,7 @@ export class PlatformStateService {
   bookings = signal<Booking[]>([
     { id: 'b1', clientId: 'c1', clientName: 'James Mutua', clientInitials: 'JM', workerId: 'w1', workerName: 'John Kamau', workerInitials: 'JK', service: 'Plumbing Repair', date: 'Oct 24, 2026', earnings: 45, rating: 5, status: 'Approved' }
   ]);
-  
+
   chats = signal<Chat[]>([
     {
       id: 'c1',
@@ -180,7 +229,7 @@ export class PlatformStateService {
       ]
     }
   ]);
-  
+
   currentWorker = signal<WorkerProfile>({
     id: 'dw1',
     name: 'Kevin Omondi',
@@ -193,7 +242,12 @@ export class PlatformStateService {
     reviews: 0,
     isAvailable: true,
     skills: ['Brake Replacement'],
-    bio: 'Automotive mechanic.'
+    bio: 'Automotive mechanic.',
+    location: 'Nairobi',
+    preferredLocations: ['Westlands'],
+    workHistory: [],
+    certifications: [],
+    availabilityDetails: { weekdays: true, weekends: false, evenings: false }
   });
 
   currentClient = signal<ClientProfile | null>(null);
@@ -205,11 +259,11 @@ export class PlatformStateService {
     if (isPlatformBrowser(this.platformId)) {
       this.loadState();
     }
-    
+
     // Sync with Auth session
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
-      
+
       const user = this.auth.currentUser();
       if (user) {
         if (user.role === 'Worker') {
@@ -224,14 +278,19 @@ export class PlatformStateService {
                 name: user.name,
                 initials: user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
                 email: user.email,
-                category: 'New Professional',
+                category: 'Plumber',
                 status: 'Draft',
                 rate: 0,
                 rating: 0,
                 reviews: 0,
                 isAvailable: true,
                 skills: [],
-                bio: ''
+                bio: '',
+                location: '',
+                preferredLocations: [],
+                workHistory: [],
+                certifications: [],
+                availabilityDetails: { weekdays: true, weekends: false, evenings: false }
               });
             }
           }
@@ -309,18 +368,31 @@ export class PlatformStateService {
   currentWorkerCompletion = computed(() => {
     const w = this.currentWorker();
     let score = 0;
-    if (w.name) score += 20;
-    if (w.email) score += 20;
-    if (w.category) score += 20;
-    if (w.bio) score += 20;
-    if (w.skills && w.skills.length > 0) score += 20;
-    return score;
+    
+    // Core Identity (40%)
+    if (w.name) score += 10;
+    if (w.email) score += 10;
+    if (w.category) score += 10;
+    if (w.location) score += 10;
+
+    // Professional Details (40%)
+    if (w.bio) score += 10;
+    if (w.skills && w.skills.length > 0) score += 10;
+    if (w.workHistory && w.workHistory.length > 0) score += 10;
+    if (w.certifications && w.certifications.length > 0) score += 10;
+
+    // Verification Documents (20%)
+    const docs = w.uploadedDocuments || [];
+    const hasID = docs.some(d => d.type.toLowerCase().includes('identification'));
+    if (hasID) score += 20;
+
+    return Math.min(score, 100);
   });
 
   approveWorker(id: string) {
     if (id === this.currentWorker().id) {
-       this.currentWorker.update(w => ({ ...w, status: 'Verified' }));
-       this.addNotification('Account Verified!', 'Your professional profile is now live in the marketplace.', 'success', id);
+      this.currentWorker.update(w => ({ ...w, status: 'Verified' }));
+      this.addNotification('Account Verified!', 'Your professional profile is now live in the marketplace.', 'success', id);
     }
     this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Verified' } : w));
     this.addActivityLog(id, 'approved');
@@ -328,8 +400,8 @@ export class PlatformStateService {
 
   rejectWorker(id: string, reason: string = '') {
     if (id === this.currentWorker().id) {
-       this.currentWorker.update(w => ({ ...w, status: 'Rejected', rejectionReason: reason }));
-       this.addNotification('Action Required', `Your verification was rejected: ${reason || 'Please review and resubmit.'}`, 'warning', id);
+      this.currentWorker.update(w => ({ ...w, status: 'Rejected', rejectionReason: reason }));
+      this.addNotification('Action Required', `Your verification was rejected: ${reason || 'Please review and resubmit.'}`, 'warning', id);
     }
     this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Rejected', rejectionReason: reason } : w));
     this.addActivityLog(id, 'rejected', reason);
@@ -337,8 +409,8 @@ export class PlatformStateService {
 
   resubmitWorker(id: string) {
     if (id === this.currentWorker().id) {
-       this.currentWorker.update(w => ({ ...w, status: 'Pending', rejectionReason: undefined }));
-       this.addNotification('Application Resubmitted', 'Your updated profile is now being reviewed by our administrators.', 'info', id);
+      this.currentWorker.update(w => ({ ...w, status: 'Pending', rejectionReason: undefined }));
+      this.addNotification('Application Resubmitted', 'Your updated profile is now being reviewed by our administrators.', 'info', id);
     }
     this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Pending', rejectionReason: undefined } : w));
     this.addActivityLog(id, 'resubmitted');
@@ -347,7 +419,7 @@ export class PlatformStateService {
   submitForVerification() {
     const worker = this.currentWorker();
     this.currentWorker.update(w => ({ ...w, status: 'Pending' }));
-    
+
     // Ensure worker is in the global list for Admins to see
     this.workers.update(prev => {
       const exists = prev.find(w => w.id === worker.id);
@@ -364,7 +436,7 @@ export class PlatformStateService {
   hireWorker(workerId: string) {
     const worker = this.workers().find(w => w.id === workerId);
     if (!worker) return;
-    
+
     const newBooking: Booking = {
       id: Math.random().toString(36).substring(7),
       clientId: 'c_current',
@@ -378,13 +450,13 @@ export class PlatformStateService {
       earnings: worker.rate * 4, // Mock 4 hours
       status: 'Pending'
     };
-    
+
     this.bookings.update(prev => [newBooking, ...prev]);
     this.addNotification('Hire Request Sent', `You have successfully sent a hire request to ${worker.name}.`, 'success', 'c_current');
   }
 
   acceptBooking(bookingId: string) {
-    this.bookings.update(prev => prev.map(b => 
+    this.bookings.update(prev => prev.map(b =>
       b.id === bookingId ? { ...b, status: 'Approved' } : b
     ));
     const booking = this.bookings().find(b => b.id === bookingId);
@@ -403,7 +475,7 @@ export class PlatformStateService {
   }
 
   toggleAvailability(workerId: string) {
-    this.workers.update(prev => prev.map(w => 
+    this.workers.update(prev => prev.map(w =>
       w.id === workerId ? { ...w, isAvailable: !w.isAvailable } : w
     ));
   }
@@ -422,7 +494,7 @@ export class PlatformStateService {
   startChat(workerId: string) {
     const worker = this.workers().find(w => w.id === workerId);
     if (!worker) return;
-    
+
     // Check if chat already exists
     const existing = this.chats().find(c => c.workerId === workerId);
     if (existing) {

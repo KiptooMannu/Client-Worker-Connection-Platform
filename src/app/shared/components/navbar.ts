@@ -24,10 +24,10 @@ import { PlatformStateService } from '../../core/services/platform-state.service
     <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm flex justify-between items-center px-6 md:px-12 h-20 w-full sticky top-0 z-50 backdrop-blur-md bg-white/90">
       <div class="flex items-center gap-12">
         <div class="flex items-center gap-3 cursor-pointer group" routerLink="/">
-          <div class="w-10 h-10 bg-[#041627] rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
+          <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
             <mat-icon>corporate_fare</mat-icon>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#041627]">ProMarket</span>
+          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">ProMarket</span>
         </div>
         
         <nav class="hidden md:flex items-center gap-8">
@@ -120,21 +120,21 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                </div>
              </mat-menu>
 
-             <button (click)="auth.logout()" class="bg-[#041627] text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 cursor-pointer">
+             <button (click)="auth.logout()" class="bg-[#0f172a] text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 cursor-pointer">
                 Log Out
              </button>
           </div>
         } @else {
           <div class="flex items-center gap-4">
             <button routerLink="/login" class="text-slate-600 font-black text-xs uppercase tracking-widest px-4 py-2 hover:text-[#041627] transition-colors cursor-pointer">Log In</button>
-            <button routerLink="/register" class="bg-[#041627] text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 cursor-pointer">Sign Up</button>
+            <button routerLink="/register" class="bg-[#0f172a] text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 cursor-pointer">Sign Up</button>
           </div>
         }
       </div>
     </header>
   `,
   styles: [`
-    .active-link { color: #041627 !important; border-bottom-color: #041627 !important; }
+    .active-link { color: #0f172a !important; border-bottom-color: #0f172a !important; }
     :host { display: block; width: 100%; }
   `]
 })

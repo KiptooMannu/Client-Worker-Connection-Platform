@@ -32,10 +32,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         <div class="p-8 border-b border-slate-50">
           <div class="flex items-center justify-between mb-8">
             <h2 class="text-3xl font-black text-slate-900 tracking-tighter">Messages</h2>
-            <button mat-icon-button class="!bg-blue-50 !text-blue-600 !rounded-xl"><mat-icon>edit_square</mat-icon></button>
+            <button mat-icon-button class="!bg-indigo-50 !text-indigo-600 !rounded-xl"><mat-icon>edit_square</mat-icon></button>
           </div>
           <div class="flex gap-2">
-            <span class="px-4 py-1.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full cursor-pointer shadow-lg shadow-blue-900/20">All</span>
+            <span class="px-4 py-1.5 bg-indigo-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full cursor-pointer shadow-lg shadow-indigo-900/20">All</span>
             <span class="px-4 py-1.5 bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-full cursor-pointer hover:bg-slate-100 transition-colors">Unread</span>
           </div>
         </div>
@@ -43,10 +43,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         <div class="flex-1 overflow-y-auto">
           @for (chat of state.chats(); track chat.id) {
             <div class="p-6 flex gap-4 cursor-pointer transition-all border-b border-slate-50 relative group"
-                 [ngClass]="chat.active ? 'bg-blue-50/50 border-r-4 border-blue-600' : 'hover:bg-slate-50/50'"
+                 [ngClass]="chat.active ? 'bg-indigo-50/50 border-r-4 border-indigo-600' : 'hover:bg-slate-50/50'"
                  (click)="selectChat(chat.id)">
               <div class="relative shrink-0">
-                <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm group-hover:scale-105 transition-transform bg-blue-50 text-blue-700 flex items-center justify-center font-black text-xl uppercase">
+                <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-sm group-hover:scale-105 transition-transform bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-xl uppercase">
                   @if (chat.image) {
                     <img [src]="chat.image" class="w-full h-full object-cover">
                   } @else {
@@ -60,11 +60,11 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <div class="flex-1 min-w-0">
                 <div class="flex justify-between items-baseline mb-1">
                   <h3 class="text-sm font-black text-slate-900 truncate">{{ chat.name }}</h3>
-                  <span class="text-[9px] font-black uppercase tracking-widest" [ngClass]="chat.active ? 'text-blue-600' : 'text-slate-400'">{{ chat.time }}</span>
+                  <span class="text-[9px] font-black uppercase tracking-widest" [ngClass]="chat.active ? 'text-indigo-600' : 'text-slate-400'">{{ chat.time }}</span>
                 </div>
                 <p class="text-xs text-slate-500 truncate font-medium">{{ chat.lastMessage }}</p>
                 @if (chat.unread) {
-                  <div class="absolute top-1/2 -translate-y-1/2 right-6 w-5 h-5 bg-blue-600 text-white text-[9px] font-black flex items-center justify-center rounded-full shadow-lg">
+                  <div class="absolute top-1/2 -translate-y-1/2 right-6 w-5 h-5 bg-indigo-600 text-white text-[9px] font-black flex items-center justify-center rounded-full shadow-lg">
                     {{ chat.unread }}
                   </div>
                 }
@@ -80,7 +80,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
           <!-- Chat Header -->
           <header class="h-20 px-10 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-sm bg-blue-50 flex items-center justify-center font-black text-blue-700 text-lg uppercase">
+              <div class="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-sm bg-indigo-50 flex items-center justify-center font-black text-indigo-700 text-lg uppercase">
                 @if (activeChat()?.image) {
                   <img [src]="activeChat()?.image" class="w-full h-full object-cover">
                 } @else {
@@ -96,8 +96,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button mat-icon-button class="!text-slate-400 hover:!text-blue-600"><mat-icon>videocam</mat-icon></button>
-            <button mat-icon-button class="!text-slate-400 hover:!text-blue-600"><mat-icon>call</mat-icon></button>
+            <button mat-icon-button class="!text-slate-400 hover:!text-indigo-600"><mat-icon>videocam</mat-icon></button>
+            <button mat-icon-button class="!text-slate-400 hover:!text-indigo-600"><mat-icon>call</mat-icon></button>
             <mat-divider vertical class="!h-6 !mx-2"></mat-divider>
             <button mat-icon-button class="!text-slate-400"><mat-icon>more_vert</mat-icon></button>
           </div>
@@ -122,7 +122,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               }
               <div class="max-w-2xl space-y-2">
                 <div class="p-6 rounded-[2rem] shadow-sm font-medium text-lg" 
-                     [ngClass]="msg.sent ? 'bg-blue-600 text-white rounded-br-none shadow-blue-900/10' : 'bg-white text-slate-700 rounded-bl-none'">
+                     [ngClass]="msg.sent ? 'bg-indigo-900 text-white rounded-br-none shadow-indigo-900/10' : 'bg-white text-slate-700 rounded-bl-none'">
                   <p>{{ msg.text }}</p>
                   @if (msg.attachment) {
                     <div class="mt-6 flex items-center gap-4 p-4 bg-black/10 rounded-2xl border border-white/10 cursor-pointer hover:bg-black/20 transition-all">
@@ -137,7 +137,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 </div>
                 <div class="flex items-center gap-2" [ngClass]="msg.sent ? 'justify-end' : ''">
                   <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ msg.time }}</span>
-                  @if (msg.sent) { <mat-icon class="!text-blue-600 !text-sm !w-auto !h-auto">done_all</mat-icon> }
+                  @if (msg.sent) { <mat-icon class="!text-indigo-600 !text-sm !w-auto !h-auto">done_all</mat-icon> }
                 </div>
               </div>
             </div>
@@ -149,12 +149,12 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
           <div class="max-w-5xl mx-auto flex items-center gap-4">
             <button mat-icon-button class="!text-slate-400 hover:!text-blue-600 transition-colors"><mat-icon>add_circle</mat-icon></button>
             <div class="flex-1 relative group">
-              <input class="w-full bg-slate-50 border border-slate-100 rounded-3xl px-8 py-5 text-lg font-medium focus:outline-none focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 transition-all" 
+              <input class="w-full bg-slate-50 border border-slate-100 rounded-3xl px-8 py-5 text-lg font-medium focus:outline-none focus:ring-4 focus:ring-indigo-600/5 focus:border-indigo-600 transition-all" 
                      [placeholder]="'Type a message to ' + (activeChat()?.name?.split(' ')?.[0] || 'them') + '...'"
                      [(ngModel)]="newMessage"
                      (keyup.enter)="send()">
             </div>
-            <button mat-fab color="primary" class="!rounded-2xl !shadow-2xl shadow-blue-900/30" (click)="send()" [disabled]="!newMessage.trim()">
+            <button mat-fab color="primary" class="!bg-indigo-900 !rounded-2xl !shadow-2xl shadow-indigo-900/30" (click)="send()" [disabled]="!newMessage.trim()">
               <mat-icon>send</mat-icon>
             </button>
           </div>
@@ -171,6 +171,19 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   `,
   styles: [`
     :host { display: block; }
+
+    @media (max-width: 768px) {
+      .h-\\[calc\\(100vh-200px\\)\\] { height: calc(100vh - 100px) !important; margin: -1rem !important; border-radius: 0 !important; }
+      .w-96 { width: 100% !important; display: none; }
+      :host-context(.sidebar-collapsed) .w-96 { display: block; } /* Mock behavior */
+      
+      .active-chat-open .w-96 { display: none !important; }
+      .active-chat-open main { display: flex !important; }
+      
+      main { width: 100% !important; }
+      .p-10 { padding: 1rem !important; }
+      .p-8 { padding: 1rem !important; }
+    }
   `]
 })
 export class ClientMessagesPage {

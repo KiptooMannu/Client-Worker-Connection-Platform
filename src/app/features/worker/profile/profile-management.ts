@@ -70,6 +70,9 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <mat-icon class="!text-sm">verified</mat-icon> Profile Verified
             </div>
           }
+          <button mat-flat-button color="primary" (click)="saveProfile()" class="!px-8 !py-6 !rounded-2xl !font-black !text-sm !shadow-xl shadow-blue-900/40">
+            <mat-icon>save</mat-icon> Save Profile
+          </button>
         </div>
       </div>
 
@@ -78,10 +81,15 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         <div class="col-span-12 lg:col-span-4 space-y-8">
           <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !overflow-hidden">
             <mat-card-content class="!p-8 text-center">
-              <div class="relative inline-block group mb-6">
-                <img class="w-40 h-40 rounded-full border-4 border-slate-50 shadow-2xl object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNa6H8lcicPMcBd2CL8FS4giFI4AQxRqB2xzs-iuz8dPD9zwg2aeh1dUonSYmMRiJxtfLrsg7qccTIvpPz4KTfjCho58Sy9-WC_w9O_MO7i0sAfdFVqMKHbmfP0zkXvQ-BhMfI9pdL9nLp7RAnDzthz2J_OK683jGwAJD4L67ZCQh131sjcUQ3LkFZJHdxQ6WVaGZiWHXYA74igT6jTbgAPJmf24IVmGESXqNrY6qYA78g0SgDtoufHz2yv8zUkXjIZMk5u1BnGk8">
+              <div class="relative inline-block group mb-6 cursor-pointer" (click)="avatarInput.click()">
+                <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
+                <div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
+                   <mat-icon class="!text-white">photo_camera</mat-icon>
+                </div>
+                @if (worker().image) { <img class="w-40 h-40 rounded-full border-4 border-slate-50 shadow-2xl object-cover" [src]="worker().image"> }
+                @else { <div class="w-40 h-40 rounded-full border-4 border-slate-50 shadow-2xl bg-blue-50 flex items-center justify-center text-5xl font-black text-blue-700">{{ worker().initials }}</div> }
               </div>
-              <h3 class="text-2xl font-black text-slate-900">David Harrison</h3>
+              <h3 class="text-2xl font-black text-slate-900">{{ worker().name }}</h3>
               <div class="flex items-center justify-center gap-2 mt-3">
                 @switch (status) {
                   @case ('Draft') {
@@ -138,40 +146,174 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <div class="space-y-6">
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Full Name</mat-label>
-                <input matInput [(ngModel)]="worker().name" placeholder="e.g. David Harrison">
+                <input matInput [(ngModel)]="form.name" name="name" placeholder="e.g. David Harrison">
               </mat-form-field>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <mat-form-field appearance="outline">
                   <mat-label>Primary Category</mat-label>
-                  <mat-select [(ngModel)]="worker().category">
-                    <mat-option value="Master Electrician">Master Electrician</mat-option>
-                    <mat-option value="Senior Plumber">Senior Plumber</mat-option>
-                    <mat-option value="General Labor">General Labor</mat-option>
+                  <mat-select [(ngModel)]="form.category" name="category">
+                    <mat-option value="Plumber">Plumber</mat-option>
+                    <mat-option value="Electrician">Electrician</mat-option>
+                    <mat-option value="Farm Worker">Farm Worker</mat-option>
+                    <mat-option value="Cleaner">Cleaner</mat-option>
+                    <mat-option value="Mechanic">Mechanic</mat-option>
+                    <mat-option value="General Laborer">General Laborer</mat-option>
                   </mat-select>
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                   <mat-label>Hourly Rate ($)</mat-label>
-                  <input matInput type="number" [(ngModel)]="worker().rate">
+                  <input matInput type="number" [(ngModel)]="form.rate" name="rate">
                 </mat-form-field>
               </div>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Professional Bio</mat-label>
-                <textarea matInput rows="4" [(ngModel)]="worker().bio" placeholder="Describe your experience and specialties..."></textarea>
+                <textarea matInput rows="4" [(ngModel)]="form.bio" name="bio" placeholder="Describe your experience and specialties..."></textarea>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Core Skills (Comma separated)</mat-label>
-                <input matInput [ngModel]="worker().skills.join(', ')" (ngModelChange)="updateSkills($event)" placeholder="e.g. Wiring, Repairs, Safety">
+                <input matInput [(ngModel)]="form.skills" name="skills" placeholder="e.g. Wiring, Repairs, Safety">
               </mat-form-field>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <mat-form-field appearance="outline">
+                  <mat-label>Primary Work Location</mat-label>
+                  <input matInput [(ngModel)]="form.location" name="location" placeholder="e.g. Nairobi">
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Preferred Job Locations (Comma separated)</mat-label>
+                  <input matInput [(ngModel)]="form.preferredLocations" name="preferredLocations" placeholder="e.g. Westlands, Kilimani">
+                </mat-form-field>
+              </div>
+            </div>
+          </mat-card>
+
+          <!-- Work History & Experience -->
+          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
+            <div class="flex justify-between items-center mb-6">
+              <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Work History & Experience</h4>
+              <button mat-button color="primary" (click)="addWorkHistory()" class="!font-black !text-[10px] !uppercase !tracking-widest">
+                <mat-icon class="!text-sm">add</mat-icon> Add Experience
+              </button>
+            </div>
+            <div class="space-y-6">
+              @for (work of form.workHistory; track $index) {
+                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative group/item">
+                  <button mat-icon-button (click)="removeWorkHistory($index)" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Company / Project</mat-label>
+                      <input matInput [(ngModel)]="work.company" placeholder="e.g. Self-Employed">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Role</mat-label>
+                      <input matInput [(ngModel)]="work.role" placeholder="e.g. Lead Plumber">
+                    </mat-form-field>
+                  </div>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Period</mat-label>
+                      <input matInput [(ngModel)]="work.period" placeholder="e.g. 2020 - 2023">
+                    </mat-form-field>
+                  </div>
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Description</mat-label>
+                    <textarea matInput rows="2" [(ngModel)]="work.description" placeholder="Describe your responsibilities..."></textarea>
+                  </mat-form-field>
+                </div>
+              }
+              @if (form.workHistory.length === 0) {
+                <p class="text-xs text-slate-400 italic text-center py-4">No work history added yet.</p>
+              }
+            </div>
+          </mat-card>
+
+          <!-- Certifications -->
+          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
+            <div class="flex justify-between items-center mb-6">
+              <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Professional Certifications</h4>
+              <button mat-button color="primary" (click)="addCertification()" class="!font-black !text-[10px] !uppercase !tracking-widest">
+                <mat-icon class="!text-sm">add</mat-icon> Add Certification
+              </button>
+            </div>
+            <div class="space-y-4">
+              @for (cert of form.certifications; track $index) {
+                <div class="flex flex-col md:flex-row gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 items-end group/cert">
+                  <mat-form-field appearance="outline" class="flex-1">
+                    <mat-label>Certificate Name</mat-label>
+                    <input matInput [(ngModel)]="cert.name">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="flex-1">
+                    <mat-label>Issuing Institution</mat-label>
+                    <input matInput [(ngModel)]="cert.issuer">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="w-24">
+                    <mat-label>Year</mat-label>
+                    <input matInput [(ngModel)]="cert.year">
+                  </mat-form-field>
+                  <button mat-icon-button (click)="removeCertification($index)" class="mb-4 text-slate-300 hover:text-red-500 opacity-0 group-hover/cert:opacity-100 transition-opacity">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+              }
+              @if (form.certifications.length === 0) {
+                <p class="text-xs text-slate-400 italic text-center py-4">No certifications added yet.</p>
+              }
+            </div>
+          </mat-card>
+
+          <!-- Availability Details -->
+          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
+            <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Detailed Availability</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div class="flex flex-col">
+                  <span class="text-xs font-black text-slate-900 uppercase">Weekdays</span>
+                  <span class="text-[10px] text-slate-500">Mon - Fri</span>
+                </div>
+                <mat-slide-toggle color="primary" [(ngModel)]="form.availabilityDetails.weekdays"></mat-slide-toggle>
+              </div>
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div class="flex flex-col">
+                  <span class="text-xs font-black text-slate-900 uppercase">Weekends</span>
+                  <span class="text-[10px] text-slate-500">Sat - Sun</span>
+                </div>
+                <mat-slide-toggle color="primary" [(ngModel)]="form.availabilityDetails.weekends"></mat-slide-toggle>
+              </div>
+              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div class="flex flex-col">
+                  <span class="text-xs font-black text-slate-900 uppercase">Evenings</span>
+                  <span class="text-[10px] text-slate-500">After 6 PM</span>
+                </div>
+                <mat-slide-toggle color="primary" [(ngModel)]="form.availabilityDetails.evenings"></mat-slide-toggle>
+              </div>
             </div>
           </mat-card>
         </div>
       </div>
     </div>
   `,
-  styles: [`:host { display: block; }`]
+  styles: [`
+    :host { display: block; }
+    
+    @media (max-width: 768px) {
+      .text-5xl { font-size: 2.25rem !important; }
+      .text-4xl { font-size: 1.75rem !important; }
+      .p-8 { padding: 1.5rem !important; }
+      .gap-8 { gap: 1rem !important; }
+      .w-40 { width: 8rem !important; height: 8rem !important; }
+      .flex-col.md\\:flex-row.justify-between.items-start.md\\:items-end.gap-6 {
+        align-items: stretch !important;
+      }
+      .flex.gap-3 {
+        flex-direction: column !important;
+      }
+    }
+  `]
 })
 export class WorkerProfilePage {
   private snackBar = inject(MatSnackBar);
@@ -190,29 +332,108 @@ export class WorkerProfilePage {
 
   worker = this.state.currentWorker;
 
-  updateSkills(val: string) {
-    const skills = val.split(',').map(s => s.trim()).filter(s => s.length > 0);
-    this.worker().skills = skills;
+  // Local form state
+  form = {
+    name: this.state.currentWorker().name,
+    category: this.state.currentWorker().category,
+    rate: this.state.currentWorker().rate,
+    bio: this.state.currentWorker().bio,
+    skills: this.state.currentWorker().skills.join(', '),
+    location: this.state.currentWorker().location,
+    preferredLocations: this.state.currentWorker().preferredLocations.join(', '),
+    workHistory: JSON.parse(JSON.stringify(this.state.currentWorker().workHistory)),
+    certifications: JSON.parse(JSON.stringify(this.state.currentWorker().certifications)),
+    availabilityDetails: { ...this.state.currentWorker().availabilityDetails }
+  };
+
+  async onAvatarSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.snackBar.open('⌛ Processing profile picture (Moving to backend)...', 'Wait', { duration: 2000 });
+
+    try {
+      // Create a local preview URL instead of uploading to Cloudinary
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const url = e.target?.result as string;
+        this.state.currentWorker.update(w => ({ ...w, image: url }));
+        this.snackBar.open('✓ Profile picture updated locally!', 'Dismiss', { duration: 3000 });
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      this.snackBar.open('❌ Local processing failed.', 'Dismiss', { duration: 5000 });
+    }
+  }
+
+  addWorkHistory() {
+    this.form.workHistory.push({ company: '', role: '', period: '', description: '' });
+  }
+
+  removeWorkHistory(index: number) {
+    this.form.workHistory.splice(index, 1);
+  }
+
+  addCertification() {
+    this.form.certifications.push({ name: '', issuer: '', year: '' });
+  }
+
+  removeCertification(index: number) {
+    this.form.certifications.splice(index, 1);
+  }
+
+  saveProfile() {
+    const skills = this.form.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+    const preferredLocations = this.form.preferredLocations.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
+    
+    this.state.currentWorker.update(w => ({
+      ...w,
+      name: this.form.name,
+      category: this.form.category,
+      rate: Number(this.form.rate),
+      bio: this.form.bio,
+      skills,
+      location: this.form.location,
+      preferredLocations,
+      workHistory: this.form.workHistory,
+      certifications: this.form.certifications,
+      availabilityDetails: this.form.availabilityDetails,
+      initials: this.form.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
+    }));
+    this.snackBar.open('✓ Profile saved successfully!', 'Dismiss', {
+      duration: 3000,
+      panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
+    });
   }
 
   submit() {
+    this.saveProfile();
+    if (this.state.currentWorkerCompletion() < 100) {
+      this.snackBar.open('❌ Please complete your profile details (100%) before submitting for review.', 'Dismiss', {
+        duration: 5000,
+        panelClass: ['!bg-red-900', '!text-white', '!rounded-2xl']
+      });
+      return;
+    }
     this.state.submitForVerification();
-    this.snackBar.open('Profile submitted to Admins for verification.', 'Dismiss', {
-      duration: 5000,
-      panelClass: ['bg-slate-900', 'text-white']
+    this.snackBar.open('✓ Application submitted successfully!', 'Great', {
+      duration: 4000,
+      panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
     });
   }
 
   resubmit() {
+    this.saveProfile();
     this.state.resubmitWorker(this.state.currentWorker().id);
     this.snackBar.open('✓ Profile resubmitted for review.', 'Dismiss', {
       duration: 5000,
-      panelClass: ['bg-slate-900', 'text-white']
+      panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
     });
   }
 
   goToDocuments() {
+    this.saveProfile();
     this.router.navigate(['/worker/verification']);
-    this.snackBar.open('Identity details saved. Please upload your documents.', 'Continue', { duration: 3000 });
   }
 }
