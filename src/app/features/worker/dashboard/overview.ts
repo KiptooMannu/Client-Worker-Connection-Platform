@@ -25,7 +25,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   template: `
     <div class="space-y-8 animate-in fade-in duration-700">
       <!-- Step-by-Step Progress Tracker -->
-      <mat-card class="!rounded-[2.5rem] !border !border-slate-100 !shadow-sm !p-10">
+      <mat-card class="premium-card !border !border-slate-100 !shadow-sm !p-10">
         <div class="flex justify-between items-center mb-10">
            <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Verification Progress</h3>
            <span class="text-xs font-black text-blue-600">{{ completionPercentage() }}% Complete</span>
@@ -55,7 +55,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       </mat-card>
 
       <!-- Status Hero Card -->
-      <mat-card class="!rounded-[2.5rem] overflow-hidden !border-none !shadow-2xl shadow-slate-200" 
+      <mat-card class="premium-card overflow-hidden !border-none !shadow-2xl shadow-slate-200" 
                 [ngClass]="worker().status === 'Verified' ? '!bg-emerald-700' : (worker().status === 'Pending' ? '!bg-slate-700' : '!bg-indigo-900')">
         <mat-card-content class="!p-10 text-white relative">
           <div class="flex flex-col md:flex-row items-center justify-between gap-8 relative z-10">
@@ -170,18 +170,6 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   `,
   styles: [`
     :host { display: block; }
-    
-    @media (max-width: 768px) {
-      .text-5xl { font-size: 2.5rem !important; }
-      .text-4xl { font-size: 2rem !important; }
-      .text-3xl { font-size: 1.75rem !important; }
-      .p-10 { padding: 1.5rem !important; }
-      .p-20 { padding: 2rem !important; }
-      .gap-8 { gap: 1rem !important; }
-      .w-32 { width: 5rem !important; height: 5rem !important; }
-      .rounded-[3rem] { border-radius: 1.5rem !important; }
-      .rounded-[2.5rem] { border-radius: 1.5rem !important; }
-    }
   `]
 })
 export class WorkerDashboardOverviewPage {

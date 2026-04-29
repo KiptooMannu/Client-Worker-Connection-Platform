@@ -61,7 +61,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
                 <div class="flex flex-wrap justify-center md:justify-start gap-6 text-slate-500 font-bold text-xs">
                   <div class="flex items-center gap-2">
-                    <mat-icon class="!text-slate-400 !text-lg">location_on</mat-icon> London, UK
+                    <mat-icon class="!text-slate-400 !text-lg">location_on</mat-icon> {{ worker()?.location || 'Not Specified' }}
                   </div>
                   <div class="flex items-center gap-2">
                     <mat-icon class="!text-slate-400 !text-lg">schedule</mat-icon> 9:45 AM local
@@ -117,26 +117,22 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
 
             <div class="space-y-10">
-              @for (job of history; track job.title) {
+              @for (job of displayHistory(); track $index) {
                 <div class="group cursor-pointer">
                   <div class="flex justify-between mb-2">
-                    <h4 class="text-lg font-black text-blue-600 group-hover:underline transition-all">{{ job.title }}</h4>
-                    <span class="text-sm font-black text-slate-900">{{ job.earned }}</span>
+                    <h4 class="text-lg font-black text-blue-600 group-hover:underline transition-all">{{ job.role }}</h4>
+                    <span class="text-sm font-black text-slate-900">{{ job.company }}</span>
                   </div>
                   <div class="flex items-center gap-1 mb-4">
-                    @for (s of [1,2,3,4,5]; track s) {
-                      <mat-icon class="!text-amber-500 !text-lg !w-auto !h-auto" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
-                    }
-                    <span class="ml-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ job.date }}</span>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ job.period }}</span>
                   </div>
-                  <p class="text-slate-600 font-medium italic text-lg leading-relaxed mb-4">"{{ job.feedback }}"</p>
-                  <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">— {{ job.client }}</p>
+                  <p class="text-slate-600 font-medium italic text-lg leading-relaxed mb-4">"{{ job.description }}"</p>
                   @if (!$last) { <mat-divider class="!mt-10 !border-slate-50"></mat-divider> }
                 </div>
               }
             </div>
             <button mat-stroked-button class="w-full !mt-12 !py-8 !rounded-2xl !border-slate-200 !text-blue-700 !font-black !text-[10px] !uppercase !tracking-widest">
-              View all 138 reviews
+              View all reviews
             </button>
           </mat-card>
         </div>
@@ -183,10 +179,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
           <mat-card class="!rounded-[2.5rem] !border !border-slate-100 !shadow-sm !p-10">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-10">Certifications</h3>
             <div class="space-y-8">
-              @for (c of certs; track c.name) {
+              @for (c of displayCerts(); track c.name) {
                 <div class="flex gap-4 items-center">
                   <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center border border-slate-100">
-                    <mat-icon class="!text-blue-600">{{ c.icon }}</mat-icon>
+                    <mat-icon class="!text-blue-600">workspace_premium</mat-icon>
                   </div>
                   <div>
                     <p class="text-sm font-black text-slate-900">{{ c.name }}</p>
@@ -202,18 +198,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   `,
   styles: [`
     :host { display: block; }
-    
-    @media (max-width: 768px) {
-      .text-4xl { font-size: 2.25rem !important; }
-      .text-3xl { font-size: 1.75rem !important; }
-      .p-10 { padding: 1.5rem !important; }
-      .gap-10 { gap: 1.5rem !important; }
-      .w-40 { width: 8rem !important; height: 8rem !important; }
-      .grid-cols-3 { grid-cols-1 !important; gap: 1rem !important; }
-      .col-span-12.lg\\:col-span-4.space-y-8 {
-        margin-top: 2rem !important;
-      }
-    }
+
   `]
 })
 export class ClientWorkerProfilePage {
@@ -228,33 +213,13 @@ export class ClientWorkerProfilePage {
     return (w && w.status === 'Verified') ? w : null;
   });
 
+  displayCerts = computed(() => this.worker()?.certifications || []);
+  displayHistory = computed(() => this.worker()?.workHistory || []);
+
   metrics = [
     { label: 'Job Success', value: 99 },
     { label: 'Client Recommendation', value: 100 },
     { label: 'On-Time Delivery', value: 96 }
-  ];
-
-  certs = [
-    { name: 'NCA Master License', issuer: 'Gov Compliance', year: '2023', icon: 'verified_user' },
-    { name: 'Safety First Certification', issuer: 'Red Cross', year: '2022', icon: 'health_and_safety' },
-    { name: 'Trade Skill Master', issuer: 'Polytechnic', year: '2021', icon: 'construction' }
-  ];
-
-  history = [
-    { 
-      title: 'Scalable Infrastructure for Neo-Bank Platform', 
-      earned: '$14,500.00', 
-      date: 'May 2023 - Oct 2023', 
-      feedback: 'Alexander is a top-tier professional. He re-architected our entire Kubernetes cluster and reduced our AWS bill by 35% while improving stability.', 
-      client: 'Marcus Thorne, CTO at FinFlow' 
-    },
-    { 
-      title: 'CI/CD Pipeline Security Audit', 
-      earned: '$3,200.00', 
-      date: 'Mar 2023 - Apr 2023', 
-      feedback: 'Prompt communication and deep technical expertise. Highly recommended for any complex devops task.', 
-      client: 'Sarah Chen, Dev Manager' 
-    }
   ];
 
   hire() {

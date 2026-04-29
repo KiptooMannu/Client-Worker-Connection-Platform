@@ -217,16 +217,6 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   `,
   styles: [`
     :host { display: block; }
-    
-    @media (max-width: 768px) {
-      .text-5xl { font-size: 2.25rem !important; }
-      .text-4xl { font-size: 1.75rem !important; }
-      .p-10 { padding: 1.5rem !important; }
-      .p-20 { padding: 2rem !important; }
-      .gap-8 { gap: 1rem !important; }
-      .w-32 { width: 5rem !important; height: 5rem !important; }
-      .rounded-[3rem] { border-radius: 1.5rem !important; }
-    }
   `]
 })
 export class WorkerVerificationPage {
@@ -272,20 +262,26 @@ export class WorkerVerificationPage {
         continue;
       }
 
-      const newFile: any = { 
-        name: file.name, 
-        type, 
-        status: 'uploaded',
-        url: URL.createObjectURL(file),
-        file: file
-      };
-
-      this.state.currentWorker.update(w => ({
-        ...w,
-        uploadedDocuments: [...(w.uploadedDocuments || []), newFile]
-      }));
-      
-      this.snackBar.open(`✓ ${file.name} attached successfully!`, 'Dismiss', { duration: 3000 });
+      const workerId = this.state.currentWorker().id;
+      this.state.uploadDocument(workerId, type, file.name, file).subscribe({
+        next: (doc) => {
+          this.state.currentWorker.update(w => ({
+            ...w,
+            uploadedDocuments: [...(w.uploadedDocuments || []), {
+              name: doc.name,
+              type: doc.type,
+              status: 'uploaded',
+              url: doc.documentUrl,
+              file: file
+            }]
+          }));
+          this.snackBar.open(`✓ ${file.name} uploaded successfully!`, 'Dismiss', { duration: 3000 });
+        },
+        error: (err) => {
+          console.error('Upload failed', err);
+          this.snackBar.open(`❌ Failed to upload ${file.name}`, 'Close', { duration: 4000 });
+        }
+      });
     }
     input.value = '';
   }

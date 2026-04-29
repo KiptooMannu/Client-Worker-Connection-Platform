@@ -351,20 +351,19 @@ export class WorkerProfilePage {
     if (!input.files || input.files.length === 0) return;
 
     const file = input.files[0];
-    this.snackBar.open('⌛ Processing profile picture (Moving to backend)...', 'Wait', { duration: 2000 });
+    this.snackBar.open('⌛ Uploading profile picture...', 'Wait', { duration: 2000 });
 
-    try {
-      // Create a local preview URL instead of uploading to Cloudinary
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const url = e.target?.result as string;
-        this.state.currentWorker.update(w => ({ ...w, image: url }));
-        this.snackBar.open('✓ Profile picture updated locally!', 'Dismiss', { duration: 3000 });
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      this.snackBar.open('❌ Local processing failed.', 'Dismiss', { duration: 5000 });
-    }
+    this.state.uploadProfilePicture(this.worker().id, file).subscribe({
+      next: (response: any) => {
+        const mapped = this.state.mapWorkerProfile(response);
+        this.state.currentWorker.set(mapped);
+        this.snackBar.open('✓ Profile picture updated!', 'Dismiss', { duration: 3000 });
+      },
+      error: (err: any) => {
+        console.error('Upload failed', err);
+        this.snackBar.open('❌ Upload failed. Please try again.', 'Dismiss', { duration: 5000 });
+      }
+    });
   }
 
   addWorkHistory() {
@@ -387,8 +386,7 @@ export class WorkerProfilePage {
     const skills = this.form.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
     const preferredLocations = this.form.preferredLocations.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
     
-    this.state.currentWorker.update(w => ({
-      ...w,
+    const updates: Partial<any> = {
       name: this.form.name,
       category: this.form.category,
       rate: Number(this.form.rate),
@@ -398,12 +396,26 @@ export class WorkerProfilePage {
       preferredLocations,
       workHistory: this.form.workHistory,
       certifications: this.form.certifications,
-      availabilityDetails: this.form.availabilityDetails,
-      initials: this.form.name.split(' ').map((n: string) => n[0]).join('').toUpperCase()
-    }));
-    this.snackBar.open('✓ Profile saved successfully!', 'Dismiss', {
-      duration: 3000,
-      panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
+      availabilityDetails: this.form.availabilityDetails
+    };
+
+    this.snackBar.open('⌛ Saving profile to server...', 'Wait', { duration: 2000 });
+
+    this.state.updateWorkerProfile(this.worker().id, updates).subscribe({
+      next: (response: any) => {
+        const mapped = this.state.mapWorkerProfile(response);
+        this.state.currentWorker.set(mapped);
+        this.snackBar.open('✓ Profile saved successfully!', 'Dismiss', {
+          duration: 3000,
+          panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
+        });
+      },
+      error: (err: any) => {
+        this.snackBar.open('❌ Failed to save profile. Please try again.', 'Close', {
+          duration: 5000,
+          panelClass: ['!bg-red-600', '!text-white', '!rounded-2xl']
+        });
+      }
     });
   }
 

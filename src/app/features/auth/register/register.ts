@@ -112,6 +112,7 @@ export class RegisterPage implements OnInit {
   private auth = inject(AuthService);
   private snackBar = inject(MatSnackBar);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
   
   name = '';
   email = '';
@@ -137,14 +138,25 @@ export class RegisterPage implements OnInit {
       });
       return;
     }
+    
     this.loading.set(true);
-    setTimeout(() => {
-      this.auth.register(this.name, this.email, this.role);
-      this.loading.set(false);
-      this.snackBar.open('Registration Successful! Welcome aboard.', 'Dismiss', {
-        duration: 4000,
-        panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
-      });
-    }, 1000);
+    this.auth.register(this.name, this.email, this.role, this.password).subscribe({
+      next: (response) => {
+        this.loading.set(false);
+        this.snackBar.open('Registration Successful! Please sign in.', 'Dismiss', {
+          duration: 4000,
+          panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
+        });
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        const errorMessage = typeof err.error === 'string' ? err.error : 'Registration failed. Please try again.';
+        this.snackBar.open(errorMessage, 'Close', {
+          duration: 5000,
+          panelClass: ['!bg-red-600', '!text-white', '!rounded-2xl']
+        });
+      }
+    });
   }
 }

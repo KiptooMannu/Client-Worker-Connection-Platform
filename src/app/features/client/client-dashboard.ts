@@ -77,7 +77,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
             </div>
           </div>
           <div class="flex items-end">
-            <button (click)="loadMore()" class="w-full bg-[#0f172a] text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-indigo-900/20">
+            <button (click)="performSearch()" class="w-full bg-[#0f172a] text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-indigo-900/20">
               Search Workers
             </button>
           </div>
@@ -88,7 +88,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
       <div class="grid grid-cols-12 gap-8">
         <!-- Sidebar Stats -->
         <aside class="hidden lg:block lg:col-span-3 space-y-8">
-          <div class="bg-slate-50 p-8 rounded-[2.5rem] border border-slate-100">
+          <div class="bg-slate-50 p-8 premium-card border border-slate-100">
             <h3 class="text-xl font-black text-slate-900 mb-6">Market Insights</h3>
             <ul class="space-y-6">
               <li class="flex items-center justify-between">
@@ -107,7 +107,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           </div>
           
           <!-- Featured Card -->
-          <div class="relative rounded-[2.5rem] overflow-hidden aspect-[3/4] group shadow-2xl">
+          <div class="relative premium-card overflow-hidden aspect-[3/4] group shadow-2xl">
             <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcuq8zz7T8AZVH5TUwgdKehTUJSSyK9AWXGyv-jPQDhzm-bkZwDvfewYuXfl_xGiiwZ7PEZESBpj9yrfCxL_rEGlEUVPGG8cCn3wXtYxM0C75JWAlipyFH3ufJXIgi1WvcW0sMTN5BRDI9xvnSjdncLYle9zQNe3CNoMlqwOAIfyAyFVDuFXvuOlZjEmN0P4VKGaaarZsOW3B0zhWuqvE1mtfjbj95EEvgu8ly7IpOFDnPZnHi5d0_1AclqEhGVz8bJdEdLN8vyTs">
             <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent flex flex-col justify-end p-8">
               <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Top Rated</p>
@@ -134,7 +134,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             @for (worker of filteredWorkers(); track worker.id) {
-              <div class="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-[0_4px_24px_rgba(4,22,39,0.04)] hover:shadow-[0_12px_48px_rgba(4,22,39,0.1)] transition-all group">
+              <div class="bg-white border border-slate-100 premium-card p-8 shadow-[0_4px_24px_rgba(4,22,39,0.04)] hover:shadow-[0_12px_48px_rgba(4,22,39,0.1)] transition-all group">
                 <div class="flex items-start justify-between mb-6">
                   <div class="flex items-center gap-5">
                     <div class="relative shrink-0">
@@ -270,7 +270,16 @@ export class ClientDashboardPage {
     });
   });
 
+  performSearch() {
+    this.snackBar.open('Searching for professionals...', 'Wait', { duration: 1500 });
+    this.state.fetchMarketplaceWorkers(
+      this.searchQuery() || undefined,
+      this.locationQuery() || undefined,
+      this.selectedExperience() === 'Senior' ? 5 : (this.selectedExperience() === 'Lead' ? 8 : (this.selectedExperience() === 'Master' ? 12 : undefined))
+    );
+  }
+
   loadMore() {
-    this.snackBar.open('Searching for more professionals...', 'Wait', { duration: 2000 });
+    this.performSearch();
   }
 }

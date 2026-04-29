@@ -1,6 +1,9 @@
 import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { AuthService } from './auth.service';
+import { AuthService, User } from './auth.service';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { Observable } from 'rxjs';
 
 export interface WorkHistory {
   company: string;
@@ -211,24 +214,7 @@ export class PlatformStateService {
     { id: 'b1', clientId: 'c1', clientName: 'James Mutua', clientInitials: 'JM', workerId: 'w1', workerName: 'John Kamau', workerInitials: 'JK', service: 'Plumbing Repair', date: 'Oct 24, 2026', earnings: 45, rating: 5, status: 'Approved' }
   ]);
 
-  chats = signal<Chat[]>([
-    {
-      id: 'c1',
-      workerId: 'w1',
-      name: 'John Kamau',
-      initials: 'JK',
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=200&auto=format&fit=crop',
-      lastMessage: 'I can come tomorrow morning to check the pipes.',
-      time: '10:45 AM',
-      active: true,
-      online: true,
-      messages: [
-        { id: 'm1', text: "Hello! My kitchen sink is leaking heavily. Are you available today?", time: '10:42 AM', sent: false },
-        { id: 'm2', text: "I'm currently on another job, but I can come tomorrow morning at 9 AM.", time: '10:44 AM', sent: true },
-        { id: 'm3', text: "That works for me. See you then.", time: '10:45 AM', sent: false }
-      ]
-    }
-  ]);
+  chats = signal<Chat[]>([]);
 
   currentWorker = signal<WorkerProfile>({
     id: 'dw1',
@@ -253,11 +239,14 @@ export class PlatformStateService {
   currentClient = signal<ClientProfile | null>(null);
 
   private auth = inject(AuthService);
+  private http = inject(HttpClient);
   private platformId = inject(PLATFORM_ID);
+  private apiUrl = environment.apiUrl;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadState();
+      this.fetchMarketplaceWorkers();
     }
 
     // Sync with Auth session
@@ -267,62 +256,208 @@ export class PlatformStateService {
       const user = this.auth.currentUser();
       if (user) {
         if (user.role === 'Worker') {
-          const current = this.currentWorker();
-          if (current.email !== user.email) {
-            const existing = this.workers().find(w => w.email === user.email);
-            if (existing) {
-              this.currentWorker.set(existing);
-            } else {
-              this.currentWorker.set({
-                id: 'w_' + Math.random().toString(36).substring(7),
-                name: user.name,
-                initials: user.name.split(' ').map(n => n[0]).join('').toUpperCase(),
-                email: user.email,
-                category: 'Plumber',
-                status: 'Draft',
-                rate: 0,
-                rating: 0,
-                reviews: 0,
-                isAvailable: true,
-                skills: [],
-                bio: '',
-                location: '',
-                preferredLocations: [],
-                workHistory: [],
-                certifications: [],
-                availabilityDetails: { weekdays: true, weekends: false, evenings: false }
-              });
-            }
-          }
+          this.fetchWorkerProfile(user.id);
         } else if (user.role === 'Client') {
-          const current = this.currentClient();
-          if (!current || current.email !== user.email) {
-            const existing = this.clients().find(c => c.email === user.email);
-            if (existing) {
-              this.currentClient.set(existing);
-            } else {
-              const newClient: ClientProfile = {
-                id: 'c_' + Math.random().toString(36).substring(7),
-                name: user.name,
-                email: user.email,
-                status: 'Active',
-                tier: 'Standard',
-                progress: 0
-              };
-              this.currentClient.set(newClient);
-              this.clients.update(prev => [newClient, ...prev]);
-            }
-          }
+          this.fetchClientProfile(user.id);
         }
-      }
-    }, { allowSignalWrites: true });
-
-    // Auto-save whenever signals change
-    effect(() => {
-      if (isPlatformBrowser(this.platformId)) {
-        this.saveState();
+        this.fetchNotifications(user.id);
+        this.fetchChats(user.id);
       }
     });
+  }
+
+  private fetchWorkerProfile(userId: string) {
+    this.http.get<any>(`${this.apiUrl}/workers/profile/${userId}`).subscribe({
+      next: (data) => {
+        const mapped = this.mapWorkerProfile(data);
+        this.currentWorker.set(mapped);
+      },
+      error: (err) => console.error('Error fetching worker profile', err)
+    });
+  }
+
+  fetchMarketplaceWorkers(skill?: string, location?: string, minExp?: number) {
+    let url = `${this.apiUrl}/marketplace/search`;
+    const params: string[] = [];
+    if (skill) params.push(`skill=${skill}`);
+    if (location) params.push(`location=${location}`);
+    if (minExp) params.push(`minExp=${minExp}`);
+
+    if (params.length > 0) url += `?${params.join('&')}`;
+
+    this.http.get<any[]>(url).subscribe({
+      next: (data) => {
+        const mapped = data.map(w => this.mapWorkerProfile(w));
+        // We merge with existing workers to keep current worker if present
+        const currentId = this.currentWorker().id;
+        const filtered = mapped.filter(w => w.id !== currentId);
+        this.workers.set([...filtered, this.currentWorker()]);
+      },
+      error: (err) => console.error('Error fetching marketplace workers', err)
+    });
+  }
+
+  updateWorkerProfile(profileId: string, updates: Partial<WorkerProfile>): Observable<any> {
+    const backendPayload = {
+      fullName: updates.name,
+      phoneNumber: (updates as any).phoneNumber,
+      bio: updates.bio,
+      location: updates.location,
+      experienceYears: (updates as any).experienceYears,
+      skills: updates.skills?.map(s => ({ name: s })),
+      preferredLocations: updates.preferredLocations,
+      hourlyRate: updates.rate,
+      category: updates.category,
+      profilePictureUrl: (updates as any).image
+    };
+
+    return this.http.put(`${this.apiUrl}/workers/profile/${profileId}`, backendPayload);
+  }
+
+  uploadDocument(workerProfileId: string, type: string, name: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('workerProfileId', workerProfileId);
+    formData.append('type', type);
+    formData.append('name', name);
+    formData.append('file', file);
+
+    return this.http.post(`${this.apiUrl}/documents`, formData);
+  }
+
+  uploadProfilePicture(workerProfileId: string, file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/workers/${workerProfileId}/profile-picture`, formData);
+  }
+
+  private fetchClientProfile(userId: string) {
+    this.http.get<any>(`${this.apiUrl}/clients/profile/${userId}`).subscribe({
+      next: (data) => {
+        const mapped = this.mapClientProfile(data);
+        this.currentClient.set(mapped);
+      },
+      error: (err) => console.error('Error fetching client profile', err)
+    });
+  }
+
+  updateClientProfile(profileId: string, updates: Partial<ClientProfile>): Observable<any> {
+    const backendPayload = {
+      fullName: updates.name,
+      phoneNumber: (updates as any).phoneNumber
+    };
+
+    return this.http.put(`${this.apiUrl}/clients/profile/${profileId}`, backendPayload);
+  }
+
+  fetchNotifications(userId: string) {
+    this.http.get<any[]>(`${this.apiUrl}/notifications/user/${userId}`).subscribe({
+      next: (data) => {
+        const mapped = data.map(n => ({
+          id: n.id,
+          userId: n.userId,
+          title: n.title,
+          message: n.message,
+          time: this.formatNotificationTime(n.createdAt),
+          isRead: n.read,
+          type: n.type.toLowerCase() as any
+        }));
+        this.notifications.set(mapped);
+      },
+      error: (err) => console.error('Error fetching notifications', err)
+    });
+  }
+
+  markNotificationAsRead(notificationId: string) {
+    this.http.put(`${this.apiUrl}/notifications/${notificationId}/read`, {}).subscribe({
+      next: () => {
+        this.notifications.update(prev => prev.map(n =>
+          n.id === notificationId ? { ...n, isRead: true } : n
+        ));
+      },
+      error: (err) => console.error('Error marking notification as read', err)
+    });
+  }
+
+  markAllNotificationsAsRead() {
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    this.http.put(`${this.apiUrl}/notifications/user/${user.id}/read-all`, {}).subscribe({
+      next: () => {
+        this.notifications.update(prev => prev.map(n => ({ ...n, isRead: true })));
+      },
+      error: (err) => console.error('Error marking all notifications as read', err)
+    });
+  }
+
+  private formatNotificationTime(createdAt: string): string {
+    const date = new Date(createdAt);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  public mapClientProfile(data: any): ClientProfile {
+    return {
+      id: data.id,
+      name: data.fullName,
+      email: data.email,
+      status: 'Active',
+      tier: 'Standard',
+      progress: 0
+    };
+  }
+
+  public mapWorkerProfile(data: any): WorkerProfile {
+    return {
+      id: data.id,
+      name: data.fullName,
+      initials: data.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+      email: data.email,
+      category: data.category || 'General Laborer',
+      status: this.mapStatus(data.status),
+      image: data.profilePictureUrl,
+      rate: data.hourlyRate || 0,
+      rating: 4.5,
+      reviews: 10,
+      skills: Array.from(data.skills || []),
+      bio: data.bio || '',
+      rejectionReason: data.rejectionReason,
+      isAvailable: data.isOnline,
+      location: data.location || '',
+      preferredLocations: Array.from(data.preferredLocations || []),
+      workHistory: (data.workHistory || []).map((wh: any) => ({
+        company: wh.company,
+        role: wh.role,
+        period: wh.period,
+        description: wh.description
+      })),
+      certifications: (data.certifications || []).map((cert: any) => ({
+        name: cert.name,
+        issuer: cert.issuer,
+        year: cert.year
+      })),
+      uploadedDocuments: (data.documents || []).map((doc: any) => ({
+        name: doc.name,
+        type: doc.type,
+        status: doc.verifiedAt ? 'approved' : 'uploaded',
+        url: doc.documentUrl
+      })),
+      availabilityDetails: { weekdays: true, weekends: false, evenings: false }
+    };
+  }
+
+  private mapStatus(backendStatus: string): any {
+    switch (backendStatus) {
+      case 'PENDING': return 'Pending';
+      case 'APPROVED': return 'Verified';
+      case 'REJECTED': return 'Rejected';
+      default: return 'Draft';
+    }
   }
 
   private saveState() {
@@ -368,7 +503,7 @@ export class PlatformStateService {
   currentWorkerCompletion = computed(() => {
     const w = this.currentWorker();
     let score = 0;
-    
+
     // Core Identity (40%)
     if (w.name) score += 10;
     if (w.email) score += 10;
@@ -389,48 +524,80 @@ export class PlatformStateService {
     return Math.min(score, 100);
   });
 
+  fetchPendingWorkers() {
+    this.http.get<any[]>(`${this.apiUrl}/admin/workers/pending`).subscribe({
+      next: (data) => {
+        const mapped = data.map(w => this.mapWorkerProfile(w));
+        this.workers.set(mapped);
+      },
+      error: (err) => console.error('Error fetching pending workers', err)
+    });
+  }
+
   approveWorker(id: string) {
-    if (id === this.currentWorker().id) {
-      this.currentWorker.update(w => ({ ...w, status: 'Verified' }));
-      this.addNotification('Account Verified!', 'Your professional profile is now live in the marketplace.', 'success', id);
-    }
-    this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Verified' } : w));
-    this.addActivityLog(id, 'approved');
+    const admin = this.auth.currentUser();
+    if (!admin || admin.role !== 'Admin') return;
+
+    this.http.put(`${this.apiUrl}/admin/workers/${id}/approve?adminId=${admin.id}`, {}).subscribe({
+      next: () => {
+        this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Verified' } : w));
+        this.addActivityLog(id, 'approved');
+        this.addNotification('Account Verified!', 'Your professional profile is now live in the marketplace.', 'success', id);
+      },
+      error: (err) => console.error('Error approving worker', err)
+    });
   }
 
   rejectWorker(id: string, reason: string = '') {
-    if (id === this.currentWorker().id) {
-      this.currentWorker.update(w => ({ ...w, status: 'Rejected', rejectionReason: reason }));
-      this.addNotification('Action Required', `Your verification was rejected: ${reason || 'Please review and resubmit.'}`, 'warning', id);
-    }
-    this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Rejected', rejectionReason: reason } : w));
-    this.addActivityLog(id, 'rejected', reason);
+    const admin = this.auth.currentUser();
+    if (!admin || admin.role !== 'Admin') return;
+
+    this.http.put(`${this.apiUrl}/admin/workers/${id}/reject?adminId=${admin.id}&reason=${reason}`, {}).subscribe({
+      next: () => {
+        this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Rejected', rejectionReason: reason } : w));
+        this.addActivityLog(id, 'rejected', reason);
+        this.addNotification('Action Required', `Your verification was rejected: ${reason || 'Please review and resubmit.'}`, 'warning', id);
+      },
+      error: (err) => console.error('Error rejecting worker', err)
+    });
   }
 
   resubmitWorker(id: string) {
-    if (id === this.currentWorker().id) {
-      this.currentWorker.update(w => ({ ...w, status: 'Pending', rejectionReason: undefined }));
-      this.addNotification('Application Resubmitted', 'Your updated profile is now being reviewed by our administrators.', 'info', id);
-    }
-    this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Pending', rejectionReason: undefined } : w));
-    this.addActivityLog(id, 'resubmitted');
+    this.http.put(`${this.apiUrl}/workers/profile/${id}/submit`, {}).subscribe({
+      next: (data: any) => {
+        const mapped = this.mapWorkerProfile(data);
+        if (id === this.currentWorker().id) {
+          this.currentWorker.set(mapped);
+          this.addNotification('Application Resubmitted', 'Your updated profile is now being reviewed by our administrators.', 'info', id);
+        }
+        this.workers.update(prev => prev.map(w => w.id === id ? mapped : w));
+        this.addActivityLog(id, 'resubmitted');
+      },
+      error: (err) => console.error('Error resubmitting worker', err)
+    });
   }
 
   submitForVerification() {
-    const worker = this.currentWorker();
-    this.currentWorker.update(w => ({ ...w, status: 'Pending' }));
+    const workerId = this.currentWorker().id;
+    this.http.put(`${this.apiUrl}/workers/profile/${workerId}/submit`, {}).subscribe({
+      next: (data: any) => {
+        const mapped = this.mapWorkerProfile(data);
+        this.currentWorker.set(mapped);
 
-    // Ensure worker is in the global list for Admins to see
-    this.workers.update(prev => {
-      const exists = prev.find(w => w.id === worker.id);
-      if (exists) {
-        return prev.map(w => w.id === worker.id ? { ...w, status: 'Pending' } : w);
-      }
-      return [{ ...worker, status: 'Pending' }, ...prev];
+        // Ensure worker is in the global list for Admins to see
+        this.workers.update(prev => {
+          const exists = prev.find(w => w.id === workerId);
+          if (exists) {
+            return prev.map(w => w.id === workerId ? mapped : w);
+          }
+          return [mapped, ...prev];
+        });
+
+        this.addNotification('Application Submitted', 'Your profile is now being reviewed by our administrators.', 'info', workerId);
+        this.addActivityLog(workerId, 'submitted');
+      },
+      error: (err) => console.error('Error submitting worker for verification', err)
     });
-
-    this.addNotification('Application Submitted', 'Your profile is now being reviewed by our administrators.', 'info', this.currentWorker().id);
-    this.addActivityLog(this.currentWorker().id, 'submitted');
   }
 
   hireWorker(workerId: string) {
@@ -447,7 +614,7 @@ export class PlatformStateService {
       workerInitials: worker.initials,
       service: worker.category,
       date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      earnings: worker.rate * 4, // Mock 4 hours
+      earnings: worker.rate * 4,
       status: 'Pending'
     };
 
@@ -481,14 +648,78 @@ export class PlatformStateService {
   }
 
   sendMessage(chatId: string, text: string) {
-    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const newMsg: ChatMessage = { id: Math.random().toString(), text, time, sent: true };
-    this.chats.update(chats => chats.map(c => {
-      if (c.id === chatId) {
-        return { ...c, lastMessage: text, time, messages: [...c.messages, newMsg] };
-      }
-      return c;
-    }));
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    const chat = this.chats().find(c => c.id === chatId);
+    if (!chat) return;
+
+    const backendPayload = {
+      content: text
+    };
+
+    this.http.post(`${this.apiUrl}/messages?senderId=${user.id}&receiverId=${chat.workerId}`, backendPayload).subscribe({
+      next: (data: any) => {
+        const time = new Date(data.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const newMsg: ChatMessage = { id: data.id, text: data.content, time, sent: true };
+        this.chats.update(chats => chats.map(c => {
+          if (c.id === chatId) {
+            return { ...c, lastMessage: text, time, messages: [...c.messages, newMsg] };
+          }
+          return c;
+        }));
+      },
+      error: (err) => console.error('Error sending message', err)
+    });
+  }
+
+  fetchChats(userId: string) {
+    this.http.get<any[]>(`${this.apiUrl}/messages/user/${userId}/recent`).subscribe({
+      next: (data) => {
+        const mapped = data.map(m => {
+          const isSender = m.senderId === userId;
+          const otherId = isSender ? m.receiverId : m.senderId;
+          const otherName = isSender ? m.receiverName : m.senderName;
+          return {
+            id: otherId,
+            workerId: otherId,
+            name: otherName,
+            initials: otherName.split(' ').map((n: any) => n[0]).join('').toUpperCase(),
+            lastMessage: m.content,
+            time: this.formatNotificationTime(m.sentAt),
+            active: false,
+            online: true,
+            messages: []
+          };
+        });
+        this.chats.set(mapped);
+      },
+      error: (err) => console.error('Error fetching chats', err)
+    });
+  }
+
+  fetchConversation(otherId: string) {
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    this.http.get<any[]>(`${this.apiUrl}/messages/conversation?user1Id=${user.id}&user2Id=${otherId}`).subscribe({
+      next: (data) => {
+        const messages: ChatMessage[] = data.map(m => ({
+          id: m.id,
+          text: m.content,
+          time: new Date(m.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+          sent: m.senderId === user.id
+        }));
+
+        this.chats.update(chats => chats.map(c => {
+          if (c.workerId === otherId) {
+            return { ...c, messages };
+          }
+          return c;
+        }));
+      },
+      error: (err) => console.error('Error fetching conversation', err)
+    });
   }
 
   startChat(workerId: string) {
@@ -524,6 +755,10 @@ export class PlatformStateService {
 
   setActiveChat(chatId: string) {
     this.chats.update(chats => chats.map(c => ({ ...c, active: c.id === chatId })));
+    const chat = this.chats().find(c => c.id === chatId);
+    if (chat && chat.messages.length === 0) {
+      this.fetchConversation(chat.workerId);
+    }
   }
 
   private addActivityLog(workerId: string, action: 'approved' | 'rejected' | 'submitted' | 'resubmitted', reason?: string) {

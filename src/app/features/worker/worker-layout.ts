@@ -88,12 +88,6 @@ import { PlatformStateService } from '../../core/services/platform-state.service
   styles: [`
     .active-link { background: #f1f5f9 !important; border-right: 4px solid #0f172a; }
     :host { display: block; }
-
-    @media (max-width: 768px) {
-      .!w-72 { width: 100% !important; }
-      .!p-6 { padding: 1rem !important; }
-      .!p-10 { padding: 1.5rem !important; }
-    }
   `]
 })
 export class WorkerLayout {

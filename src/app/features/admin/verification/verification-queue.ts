@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -52,7 +52,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       </div>
 
       <!-- Main Table -->
-      <mat-card class="!rounded-[2.5rem] !border !border-slate-100 !shadow-sm overflow-hidden">
+      <mat-card class="premium-card !border !border-slate-100 !shadow-sm overflow-hidden">
         <mat-card-header class="!p-8 !border-b !border-slate-50 !bg-slate-50/50">
           <mat-card-title class="!text-[10px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">New Applicants</mat-card-title>
         </mat-card-header>
@@ -140,7 +140,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
       <!-- Detailed Review Panel -->
       @if (detailedReview) {
-        <mat-card class="!rounded-[2.5rem] !border !border-slate-100 !shadow-2xl animate-in zoom-in mt-8">
+        <mat-card class="premium-card !border !border-slate-100 !shadow-2xl animate-in zoom-in mt-8">
           <mat-card-header class="!p-8 !bg-slate-50/50 !border-b !border-slate-100 flex justify-between items-center">
             <mat-card-title class="!text-xl !font-black !text-slate-900">Reviewing: {{ detailedReview.name }}</mat-card-title>
             <button mat-icon-button (click)="detailedReview = null"><mat-icon>close</mat-icon></button>
@@ -234,7 +234,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
       <!-- Rejection Form (Single & Bulk) -->
       @if (rejectingUser || bulkRejecting) {
-        <mat-card class="!rounded-[2.5rem] !border-2 !border-red-100 !shadow-2xl animate-in zoom-in mt-8">
+        <mat-card class="premium-card !border-2 !border-red-100 !shadow-2xl animate-in zoom-in mt-8">
           <mat-card-header class="!p-8 !bg-red-50/50">
             <mat-card-title class="!text-xl !font-black !text-red-700">
               Reject {{ bulkRejecting ? selectedIds.size + ' Applications' : 'Application: ' + rejectingUser.name }}
@@ -271,9 +271,13 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     }
   `]
 })
-export class AdminVerificationPage {
+export class AdminVerificationPage implements OnInit {
   state = inject(PlatformStateService);
   displayedColumns: string[] = ['select', 'applicant', 'category', 'status', 'actions'];
+
+  ngOnInit() {
+    this.state.fetchPendingWorkers();
+  }
   reviewingId: string | null = null;
   detailedReview: any = null;
   

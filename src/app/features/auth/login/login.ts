@@ -91,21 +91,22 @@ export class LoginPage {
 
   onSubmit() {
     this.loading.set(true);
-    setTimeout(() => {
-      const success = this.auth.login(this.email, this.password);
-      this.loading.set(false);
-      
-      if (success) {
+    this.auth.login(this.email, this.password).subscribe({
+      next: (response) => {
+        this.loading.set(false);
         this.snackBar.open('Login Successful! Welcome to ProMarket.', 'Dismiss', {
           duration: 3000,
           panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
         });
-      } else {
-        this.snackBar.open('Invalid email or password. Please check the mock credentials.', 'Retry', {
+      },
+      error: (err) => {
+        this.loading.set(false);
+        const errorMessage = err.error || 'Invalid email or password. Please try again.';
+        this.snackBar.open(errorMessage, 'Retry', {
           duration: 5000,
           panelClass: ['!bg-red-600', '!text-white', '!rounded-2xl']
         });
       }
-    }, 800);
+    });
   }
 }

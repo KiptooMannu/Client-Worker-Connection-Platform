@@ -1,10 +1,14 @@
 import { Injectable, signal, computed, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
+import { tap, catchError, of, Observable } from 'rxjs';
 
 export type UserRole = 'Admin' | 'Worker' | 'Client' | null;
 
 export interface User {
+  id: string;
   email: string;
   role: UserRole;
   name: string;
@@ -21,13 +25,11 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.userSignal());
   userRole = computed(() => this.userSignal()?.role || null);
 
-  private users: User[] = [
-    { email: 'admin@worker.com', role: 'Admin', name: 'System Admin', password: 'admin123' } as any,
-    { email: 'worker@pro.com', role: 'Worker', name: 'Kevin Omondi', password: 'worker123' } as any,
-    { email: 'client@home.com', role: 'Client', name: 'James Mutua', password: 'client123' } as any
-  ];
+  private users: User[] = []; // No longer needed for logic, but keeping for reference if needed
+  private apiUrl = environment.apiUrl + '/auth';
 
   private platformId = inject(PLATFORM_ID);
+  private http = inject(HttpClient);
 
   constructor(private router: Router) {
     if (isPlatformBrowser(this.platformId)) {
@@ -43,49 +45,51 @@ export class AuthService {
     }
   }
 
-  login(email: string, password: string): boolean {
-    const foundUser = this.users.find(u => u.email === email && (u as any).password === password);
-
-    if (foundUser) {
-      const user: User = {
-        email: foundUser.email,
-        role: foundUser.role,
-        name: foundUser.name,
-        token: 'mock-jwt-token-' + btoa(email)
-      };
-      this.userSignal.set(user);
-      if (isPlatformBrowser(this.platformId)) {
-        localStorage.setItem('pro_user', JSON.stringify(user));
-      }
-
-      this.redirectByRole(foundUser.role);
-      return true;
-    }
-    return false;
+  login(email: string, password: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
+      tap(response => {
+        const user: User = {
+          id: response.userId,
+          email: response.email,
+          role: this.mapRole(response.role),
+          name: response.name,
+          token: response.accessToken
+        };
+        
+        this.userSignal.set(user);
+        if (isPlatformBrowser(this.platformId)) {
+          localStorage.setItem('pro_user', JSON.stringify(user));
+        }
+        
+        this.redirectByRole(user.role);
+      })
+    );
   }
 
-  register(name: string, email: string, role: UserRole): boolean {
-    const newUser: any = {
-      email,
-      role,
-      name,
-      password: 'password123'
+  register(name: string, email: string, role: UserRole, password: string, username?: string): Observable<any> {
+    const registrationData = {
+      username: username || email.split('@')[0],
+      email: email,
+      password: password,
+      name: name,
+      role: role?.toUpperCase()
     };
 
-    this.users.push(newUser);
+    return this.http.post(`${this.apiUrl}/register`, registrationData, { responseType: 'text' }).pipe(
+      tap(() => {
+        // After registration, we could automatically log them in or redirect to login
+        // For now, let's just log a message. The component will handle the redirect.
+      })
+    );
+  }
 
-    if (isPlatformBrowser(this.platformId)) {
-      const stored = JSON.parse(localStorage.getItem('nestfind_users') || '[]');
-      stored.push(newUser);
-      localStorage.setItem('nestfind_users', JSON.stringify(stored));
-
-      const userSession: User = { email, role, name, token: 'mock-jwt-token-' + btoa(email) };
-      this.userSignal.set(userSession);
-      localStorage.setItem('pro_user', JSON.stringify(userSession));
+  private mapRole(backendRole: string): UserRole {
+    switch (backendRole) {
+      case 'ADMIN': return 'Admin';
+      case 'WORKER': return 'Worker';
+      case 'CLIENT': return 'Client';
+      default: return null;
     }
-
-    this.redirectByRole(role);
-    return true;
   }
 
   logout() {
