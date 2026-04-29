@@ -8,7 +8,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-client-bookings',
@@ -22,7 +22,6 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
     MatTableModule, 
     MatChipsModule,
     MatDividerModule,
-    MatSnackBarModule
   ],
   template: `
     <div class="space-y-8 animate-in fade-in duration-500">
@@ -154,11 +153,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 })
 export class ClientBookingsPage {
   state = inject(PlatformStateService);
-  private snackBar = inject(MatSnackBar);
+  private notification = inject(NotificationService);
   displayedColumns: string[] = ['worker', 'date', 'cost', 'status'];
 
   showHistory() {
-    this.snackBar.open('Viewing historical records (Simulation)', 'Close', { duration: 3000 });
+    this.notification.info('Viewing historical records (Simulation)');
   }
 
   get activeCount() { return this.state.bookings().filter(b => b.status === 'Approved' || b.status === 'Processing').length; }

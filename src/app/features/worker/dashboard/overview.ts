@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../core/services/notification.service';
 import { RouterLink } from '@angular/router';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 
@@ -19,7 +19,6 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     MatIconModule, 
     MatDividerModule,
     MatProgressBarModule,
-    MatSnackBarModule,
     RouterLink
   ],
   template: `
@@ -174,7 +173,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 })
 export class WorkerDashboardOverviewPage {
   state = inject(PlatformStateService);
-  private snackBar = inject(MatSnackBar);
+  private notification = inject(NotificationService);
 
   worker = this.state.currentWorker;
 
@@ -201,17 +200,11 @@ export class WorkerDashboardOverviewPage {
 
   submit() {
     if (this.state.currentWorkerCompletion() < 100) {
-      this.snackBar.open('❌ Please complete your profile details (100%) before submitting for review.', 'Dismiss', {
-        duration: 5000,
-        panelClass: ['!bg-red-900', '!text-white', '!rounded-2xl']
-      });
+      this.notification.error('❌ Please complete your profile details (100%) before submitting for review.');
       return;
     }
 
     this.state.submitForVerification();
-    this.snackBar.open('✓ Application submitted successfully!', 'Great', {
-      duration: 4000,
-      panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
-    });
+    this.notification.success('✓ Application submitted successfully!');
   }
 }

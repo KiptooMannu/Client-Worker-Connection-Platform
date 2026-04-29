@@ -8,7 +8,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../core/services/notification.service';
 import { RouterLink } from '@angular/router';
 import { PlatformStateService } from '../../core/services/platform-state.service';
 
@@ -26,7 +26,6 @@ import { PlatformStateService } from '../../core/services/platform-state.service
     MatSelectModule,
     FormsModule,
     RouterLink,
-    MatSnackBarModule
   ],
   template: `
     <div class="animate-in fade-in duration-700">
@@ -209,7 +208,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 })
 export class ClientDashboardPage {
   state = inject(PlatformStateService);
-  private snackBar = inject(MatSnackBar);
+  private notification = inject(NotificationService);
   searchQuery = signal('');
   locationQuery = signal('');
   selectedCategory = signal<string | null>(null);
@@ -271,7 +270,7 @@ export class ClientDashboardPage {
   });
 
   performSearch() {
-    this.snackBar.open('Searching for professionals...', 'Wait', { duration: 1500 });
+    this.notification.info('Searching for professionals...');
     this.state.fetchMarketplaceWorkers(
       this.searchQuery() || undefined,
       this.locationQuery() || undefined,

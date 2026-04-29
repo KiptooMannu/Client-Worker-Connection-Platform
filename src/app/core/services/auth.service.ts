@@ -3,7 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { tap, catchError, of, Observable } from 'rxjs';
+import { tap, catchError, of, Observable, throwError } from 'rxjs';
+import { NotificationService } from './notification.service';
 
 export type UserRole = 'Admin' | 'Worker' | 'Client' | null;
 
@@ -30,6 +31,7 @@ export class AuthService {
 
   private platformId = inject(PLATFORM_ID);
   private http = inject(HttpClient);
+  private notification = inject(NotificationService);
 
   constructor(private router: Router) {
     if (isPlatformBrowser(this.platformId)) {
@@ -52,7 +54,7 @@ export class AuthService {
           id: response.userId,
           email: response.email,
           role: this.mapRole(response.role),
-          name: response.name,
+          name: response.name || response.username || 'User',
           token: response.accessToken
         };
         
@@ -61,7 +63,12 @@ export class AuthService {
           localStorage.setItem('pro_user', JSON.stringify(user));
         }
         
+        this.notification.success('Welcome back, ' + user.name + '!');
         this.redirectByRole(user.role);
+      }),
+      catchError(error => {
+        this.notification.error('Login failed. Please check your credentials.');
+        return throwError(() => error);
       })
     );
   }
@@ -77,8 +84,11 @@ export class AuthService {
 
     return this.http.post(`${this.apiUrl}/register`, registrationData, { responseType: 'text' }).pipe(
       tap(() => {
-        // After registration, we could automatically log them in or redirect to login
-        // For now, let's just log a message. The component will handle the redirect.
+        this.notification.success('Account created successfully! Please login.');
+      }),
+      catchError(error => {
+        this.notification.error('Registration failed. This email may already be in use.');
+        return throwError(() => error);
       })
     );
   }
@@ -97,6 +107,7 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('pro_user');
     }
+    this.notification.success('You have been logged out successfully.');
     this.router.navigate(['/']);
   }
 

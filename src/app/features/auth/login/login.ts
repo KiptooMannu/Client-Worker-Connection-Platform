@@ -4,13 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatButtonModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatButtonModule],
   template: `
     <div class="min-h-screen bg-[#f7f9fb] flex flex-col">
       <!-- Simple Header -->
@@ -82,7 +81,6 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class LoginPage {
   private auth = inject(AuthService);
-  private snackBar = inject(MatSnackBar);
   
   email = '';
   password = '';
@@ -92,20 +90,11 @@ export class LoginPage {
   onSubmit() {
     this.loading.set(true);
     this.auth.login(this.email, this.password).subscribe({
-      next: (response) => {
+      next: () => {
         this.loading.set(false);
-        this.snackBar.open('Login Successful! Welcome to ProMarket.', 'Dismiss', {
-          duration: 3000,
-          panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
-        });
       },
-      error: (err) => {
+      error: () => {
         this.loading.set(false);
-        const errorMessage = err.error || 'Invalid email or password. Please try again.';
-        this.snackBar.open(errorMessage, 'Retry', {
-          duration: 5000,
-          panelClass: ['!bg-red-600', '!text-white', '!rounded-2xl']
-        });
       }
     });
   }

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -10,25 +10,25 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../core/services/notification.service';
 import { FormsModule } from '@angular/forms';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-worker-profile',
   standalone: true,
   imports: [
-    CommonModule, 
-    MatCardModule, 
-    MatButtonModule, 
-    MatIconModule, 
-    MatFormFieldModule, 
-    MatInputModule, 
-    MatChipsModule, 
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatChipsModule,
     MatDividerModule,
     MatSelectModule,
     MatSlideToggleModule,
-    MatSnackBarModule,
     FormsModule
   ],
   template: `
@@ -146,13 +146,13 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <div class="space-y-6">
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Full Name</mat-label>
-                <input matInput [(ngModel)]="form.name" name="name" placeholder="e.g. David Harrison">
+                <input matInput [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" name="name" placeholder="Enter your full name">
               </mat-form-field>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <mat-form-field appearance="outline">
                   <mat-label>Primary Category</mat-label>
-                  <mat-select [(ngModel)]="form.category" name="category">
+                  <mat-select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)" name="category">
                     <mat-option value="Plumber">Plumber</mat-option>
                     <mat-option value="Electrician">Electrician</mat-option>
                     <mat-option value="Farm Worker">Farm Worker</mat-option>
@@ -163,28 +163,28 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                   <mat-label>Hourly Rate ($)</mat-label>
-                  <input matInput type="number" [(ngModel)]="form.rate" name="rate">
+                  <input matInput type="number" [ngModel]="form.rate()" (ngModelChange)="form.rate.set($event)" name="rate" placeholder="0">
                 </mat-form-field>
               </div>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Professional Bio</mat-label>
-                <textarea matInput rows="4" [(ngModel)]="form.bio" name="bio" placeholder="Describe your experience and specialties..."></textarea>
+                <textarea matInput rows="3" [ngModel]="form.bio()" (ngModelChange)="form.bio.set($event)" name="bio" placeholder="Describe your experience..."></textarea>
               </mat-form-field>
 
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Core Skills (Comma separated)</mat-label>
-                <input matInput [(ngModel)]="form.skills" name="skills" placeholder="e.g. Wiring, Repairs, Safety">
+                <input matInput [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)" name="skills" placeholder="e.g. Plumbing, Leak Detection">
               </mat-form-field>
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <mat-form-field appearance="outline">
                   <mat-label>Primary Work Location</mat-label>
-                  <input matInput [(ngModel)]="form.location" name="location" placeholder="e.g. Nairobi">
+                  <input matInput [ngModel]="form.location()" (ngModelChange)="form.location.set($event)" name="location" placeholder="e.g. Nairobi">
                 </mat-form-field>
                 <mat-form-field appearance="outline">
                   <mat-label>Preferred Job Locations (Comma separated)</mat-label>
-                  <input matInput [(ngModel)]="form.preferredLocations" name="preferredLocations" placeholder="e.g. Westlands, Kilimani">
+                  <input matInput [ngModel]="form.preferredLocations()" (ngModelChange)="form.preferredLocations.set($event)" name="preferredLocations" placeholder="e.g. Westlands, Kilimani">
                 </mat-form-field>
               </div>
             </div>
@@ -199,7 +199,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               </button>
             </div>
             <div class="space-y-6">
-              @for (work of form.workHistory; track $index) {
+              @for (work of form.workHistory(); track $index) {
                 <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative group/item">
                   <button mat-icon-button (click)="removeWorkHistory($index)" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity">
                     <mat-icon>delete</mat-icon>
@@ -207,27 +207,24 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <mat-form-field appearance="outline">
                       <mat-label>Company / Project</mat-label>
-                      <input matInput [(ngModel)]="work.company" placeholder="e.g. Self-Employed">
+                      <input matInput [(ngModel)]="work.company">
                     </mat-form-field>
                     <mat-form-field appearance="outline">
                       <mat-label>Role</mat-label>
-                      <input matInput [(ngModel)]="work.role" placeholder="e.g. Lead Plumber">
+                      <input matInput [(ngModel)]="work.role">
                     </mat-form-field>
                   </div>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <mat-form-field appearance="outline">
                       <mat-label>Period</mat-label>
-                      <input matInput [(ngModel)]="work.period" placeholder="e.g. 2020 - 2023">
+                      <input matInput [(ngModel)]="work.period">
                     </mat-form-field>
                   </div>
                   <mat-form-field appearance="outline" class="w-full">
                     <mat-label>Description</mat-label>
-                    <textarea matInput rows="2" [(ngModel)]="work.description" placeholder="Describe your responsibilities..."></textarea>
+                    <textarea matInput rows="2" [(ngModel)]="work.description"></textarea>
                   </mat-form-field>
                 </div>
-              }
-              @if (form.workHistory.length === 0) {
-                <p class="text-xs text-slate-400 italic text-center py-4">No work history added yet.</p>
               }
             </div>
           </mat-card>
@@ -241,7 +238,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               </button>
             </div>
             <div class="space-y-4">
-              @for (cert of form.certifications; track $index) {
+              @for (cert of form.certifications(); track $index) {
                 <div class="flex flex-col md:flex-row gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 items-end group/cert">
                   <mat-form-field appearance="outline" class="flex-1">
                     <mat-label>Certificate Name</mat-label>
@@ -260,9 +257,6 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                   </button>
                 </div>
               }
-              @if (form.certifications.length === 0) {
-                <p class="text-xs text-slate-400 italic text-center py-4">No certifications added yet.</p>
-              }
             </div>
           </mat-card>
 
@@ -275,21 +269,21 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                   <span class="text-xs font-black text-slate-900 uppercase">Weekdays</span>
                   <span class="text-[10px] text-slate-500">Mon - Fri</span>
                 </div>
-                <mat-slide-toggle color="primary" [(ngModel)]="form.availabilityDetails.weekdays"></mat-slide-toggle>
+                <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().weekdays" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), weekdays: $event})" name="weekdays"></mat-slide-toggle>
               </div>
               <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <div class="flex flex-col">
                   <span class="text-xs font-black text-slate-900 uppercase">Weekends</span>
                   <span class="text-[10px] text-slate-500">Sat - Sun</span>
                 </div>
-                <mat-slide-toggle color="primary" [(ngModel)]="form.availabilityDetails.weekends"></mat-slide-toggle>
+                <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().weekends" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), weekends: $event})" name="weekends"></mat-slide-toggle>
               </div>
               <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <div class="flex flex-col">
                   <span class="text-xs font-black text-slate-900 uppercase">Evenings</span>
                   <span class="text-[10px] text-slate-500">After 6 PM</span>
                 </div>
-                <mat-slide-toggle color="primary" [(ngModel)]="form.availabilityDetails.evenings"></mat-slide-toggle>
+                <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().evenings" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), evenings: $event})" name="evenings"></mat-slide-toggle>
               </div>
             </div>
           </mat-card>
@@ -316,8 +310,9 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   `]
 })
 export class WorkerProfilePage {
-  private snackBar = inject(MatSnackBar);
+  private notification = inject(NotificationService);
   private router = inject(Router);
+  public auth = inject(AuthService);
   state = inject(PlatformStateService);
 
   get status() {
@@ -332,89 +327,109 @@ export class WorkerProfilePage {
 
   worker = this.state.currentWorker;
 
-  // Local form state
+  constructor() {
+    // Sync form with worker data when it loads from backend
+    effect(() => {
+      const w = this.state.currentWorker();
+      console.log('Worker Data Received from State:', w);
+      if (w && w.id) {
+        // Update signals
+        this.form.name.set(w.name || '');
+        this.form.category.set(w.category || '');
+        this.form.rate.set(w.rate || 0);
+        this.form.bio.set(w.bio || '');
+        this.form.skills.set((w.skills || []).join(', '));
+        this.form.location.set(w.location || '');
+        this.form.preferredLocations.set((w.preferredLocations || []).join(', '));
+        this.form.workHistory.set(JSON.parse(JSON.stringify(w.workHistory || [])));
+        this.form.certifications.set(JSON.parse(JSON.stringify(w.certifications || [])));
+        this.form.availabilityDetails.set({ ...(w.availabilityDetails || { weekdays: true, weekends: false, evenings: false }) });
+        this.form.image.set(w.image);
+      }
+    });
+  }
+
+  // Local reactive form state using signals
   form = {
-    name: this.state.currentWorker().name,
-    category: this.state.currentWorker().category,
-    rate: this.state.currentWorker().rate,
-    bio: this.state.currentWorker().bio,
-    skills: this.state.currentWorker().skills.join(', '),
-    location: this.state.currentWorker().location,
-    preferredLocations: this.state.currentWorker().preferredLocations.join(', '),
-    workHistory: JSON.parse(JSON.stringify(this.state.currentWorker().workHistory)),
-    certifications: JSON.parse(JSON.stringify(this.state.currentWorker().certifications)),
-    availabilityDetails: { ...this.state.currentWorker().availabilityDetails }
+    name: signal(''),
+    category: signal(''),
+    rate: signal(0),
+    bio: signal(''),
+    skills: signal(''),
+    location: signal(''),
+    preferredLocations: signal(''),
+    workHistory: signal<any[]>([]),
+    certifications: signal<any[]>([]),
+    availabilityDetails: signal({ weekdays: true, weekends: false, evenings: false }),
+    image: signal<string | undefined>(undefined)
   };
+
 
   async onAvatarSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
 
     const file = input.files[0];
-    this.snackBar.open('⌛ Uploading profile picture...', 'Wait', { duration: 2000 });
+    console.log('Attempting to upload file:', file.name, 'size:', file.size);
+    this.notification.info('Uploading profile picture...');
 
     this.state.uploadProfilePicture(this.worker().id, file).subscribe({
       next: (response: any) => {
+        console.log('Upload Success! Server Response:', response);
         const mapped = this.state.mapWorkerProfile(response);
         this.state.currentWorker.set(mapped);
-        this.snackBar.open('✓ Profile picture updated!', 'Dismiss', { duration: 3000 });
+        // The effect will automatically update this.form.image.set(mapped.image)
+        this.notification.success(' Profile picture updated!');
       },
       error: (err: any) => {
-        console.error('Upload failed', err);
-        this.snackBar.open('❌ Upload failed. Please try again.', 'Dismiss', { duration: 5000 });
+        console.error('Upload Failed! Error Details:', err);
+        this.notification.error(` Upload failed: ${err.error || err.message || 'Unknown error'}`);
       }
     });
   }
 
   addWorkHistory() {
-    this.form.workHistory.push({ company: '', role: '', period: '', description: '' });
+    this.form.workHistory.update(prev => [...prev, { company: '', role: '', period: '', description: '' }]);
   }
 
   removeWorkHistory(index: number) {
-    this.form.workHistory.splice(index, 1);
+    this.form.workHistory.update(prev => prev.filter((_, i) => i !== index));
   }
 
   addCertification() {
-    this.form.certifications.push({ name: '', issuer: '', year: '' });
+    this.form.certifications.update(prev => [...prev, { name: '', issuer: '', year: new Date().getFullYear() }]);
   }
 
   removeCertification(index: number) {
-    this.form.certifications.splice(index, 1);
+    this.form.certifications.update(prev => prev.filter((_, i) => i !== index));
   }
 
   saveProfile() {
-    const skills = this.form.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
-    const preferredLocations = this.form.preferredLocations.split(',').map((s: string) => s.trim()).filter((s: string) => s.length > 0);
-    
     const updates: Partial<any> = {
-      name: this.form.name,
-      category: this.form.category,
-      rate: Number(this.form.rate),
-      bio: this.form.bio,
-      skills,
-      location: this.form.location,
-      preferredLocations,
-      workHistory: this.form.workHistory,
-      certifications: this.form.certifications,
-      availabilityDetails: this.form.availabilityDetails
+      fullName: this.form.name(),
+      category: this.form.category(),
+      hourlyRate: this.form.rate(),
+      bio: this.form.bio(),
+      skills: this.form.skills().split(',').map(s => s.trim()).filter(s => s),
+      location: this.form.location(),
+      preferredLocations: this.form.preferredLocations().split(',').map(l => l.trim()).filter(l => l),
+      workHistory: this.form.workHistory(),
+      certifications: this.form.certifications(),
+      availabilityDetails: this.form.availabilityDetails(),
+      profilePictureUrl: this.form.image()
     };
 
-    this.snackBar.open('⌛ Saving profile to server...', 'Wait', { duration: 2000 });
+    console.log('Saving profile updates:', updates);
 
     this.state.updateWorkerProfile(this.worker().id, updates).subscribe({
-      next: (response: any) => {
-        const mapped = this.state.mapWorkerProfile(response);
-        this.state.currentWorker.set(mapped);
-        this.snackBar.open('✓ Profile saved successfully!', 'Dismiss', {
-          duration: 3000,
-          panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
-        });
+      next: (res) => {
+        console.log('Profile Save Success:', res);
+        this.notification.success('Profile saved successfully!');
+        this.state.fetchWorkerProfile(this.auth.currentUser()!.id);
       },
       error: (err: any) => {
-        this.snackBar.open('❌ Failed to save profile. Please try again.', 'Close', {
-          duration: 5000,
-          panelClass: ['!bg-red-600', '!text-white', '!rounded-2xl']
-        });
+        console.error('Profile Save Failed:', err);
+        this.notification.error('Failed to save profile.');
       }
     });
   }
@@ -422,26 +437,17 @@ export class WorkerProfilePage {
   submit() {
     this.saveProfile();
     if (this.state.currentWorkerCompletion() < 100) {
-      this.snackBar.open('❌ Please complete your profile details (100%) before submitting for review.', 'Dismiss', {
-        duration: 5000,
-        panelClass: ['!bg-red-900', '!text-white', '!rounded-2xl']
-      });
+      this.notification.error('Please complete your profile details (100%) before submitting for review.');
       return;
     }
     this.state.submitForVerification();
-    this.snackBar.open('✓ Application submitted successfully!', 'Great', {
-      duration: 4000,
-      panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
-    });
+    this.notification.success('Application submitted successfully!');
   }
 
   resubmit() {
     this.saveProfile();
     this.state.resubmitWorker(this.state.currentWorker().id);
-    this.snackBar.open('✓ Profile resubmitted for review.', 'Dismiss', {
-      duration: 5000,
-      panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
-    });
+    this.notification.success('✓ Profile resubmitted for review.');
   }
 
   goToDocuments() {

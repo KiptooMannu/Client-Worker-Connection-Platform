@@ -8,7 +8,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../core/services/notification.service';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 
 @Component({
@@ -24,7 +24,6 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     MatProgressBarModule, 
     MatDividerModule,
     MatListModule,
-    MatSnackBarModule
   ],
   template: `
     <div class="space-y-8 animate-in fade-in duration-500">
@@ -221,7 +220,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 })
 export class WorkerVerificationPage {
   state = inject(PlatformStateService);
-  private snackBar = inject(MatSnackBar);
+  private notification = inject(NotificationService);
   private router = inject(Router);
 
   get workerStatus() {
@@ -258,7 +257,7 @@ export class WorkerVerificationPage {
       const file = input.files[i];
       
       if (file.size > 10 * 1024 * 1024) {
-        this.snackBar.open('❌ File too large. Max 10MB allowed.', 'Close', { duration: 4000 });
+        this.notification.error('❌ File too large. Max 10MB allowed.');
         continue;
       }
 
@@ -275,11 +274,11 @@ export class WorkerVerificationPage {
               file: file
             }]
           }));
-          this.snackBar.open(`✓ ${file.name} uploaded successfully!`, 'Dismiss', { duration: 3000 });
+          this.notification.success(`✓ ${file.name} uploaded successfully!`);
         },
         error: (err) => {
           console.error('Upload failed', err);
-          this.snackBar.open(`❌ Failed to upload ${file.name}`, 'Close', { duration: 4000 });
+          this.notification.error(`❌ Failed to upload ${file.name}`);
         }
       });
     }
@@ -291,7 +290,7 @@ export class WorkerVerificationPage {
       ...w,
       uploadedDocuments: (w.uploadedDocuments || []).filter(f => f.name !== fileName)
     }));
-    this.snackBar.open('File removed', 'Close', { duration: 2000 });
+    this.notification.info('File removed');
   }
 
   dismissRejection() {
@@ -300,12 +299,12 @@ export class WorkerVerificationPage {
 
   submitApplication() {
     if (this.state.currentWorkerCompletion() < 100) {
-      this.snackBar.open('❌ Please complete your profile details (100%) before submitting.', 'Close', { duration: 4000 });
+      this.notification.error('❌ Please complete your profile details (100%) before submitting.');
       return;
     }
 
     if (this.uploadedFiles().length === 0) {
-      this.snackBar.open('❌ Please upload at least one document.', 'Close', { duration: 4000 });
+      this.notification.error('❌ Please upload at least one document.');
       return;
     }
     
@@ -313,10 +312,7 @@ export class WorkerVerificationPage {
       this.state.resubmitWorker(this.state.currentWorker().id);
     } else {
       this.state.submitForVerification();
-      this.snackBar.open('✓ Application submitted!', 'Great', { 
-        duration: 5000,
-        panelClass: ['!bg-teal-900', '!text-white', '!rounded-2xl']
-      });
+      this.notification.success('✓ Application submitted!');
     }
   }
 }

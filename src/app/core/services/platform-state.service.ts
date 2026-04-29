@@ -3,7 +3,9 @@ import { isPlatformBrowser } from '@angular/common';
 import { AuthService, User } from './auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
+import { NotificationService } from './notification.service';
 
 export interface WorkHistory {
   company: string;
@@ -115,122 +117,31 @@ export interface ClientProfile {
   providedIn: 'root'
 })
 export class PlatformStateService {
-  private initialWorkers: WorkerProfile[] = [
-    {
-      id: 'w1',
-      name: 'John Kamau',
-      initials: 'JK',
-      email: 'john.k@worker.com',
-      category: 'Plumber',
-      status: 'Verified',
-      rate: 15,
-      rating: 4.8,
-      reviews: 32,
-      skills: ['Pipe Fitting', 'Water Heater Repair', 'Drain Cleaning'],
-      bio: 'Experienced plumber serving the local community for over 10 years. Fast, reliable, and affordable.',
-      isAvailable: true,
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=200&auto=format&fit=crop',
-      location: 'Nairobi',
-      preferredLocations: ['Westlands', 'Kilimani'],
-      workHistory: [{ company: 'City Plumbers', role: 'Lead Plumber', period: '2015 - 2022', description: 'Handled residential and commercial repairs.' }],
-      certifications: [{ name: 'Master Plumbing License', issuer: 'NCA', year: '2014' }],
-      availabilityDetails: { weekdays: true, weekends: true, evenings: false }
-    },
-    {
-      id: 'w2',
-      name: 'Grace Wanjiku',
-      initials: 'GW',
-      email: 'grace.w@worker.com',
-      category: 'Cleaner',
-      status: 'Verified',
-      rate: 10,
-      rating: 5.0,
-      reviews: 84,
-      skills: ['Deep Cleaning', 'Office Cleaning', 'Laundry'],
-      bio: 'Detail-oriented cleaner providing spotless results for homes and small businesses.',
-      isAvailable: true,
-      image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=200&auto=format&fit=crop',
-      location: 'Mombasa',
-      preferredLocations: ['Nyali', 'Bamburi'],
-      workHistory: [{ company: 'Sparkle Clean', role: 'Cleaning Supervisor', period: '2018 - 2023', description: 'Managed a team of 5 cleaners.' }],
-      certifications: [{ name: 'Industrial Cleaning Cert', issuer: 'Kenyatta Univ', year: '2017' }],
-      availabilityDetails: { weekdays: true, weekends: false, evenings: true }
-    },
-    {
-      id: 'w3',
-      name: 'Samuel Ochieng',
-      initials: 'SO',
-      email: 'sam.o@worker.com',
-      category: 'Electrician',
-      status: 'Verified',
-      rate: 18,
-      rating: 4.9,
-      reviews: 45,
-      skills: ['Wiring', 'Fault Finding', 'Panel Upgrades'],
-      bio: 'Certified electrician specializing in residential wiring and quick emergency repairs.',
-      isAvailable: true,
-      image: 'https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=200&auto=format&fit=crop',
-      location: 'Kisumu',
-      preferredLocations: ['Milimani', 'Kondele'],
-      workHistory: [{ company: 'Power Grid Ltd', role: 'Technician', period: '2010 - 2019', description: 'Maintained substation components.' }],
-      certifications: [{ name: 'Class A Electrician', issuer: 'EPRA', year: '2010' }],
-      availabilityDetails: { weekdays: true, weekends: true, evenings: true }
-    },
-    {
-      id: 'p1', name: 'Peter Njoroge', initials: 'PN', email: 'peter.n@worker.com', category: 'Mechanic', status: 'Priority', rate: 20, rating: 0, reviews: 0, skills: ['Engine Repair'], bio: 'Specialist in all car models.', isAvailable: true,
-      location: 'Nairobi',
-      preferredLocations: ['Industrial Area', 'South B'],
-      workHistory: [],
-      certifications: [],
-      availabilityDetails: { weekdays: true, weekends: true, evenings: false },
-      uploadedDocuments: [
-        { name: 'Mechanic Certificate', status: 'uploaded', type: 'Certification' },
-        { name: 'National ID', status: 'uploaded', type: 'Identification' }
-      ]
-    },
-    {
-      id: 'p2', name: 'Mary Atieno', initials: 'MA', email: 'mary.a@worker.com', category: 'Farm Worker', status: 'Pending', rate: 8, rating: 0, reviews: 0, skills: ['Harvesting', 'Planting'], bio: 'Hardworking farm assistant.', isAvailable: true,
-      image: 'https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?q=80&w=200&auto=format&fit=crop',
-      location: 'Nakuru',
-      preferredLocations: ['Njoro', 'Molo'],
-      workHistory: [],
-      certifications: [],
-      availabilityDetails: { weekdays: true, weekends: true, evenings: false },
-      uploadedDocuments: [
-        { name: 'Reference Letter', status: 'uploaded', type: 'Work History' },
-        { name: 'National ID', status: 'uploaded', type: 'Identification' }
-      ]
-    }
-  ];
+  private initialWorkers: WorkerProfile[] = [];
 
   workers = signal<WorkerProfile[]>(this.initialWorkers);
-  clients = signal<ClientProfile[]>([
-    { id: 'c1', name: 'James Mutua', email: 'james@home.com', status: 'Active', tier: 'Homeowner', progress: 100 },
-    { id: 'c2', name: 'City Garage', email: 'manager@citygarage.co.ke', status: 'Active', tier: 'Business', progress: 85 }
-  ]);
+  clients = signal<ClientProfile[]>([]);
   notifications = signal<Notification[]>([]);
   activityLogs = signal<ActivityLog[]>([]);
-  bookings = signal<Booking[]>([
-    { id: 'b1', clientId: 'c1', clientName: 'James Mutua', clientInitials: 'JM', workerId: 'w1', workerName: 'John Kamau', workerInitials: 'JK', service: 'Plumbing Repair', date: 'Oct 24, 2026', earnings: 45, rating: 5, status: 'Approved' }
-  ]);
+  bookings = signal<Booking[]>([]);
 
   chats = signal<Chat[]>([]);
 
   currentWorker = signal<WorkerProfile>({
-    id: 'dw1',
-    name: 'Kevin Omondi',
-    initials: 'KO',
-    email: 'worker@pro.com',
-    category: 'Mechanic',
+    id: '',
+    name: '',
+    initials: '',
+    email: '',
+    category: '',
     status: 'Draft',
-    rate: 25,
+    rate: 0,
     rating: 0,
     reviews: 0,
-    isAvailable: true,
-    skills: ['Brake Replacement'],
-    bio: 'Automotive mechanic.',
-    location: 'Nairobi',
-    preferredLocations: ['Westlands'],
+    isAvailable: false,
+    skills: [],
+    bio: '',
+    location: '',
+    preferredLocations: [],
     workHistory: [],
     certifications: [],
     availabilityDetails: { weekdays: true, weekends: false, evenings: false }
@@ -240,6 +151,7 @@ export class PlatformStateService {
 
   private auth = inject(AuthService);
   private http = inject(HttpClient);
+  private notification = inject(NotificationService);
   private platformId = inject(PLATFORM_ID);
   private apiUrl = environment.apiUrl;
 
@@ -266,7 +178,7 @@ export class PlatformStateService {
     });
   }
 
-  private fetchWorkerProfile(userId: string) {
+  public fetchWorkerProfile(userId: string) {
     this.http.get<any>(`${this.apiUrl}/workers/profile/${userId}`).subscribe({
       next: (data) => {
         const mapped = this.mapWorkerProfile(data);
@@ -297,21 +209,20 @@ export class PlatformStateService {
     });
   }
 
-  updateWorkerProfile(profileId: string, updates: Partial<WorkerProfile>): Observable<any> {
+  updateWorkerProfile(profileId: string, updates: any): Observable<any> {
     const backendPayload = {
-      fullName: updates.name,
-      phoneNumber: (updates as any).phoneNumber,
-      bio: updates.bio,
-      location: updates.location,
-      experienceYears: (updates as any).experienceYears,
-      skills: updates.skills?.map(s => ({ name: s })),
-      preferredLocations: updates.preferredLocations,
-      hourlyRate: updates.rate,
-      category: updates.category,
-      profilePictureUrl: (updates as any).image
+      ...updates,
+      // Ensure skills are strings if they aren't already
+      skills: updates.skills?.map((s: any) => typeof s === 'string' ? s : s.name)
     };
 
-    return this.http.put(`${this.apiUrl}/workers/profile/${profileId}`, backendPayload);
+    return this.http.put(`${this.apiUrl}/workers/profile/${profileId}`, backendPayload).pipe(
+      tap(() => this.notification.success('Profile updated successfully!')),
+      catchError(err => {
+        this.notification.error('Failed to update profile.');
+        return throwError(() => err);
+      })
+    );
   }
 
   uploadDocument(workerProfileId: string, type: string, name: string, file: File): Observable<any> {
@@ -346,7 +257,13 @@ export class PlatformStateService {
       phoneNumber: (updates as any).phoneNumber
     };
 
-    return this.http.put(`${this.apiUrl}/clients/profile/${profileId}`, backendPayload);
+    return this.http.put(`${this.apiUrl}/clients/profile/${profileId}`, backendPayload).pipe(
+      tap(() => this.notification.success('Profile updated successfully!')),
+      catchError(err => {
+        this.notification.error('Failed to update profile.');
+        return throwError(() => err);
+      })
+    );
   }
 
   fetchNotifications(userId: string) {
@@ -413,10 +330,11 @@ export class PlatformStateService {
   }
 
   public mapWorkerProfile(data: any): WorkerProfile {
+    const fullName = data.fullName || '';
     return {
       id: data.id,
-      name: data.fullName,
-      initials: data.fullName.split(' ').map((n: string) => n[0]).join('').toUpperCase(),
+      name: fullName,
+      initials: fullName ? fullName.split(' ').filter((n: string) => n).map((n: string) => n[0]).join('').toUpperCase() : '??',
       email: data.email,
       category: data.category || 'General Laborer',
       status: this.mapStatus(data.status),
@@ -431,23 +349,26 @@ export class PlatformStateService {
       location: data.location || '',
       preferredLocations: Array.from(data.preferredLocations || []),
       workHistory: (data.workHistory || []).map((wh: any) => ({
+        id: wh.id,
         company: wh.company,
         role: wh.role,
         period: wh.period,
         description: wh.description
       })),
       certifications: (data.certifications || []).map((cert: any) => ({
+        id: cert.id,
         name: cert.name,
         issuer: cert.issuer,
         year: cert.year
       })),
       uploadedDocuments: (data.documents || []).map((doc: any) => ({
+        id: doc.id,
         name: doc.name,
         type: doc.type,
         status: doc.verifiedAt ? 'approved' : 'uploaded',
         url: doc.documentUrl
       })),
-      availabilityDetails: { weekdays: true, weekends: false, evenings: false }
+      availabilityDetails: data.availabilityDetails || { weekdays: true, weekends: false, evenings: false }
     };
   }
 
@@ -486,10 +407,10 @@ export class PlatformStateService {
       this.notifications.set(filteredNotifs);
       this.activityLogs.set(data.activityLogs || []);
       this.bookings.set(data.bookings || []);
-      if (data.currentWorker) {
+      if (data.currentWorker && data.currentWorker.id) {
         this.currentWorker.set(data.currentWorker);
       }
-      if (data.currentClient) {
+      if (data.currentClient && data.currentClient.id) {
         this.currentClient.set(data.currentClient);
       }
     }
@@ -543,8 +464,12 @@ export class PlatformStateService {
         this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Verified' } : w));
         this.addActivityLog(id, 'approved');
         this.addNotification('Account Verified!', 'Your professional profile is now live in the marketplace.', 'success', id);
+        this.notification.success('Worker approved successfully.');
       },
-      error: (err) => console.error('Error approving worker', err)
+      error: (err) => {
+        this.notification.error('Failed to approve worker.');
+        console.error('Error approving worker', err);
+      }
     });
   }
 
@@ -557,8 +482,12 @@ export class PlatformStateService {
         this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Rejected', rejectionReason: reason } : w));
         this.addActivityLog(id, 'rejected', reason);
         this.addNotification('Action Required', `Your verification was rejected: ${reason || 'Please review and resubmit.'}`, 'warning', id);
+        this.notification.info('Worker rejected.');
       },
-      error: (err) => console.error('Error rejecting worker', err)
+      error: (err) => {
+        this.notification.error('Failed to reject worker.');
+        console.error('Error rejecting worker', err);
+      }
     });
   }
 
@@ -572,8 +501,12 @@ export class PlatformStateService {
         }
         this.workers.update(prev => prev.map(w => w.id === id ? mapped : w));
         this.addActivityLog(id, 'resubmitted');
+        this.notification.success('Profile resubmitted for verification.');
       },
-      error: (err) => console.error('Error resubmitting worker', err)
+      error: (err) => {
+        this.notification.error('Failed to resubmit profile.');
+        console.error('Error resubmitting worker', err);
+      }
     });
   }
 
@@ -595,8 +528,12 @@ export class PlatformStateService {
 
         this.addNotification('Application Submitted', 'Your profile is now being reviewed by our administrators.', 'info', workerId);
         this.addActivityLog(workerId, 'submitted');
+        this.notification.success('Profile submitted for verification!');
       },
-      error: (err) => console.error('Error submitting worker for verification', err)
+      error: (err) => {
+        this.notification.error('Failed to submit profile for verification.');
+        console.error('Error submitting worker for verification', err);
+      }
     });
   }
 

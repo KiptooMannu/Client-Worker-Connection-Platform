@@ -7,7 +7,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../core/services/notification.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatDividerModule } from '@angular/material/divider';
@@ -29,7 +29,6 @@ import { inject, signal } from '@angular/core';
     MatSelectModule,
     MatFormFieldModule,
     MatMenuModule,
-    MatSnackBarModule,
     FormsModule,
     MatDividerModule
   ],
@@ -298,7 +297,7 @@ import { inject, signal } from '@angular/core';
 })
 export class AdminUserManagementPage {
   state = inject(PlatformStateService);
-  private snackBar = inject(MatSnackBar);
+  private notification = inject(NotificationService);
   displayedColumns: string[] = ['identity', 'role', 'status', 'progress', 'actions'];
   selectedRole = signal<string>('all');
   selectedStatus = signal<string>('any');
@@ -364,7 +363,7 @@ export class AdminUserManagementPage {
 
   viewUser(user: any) {
     this.selectedUser.set(user);
-    this.snackBar.open(`CORE_UPDATE: Loading Profile for ${user.identity}...`, 'Dismiss', { duration: 2000 });
+    this.notification.info(`CORE_UPDATE: Loading Profile for ${user.identity}...`);
     
     // Instant jump to top
     window.scrollTo({ top: 0, behavior: 'auto' });
@@ -375,20 +374,20 @@ export class AdminUserManagementPage {
   }
 
   editUser(user: any) {
-    this.snackBar.open(`Edit mode engaged for ${user.identity}`, 'Close', { duration: 3000 });
+    this.notification.info(`Edit mode engaged for ${user.identity}`);
   }
 
   suspendUser(user: any) {
-    this.snackBar.open(`ALERT: User ${user.identity} has been suspended.`, 'Undo', { duration: 5000 });
+    this.notification.error(`ALERT: User ${user.identity} has been suspended.`);
   }
 
   promoteUser(user: any) {
     if (user.role === 'Service Provider') {
       this.state.approveWorker(user.id);
-      this.snackBar.open(`SUCCESS: ${user.name} is now a Verified Service Provider!`, 'Great', { duration: 3000 });
+      this.notification.success(`SUCCESS: ${user.name} is now a Verified Service Provider!`);
     } else {
       // For clients, we just simulate a tier upgrade
-      this.snackBar.open(`SUCCESS: ${user.name} has been promoted to VIP Tier!`, 'Great', { duration: 3000 });
+      this.notification.success(`SUCCESS: ${user.name} has been promoted to VIP Tier!`);
     }
     // Refresh the selection to show updated status
     this.selectedUser.set(this.users.find(u => u.id === user.id));

@@ -4,13 +4,13 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService, UserRole } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatButtonModule, MatSnackBarModule],
+  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatButtonModule],
   template: `
     <div class="min-h-screen bg-[#f7f9fb] flex flex-col">
       <header class="h-20 flex items-center px-12 border-b border-slate-100 bg-white shadow-sm">
@@ -110,7 +110,7 @@ import { AuthService, UserRole } from '../../../core/services/auth.service';
 })
 export class RegisterPage implements OnInit {
   private auth = inject(AuthService);
-  private snackBar = inject(MatSnackBar);
+  private notification = inject(NotificationService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   
@@ -132,30 +132,18 @@ export class RegisterPage implements OnInit {
 
   onSubmit() {
     if (!this.name.trim() || !this.email.trim() || !this.password.trim()) {
-      this.snackBar.open('Please fill in all fields.', 'Close', {
-        duration: 3000,
-        panelClass: ['!bg-red-600', '!text-white', '!rounded-2xl']
-      });
+      this.notification.error('Please fill in all fields.');
       return;
     }
     
     this.loading.set(true);
     this.auth.register(this.name, this.email, this.role, this.password).subscribe({
-      next: (response) => {
+      next: () => {
         this.loading.set(false);
-        this.snackBar.open('Registration Successful! Please sign in.', 'Dismiss', {
-          duration: 4000,
-          panelClass: ['!bg-slate-900', '!text-white', '!rounded-2xl']
-        });
         this.router.navigate(['/login']);
       },
-      error: (err) => {
+      error: () => {
         this.loading.set(false);
-        const errorMessage = typeof err.error === 'string' ? err.error : 'Registration failed. Please try again.';
-        this.snackBar.open(errorMessage, 'Close', {
-          duration: 5000,
-          panelClass: ['!bg-red-600', '!text-white', '!rounded-2xl']
-        });
       }
     });
   }
