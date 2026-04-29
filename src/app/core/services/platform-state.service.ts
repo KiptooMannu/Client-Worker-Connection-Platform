@@ -161,7 +161,13 @@ export class PlatformStateService {
       this.fetchMarketplaceWorkers();
     }
 
-    // Sync with Auth session
+    // Automatic State Persistence
+    effect(() => {
+      if (!isPlatformBrowser(this.platformId)) return;
+      this.saveState();
+    });
+
+    // Sync with Backend on Auth session
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
 
@@ -382,36 +388,40 @@ export class PlatformStateService {
   }
 
   private saveState() {
+    if (!isPlatformBrowser(this.platformId)) return;
     const data = {
       workers: this.workers(),
-      clients: this.clients(),
       notifications: this.notifications(),
       activityLogs: this.activityLogs(),
       bookings: this.bookings(),
       currentWorker: this.currentWorker(),
       currentClient: this.currentClient()
     };
-    // Note: We strip 'file' objects as they can't be JSON serialized
-    const serialized = JSON.parse(JSON.stringify(data, (key, value) => key === 'file' ? undefined : value));
-    localStorage.setItem('nestfind_state', JSON.stringify(serialized));
+    localStorage.setItem('nestfind_state', JSON.stringify(data));
   }
 
   private loadState() {
+    if (!isPlatformBrowser(this.platformId)) return;
     const saved = localStorage.getItem('nestfind_state');
     if (saved) {
-      const data = JSON.parse(saved);
-      this.workers.set(data.workers || []);
-      this.clients.set(data.clients || []);
-      // Filter out notifications without a userId (legacy global ones)
-      const filteredNotifs = (data.notifications || []).filter((n: any) => !!n.userId);
-      this.notifications.set(filteredNotifs);
-      this.activityLogs.set(data.activityLogs || []);
-      this.bookings.set(data.bookings || []);
-      if (data.currentWorker && data.currentWorker.id) {
-        this.currentWorker.set(data.currentWorker);
-      }
-      if (data.currentClient && data.currentClient.id) {
-        this.currentClient.set(data.currentClient);
+      try {
+        const data = JSON.parse(saved);
+        
+        // Identity Check: We load the worker profile if it exists
+        // The identity check will be verified against the auth signal later if needed
+        // but for instant load we trust the cache temporarily
+        if (data.currentWorker && data.currentWorker.id) {
+          console.log('Restoring worker profile from cache:', data.currentWorker.name);
+          this.currentWorker.set(data.currentWorker);
+        }
+        
+        this.workers.set(data.workers || []);
+        this.notifications.set(data.notifications || []);
+        this.activityLogs.set(data.activityLogs || []);
+        this.bookings.set(data.bookings || []);
+        this.currentClient.set(data.currentClient || null);
+      } catch (e) {
+        console.error('Error parsing cached state', e);
       }
     }
   }
