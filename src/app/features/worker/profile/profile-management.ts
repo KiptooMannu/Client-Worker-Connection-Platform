@@ -35,61 +35,58 @@ import { AuthService } from '../../../core/services/auth.service';
     <div class="space-y-8 animate-in fade-in duration-500">
       <!-- Rejection Alert -->
       @if (status === 'Rejected' && rejectionReason) {
-        <mat-card class="!rounded-3xl !bg-red-50 !border-2 !border-red-100 !shadow-sm animate-in slide-in-from-top">
-          <mat-card-content class="!p-8 flex items-start gap-6">
+        <mat-card class="!rounded-2xl !bg-red-50 !border-2 !border-red-100 !shadow-sm animate-in slide-in-from-top">
+          <mat-card-content class="!p-6 flex items-start gap-4">
             <div class="flex-shrink-0">
-              <mat-icon class="!text-[32px] !w-auto !h-auto text-red-600">warning</mat-icon>
+              <mat-icon class="!text-2xl !w-auto !h-auto text-red-600">warning</mat-icon>
             </div>
             <div class="flex-1">
-              <h3 class="font-black text-red-900 mb-2">Verification Rejected</h3>
-              <p class="text-sm text-red-800 font-medium mb-4">{{ rejectionReason }}</p>
-              <p class="text-xs text-red-700 font-black uppercase tracking-widest">✓ Please update your documents and click "Resubmit For Verification" below.</p>
+              <h3 class="font-black text-red-900 mb-1 text-sm">Verification Rejected</h3>
+              <p class="text-xs text-red-800 font-medium mb-3">{{ rejectionReason }}</p>
+              <p class="text-[10px] text-red-700 font-black uppercase tracking-widest">✓ Please update your documents and resubmit below.</p>
             </div>
           </mat-card-content>
         </mat-card>
       }
 
       <!-- Header -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 class="text-5xl font-black text-slate-900 tracking-tighter">Profile Management</h1>
-          <p class="text-slate-500 font-medium mt-1">Update your professional identity and marketplace presence.</p>
+          <h1 class="header-title text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">Profile Management</h1>
+          <p class="text-slate-500 text-sm font-medium mt-1">Update your professional identity and presence.</p>
         </div>
-        <div class="flex gap-3">
-          <button mat-stroked-button class="!border-slate-900 !text-slate-900 !px-8 !py-6 !rounded-2xl !font-black !text-sm">Cancel</button>
+        <div class="flex flex-wrap gap-2">
+          <button mat-stroked-button [disabled]="isSaving()" class="!border-slate-900 !text-slate-900 !px-6 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest">Cancel</button>
           @if (status === 'Draft' || status === 'Rejected') {
-            <button mat-flat-button color="primary" (click)="goToDocuments()" class="!px-8 !py-6 !rounded-2xl !font-black !text-sm !shadow-xl shadow-blue-900/40">
-              <mat-icon>arrow_forward</mat-icon> Next: Upload Documents
+            <button mat-flat-button color="primary" [disabled]="isSaving()" (click)="goToDocuments()" class="!px-6 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest !shadow-lg">
+              Next Step
             </button>
           } @else if (status === 'Pending') {
-            <div class="px-6 py-4 bg-blue-50 text-blue-700 rounded-xl font-black text-xs uppercase tracking-widest border border-blue-100">
+            <div class="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-black text-[10px] uppercase tracking-widest border border-blue-100">
               Under Review
             </div>
-          } @else {
-            <div class="px-6 py-4 bg-teal-50 text-teal-700 rounded-xl font-black text-xs uppercase tracking-widest border border-teal-100 flex items-center gap-2">
-              <mat-icon class="!text-sm">verified</mat-icon> Profile Verified
-            </div>
           }
-          <button mat-flat-button color="primary" (click)="saveProfile()" class="!px-8 !py-6 !rounded-2xl !font-black !text-sm !shadow-xl shadow-blue-900/40">
-            <mat-icon>save</mat-icon> Save Profile
+          <button mat-flat-button color="primary" [disabled]="isSaving()" (click)="saveProfile()" class="!px-6 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest !shadow-lg">
+            <mat-icon class="!text-xs mr-1">{{ isSaving() ? 'hourglass_empty' : 'save' }}</mat-icon>
+            {{ isSaving() ? 'Saving...' : 'Save Changes' }}
           </button>
         </div>
       </div>
 
       <div class="grid grid-cols-12 gap-8">
         <!-- Sidebar -->
-        <div class="col-span-12 lg:col-span-4 space-y-8">
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !overflow-hidden">
-            <mat-card-content class="!p-8 text-center">
-              <div class="relative inline-block group mb-6 cursor-pointer" (click)="avatarInput.click()">
+        <div class="col-span-12 lg:col-span-4 space-y-6">
+          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !overflow-hidden">
+            <mat-card-content class="!p-6 text-center">
+              <div class="relative inline-block group mb-4 cursor-pointer" (click)="avatarInput.click()">
                 <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
                 <div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
                    <mat-icon class="!text-white">photo_camera</mat-icon>
                 </div>
-                @if (worker().image) { <img class="w-40 h-40 rounded-full border-4 border-slate-50 shadow-2xl object-cover" [src]="worker().image"> }
-                @else { <div class="w-40 h-40 rounded-full border-4 border-slate-50 shadow-2xl bg-blue-50 flex items-center justify-center text-5xl font-black text-blue-700">{{ worker().initials }}</div> }
+                @if (worker().image) { <img class="w-32 h-32 rounded-full border-4 border-slate-50 shadow-xl object-cover" [src]="worker().image"> }
+                @else { <div class="w-32 h-32 rounded-full border-4 border-slate-50 shadow-xl bg-blue-50 flex items-center justify-center text-4xl font-black text-blue-700">{{ worker().initials }}</div> }
               </div>
-              <h3 class="text-2xl font-black text-slate-900">{{ worker().name }}</h3>
+              <h3 class="text-xl font-black text-slate-900">{{ worker().name }}</h3>
               <div class="flex items-center justify-center gap-2 mt-3">
                 @switch (status) {
                   @case ('Draft') {
@@ -126,24 +123,19 @@ import { AuthService } from '../../../core/services/auth.service';
 
         <!-- Main Form -->
         <div class="col-span-12 lg:col-span-8 space-y-8">
-           <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
-             <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Profile Completion</h4>
+           <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
+             <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Profile Completion</h4>
              <div class="flex items-center gap-4">
-               <div class="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+               <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
                  <div class="h-full bg-blue-600 transition-all duration-1000" [style.width.%]="completionPercentage()"></div>
                </div>
-               <span class="text-xs font-black text-slate-900">{{ completionPercentage() }}%</span>
+               <span class="text-[10px] font-black text-slate-900">{{ completionPercentage() }}%</span>
              </div>
-             @if (completionPercentage() < 100) {
-               <p class="text-xs text-slate-500 mt-4 font-medium italic">Complete your profile details to reach 100% and enable marketplace visibility.</p>
-             } @else {
-               <p class="text-xs text-teal-600 mt-4 font-black uppercase tracking-widest">Profile 100% Complete!</p>
-             }
            </mat-card>
 
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
-            <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Professional Identity</h4>
-            <div class="space-y-6">
+          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+            <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Professional Identity</h4>
+            <div class="space-y-4">
               <mat-form-field appearance="outline" class="w-full">
                 <mat-label>Full Name</mat-label>
                 <input matInput [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" name="name" placeholder="Enter your full name">
@@ -295,17 +287,12 @@ import { AuthService } from '../../../core/services/auth.service';
     :host { display: block; }
     
     @media (max-width: 768px) {
-      .text-5xl { font-size: 2.25rem !important; }
-      .text-4xl { font-size: 1.75rem !important; }
-      .p-8 { padding: 1.5rem !important; }
+      .header-title { font-size: 1.75rem !important; }
+      mat-card-content { padding: 1.25rem !important; }
       .gap-8 { gap: 1rem !important; }
-      .w-40 { width: 8rem !important; height: 8rem !important; }
-      .flex-col.md\\:flex-row.justify-between.items-start.md\\:items-end.gap-6 {
-        align-items: stretch !important;
-      }
-      .flex.gap-3 {
-        flex-direction: column !important;
-      }
+      .w-32 { width: 6rem !important; height: 6rem !important; }
+      .flex-col.md\\:flex-row { align-items: stretch !important; }
+      .flex.gap-3, .flex.gap-2 { flex-direction: column !important; }
     }
   `]
 })
@@ -324,7 +311,7 @@ export class WorkerProfilePage {
   }
 
   completionPercentage = computed(() => this.state.currentWorkerCompletion());
-
+  isSaving = signal(false);
   worker = this.state.currentWorker;
 
   constructor() {
@@ -420,16 +407,19 @@ export class WorkerProfilePage {
     };
 
     console.log('Saving profile updates:', updates);
+    this.isSaving.set(true);
 
     this.state.updateWorkerProfile(this.worker().id, updates).subscribe({
       next: (res) => {
         console.log('Profile Save Success:', res);
-        this.notification.success('Profile saved successfully!');
+        this.isSaving.set(false);
+        this.notification.success('✓ Profile saved successfully!');
         this.state.fetchWorkerProfile(this.auth.currentUser()!.id);
       },
       error: (err: any) => {
         console.error('Profile Save Failed:', err);
-        this.notification.error('Failed to save profile.');
+        this.isSaving.set(false);
+        this.notification.error('❌ Failed to save profile updates.');
       }
     });
   }

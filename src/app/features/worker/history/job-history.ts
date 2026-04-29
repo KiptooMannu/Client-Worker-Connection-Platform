@@ -26,70 +26,70 @@ import { inject, computed, signal } from '@angular/core';
   template: `
     <div class="space-y-8 animate-in fade-in duration-500">
       <!-- Header -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
-          <h1 class="text-5xl font-black text-slate-900 tracking-tighter">Job History & Analytics</h1>
-          <p class="text-slate-500 font-medium mt-2">Review your past performance and financial growth metrics.</p>
+          <h1 class="header-title text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">Job History & Analytics</h1>
+          <p class="text-slate-500 text-sm font-medium mt-1">Review your performance and financial growth.</p>
         </div>
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-wrap gap-2">
           <div class="flex items-center border border-slate-200 rounded-xl px-4 py-2 bg-white focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/10 transition-all w-64">
-            <mat-icon class="text-slate-400 mr-2 !text-sm">search</mat-icon>
-            <input class="w-full border-none focus:ring-0 bg-transparent text-xs font-bold" placeholder="Search client or service..." type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($any($event))"/>
+            <mat-icon class="text-slate-400 mr-2 !text-xs">search</mat-icon>
+            <input class="w-full border-none focus:ring-0 bg-transparent text-xs font-bold" placeholder="Search..." type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($any($event))"/>
           </div>
-          <button mat-stroked-button class="!border-slate-300 !px-6 !py-4 !rounded-xl !font-black !text-xs !uppercase !tracking-widest flex items-center gap-2">
-            <mat-icon>download</mat-icon> Export PDF
+          <button mat-stroked-button class="!border-slate-300 !px-4 !py-2 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-2">
+            <mat-icon class="!text-sm">download</mat-icon> Export
           </button>
         </div>
       </div>
 
       <!-- Analytics Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
-        <mat-card class="md:col-span-8 !rounded-3xl !border !border-slate-100 !shadow-sm !p-10">
-          <div class="flex justify-between items-center mb-12">
-            <h3 class="text-2xl font-black text-slate-900 tracking-tight">Monthly Earnings</h3>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <mat-card class="md:col-span-8 !rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+          <div class="flex justify-between items-center mb-8">
+            <h3 class="text-xl font-black text-slate-900 tracking-tight">Monthly Earnings</h3>
             <mat-chip class="!bg-teal-50 !text-teal-700 !border-none !min-h-0 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
               <mat-icon class="!text-xs !w-auto !h-auto mr-1">trending_up</mat-icon> +12%
             </mat-chip>
           </div>
-          <div class="h-72 flex items-end justify-between gap-6 px-4 border-b border-slate-100 pb-2">
+          <div class="h-60 flex items-end justify-between gap-4 px-4 border-b border-slate-100 pb-2">
             @for (bar of earnings; track $index) {
-              <div class="flex flex-col items-center gap-4 flex-1 group">
-                <div class="w-full bg-slate-100 rounded-t-xl transition-all group-hover:bg-blue-600 group-hover:shadow-xl group-hover:shadow-blue-900/20" 
-                     [ngClass]="{'!bg-blue-600 !shadow-xl !shadow-blue-900/20': bar.active}" 
+              <div class="flex flex-col items-center gap-3 flex-1 group">
+                <div class="w-full bg-slate-100 rounded-t-lg transition-all group-hover:bg-blue-600 group-hover:shadow-lg group-hover:shadow-blue-900/20" 
+                     [ngClass]="{'!bg-blue-600 !shadow-lg !shadow-blue-900/20': bar.active}" 
                      [style.height]="bar.height + '%'"></div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">{{ bar.label }}</span>
+                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ bar.label }}</span>
               </div>
             }
           </div>
         </mat-card>
 
-        <mat-card class="md:col-span-4 !rounded-3xl !bg-slate-900 !text-white !shadow-2xl !p-10 flex flex-col justify-between">
+        <mat-card class="md:col-span-4 !rounded-2xl !bg-slate-900 !text-white !shadow-xl !p-6 md:!p-8 flex flex-col justify-between">
           <div>
-            <h3 class="text-2xl font-black mb-2 tracking-tight">Performance Insights</h3>
-            <p class="text-slate-400 text-sm font-medium">Your service quality remains in the top 5% of providers.</p>
+            <h3 class="text-xl font-black mb-1 tracking-tight">Performance</h3>
+            <p class="text-slate-400 text-xs font-medium">Your quality remains in the top 5%.</p>
           </div>
-          <div class="space-y-8 my-10">
+          <div class="space-y-6 my-6">
             @for (m of metrics; track m.label) {
               <div class="flex items-center justify-between">
-                <div class="flex items-center gap-4">
-                  <div class="p-2 bg-white/5 rounded-xl border border-white/10"><mat-icon class="!text-blue-400">{{ m.icon }}</mat-icon></div>
-                  <span class="text-sm font-bold">{{ m.label }}</span>
+                <div class="flex items-center gap-3">
+                  <div class="p-1.5 bg-white/5 rounded-lg border border-white/10"><mat-icon class="!text-blue-400 !text-sm !w-auto !h-auto">{{ m.icon }}</mat-icon></div>
+                  <span class="text-xs font-bold">{{ m.label }}</span>
                 </div>
-                <span class="text-2xl font-black text-blue-400 tracking-tighter">{{ m.value }}</span>
+                <span class="text-xl font-black text-blue-400 tracking-tighter">{{ m.value }}</span>
               </div>
             }
           </div>
-          <button mat-flat-button class="!bg-white/5 !text-slate-400 hover:!bg-white/10 !py-6 !rounded-2xl !font-black !text-[10px] !uppercase !tracking-widest !border !border-white/10">
-            View Detailed Metrics
+          <button mat-flat-button class="!bg-white/5 !text-slate-400 hover:!bg-white/10 !py-3 !rounded-xl !font-black !text-[9px] !uppercase !tracking-widest !border !border-white/10">
+            Analytics
           </button>
         </mat-card>
       </div>
 
       <!-- Table Section -->
-      <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !overflow-hidden">
-        <mat-card-header class="!p-8 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-row !justify-between !items-center">
-          <mat-card-title class="!text-[10px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Complete Job Ledger</mat-card-title>
-          <span class="text-[9px] text-slate-400 font-black uppercase tracking-widest">Showing 50 results</span>
+      <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !overflow-hidden">
+        <mat-card-header class="!p-6 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-row !justify-between !items-center">
+          <mat-card-title class="!text-[9px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Complete Job Ledger</mat-card-title>
+          <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Showing 50 results</span>
         </mat-card-header>
         
         <table mat-table [dataSource]="jobs" class="w-full">
@@ -163,7 +163,17 @@ import { inject, computed, signal } from '@angular/core';
         </div>
       </mat-card>
     </div>
-  `
+  `,
+  styles: [`
+    :host { display: block; }
+    
+    @media (max-width: 768px) {
+      .header-title { font-size: 1.75rem !important; }
+      mat-card { padding: 1.25rem !important; }
+      .h-60 { height: 10rem !important; }
+      .grid { gap: 1rem !important; }
+    }
+  `]
 })
 export class WorkerHistoryPage {
   state = inject(PlatformStateService);

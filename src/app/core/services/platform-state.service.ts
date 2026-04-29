@@ -222,10 +222,14 @@ export class PlatformStateService {
       skills: updates.skills?.map((s: any) => typeof s === 'string' ? s : s.name)
     };
 
-    return this.http.put(`${this.apiUrl}/workers/profile/${profileId}`, backendPayload).pipe(
-      tap(() => this.notification.success('Profile updated successfully!')),
+    return this.http.put<any>(`${this.apiUrl}/workers/profile/${profileId}`, backendPayload).pipe(
+      tap(res => {
+        if (res.workerProfile) {
+          const mapped = this.mapWorkerProfile(res.workerProfile);
+          this.currentWorker.set(mapped);
+        }
+      }),
       catchError(err => {
-        this.notification.error('Failed to update profile.');
         return throwError(() => err);
       })
     );
