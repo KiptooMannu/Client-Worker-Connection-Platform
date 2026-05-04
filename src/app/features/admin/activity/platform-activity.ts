@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -49,7 +49,7 @@ import { NotificationService } from '../../../core/services/notification.service
         </div>
 
         <div class="overflow-x-auto">
-          <table mat-table [dataSource]="visibleLogs()" class="w-full !bg-transparent">
+          <table mat-table [dataSource]="pagedVisibleLogs()" class="w-full !bg-transparent">
             
             <!-- Type Column -->
             <ng-container matColumnDef="type">
@@ -135,10 +135,24 @@ import { NotificationService } from '../../../core/services/notification.service
           </div>
         }
 
-        <div class="p-8 bg-slate-50/30 flex justify-center border-t border-slate-100">
+        <div class="p-6 bg-slate-50/30 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
           <button (click)="loadHistoricalArchives()" class="px-8 py-3 rounded-2xl bg-white text-indigo-600 font-black text-xs uppercase tracking-widest border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
             Load Historical Archives
           </button>
+          @if (visibleLogs().length > pageSize) {
+            <div class="flex items-center gap-2">
+              <button (click)="prevPage()" [disabled]="currentPage === 1" class="px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 disabled:opacity-40">Prev</button>
+              @for (p of pageNumbers; track p) {
+                <button
+                  (click)="goToPage(p)"
+                  class="w-8 h-8 rounded-lg border text-[10px] font-black transition-all"
+                  [ngClass]="p === currentPage ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'">
+                  {{ p }}
+                </button>
+              }
+              <button (click)="nextPage()" [disabled]="currentPage >= totalPages" class="px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 disabled:opacity-40">Next</button>
+            </div>
+          }
         </div>
       </mat-card>
     </div>
@@ -151,12 +165,18 @@ import { NotificationService } from '../../../core/services/notification.service
     }
   `]
 })
-export class AdminActivityPage {
+export class AdminActivityPage implements OnInit {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
   displayedColumns: string[] = ['type', 'description', 'user', 'time', 'severity'];
   rejectedOnly = false;
   showAll = false;
+  currentPage = 1;
+  readonly pageSize = 10;
+
+  ngOnInit() {
+    this.state.fetchAdminActivityLogs();
+  }
   
   refresh() {
     this.state.fetchAdminActivityLogs();
@@ -169,14 +189,43 @@ export class AdminActivityPage {
     return logs;
   }
 
+  pagedVisibleLogs() {
+    const logs = this.visibleLogs();
+    const start = (this.currentPage - 1) * this.pageSize;
+    return logs.slice(start, start + this.pageSize);
+  }
+
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.visibleLogs().length / this.pageSize));
+  }
+
+  get pageNumbers() {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
   toggleRejectedOnly() {
     this.rejectedOnly = !this.rejectedOnly;
+    this.currentPage = 1;
     this.notification.info(this.rejectedOnly ? 'Filter: rejected events only.' : 'Filter cleared.');
   }
 
   loadHistoricalArchives() {
     this.showAll = true;
+    this.currentPage = 1;
     this.notification.success('Historical activity loaded.');
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+  }
+
+  prevPage() {
+    this.goToPage(this.currentPage - 1);
+  }
+
+  nextPage() {
+    this.goToPage(this.currentPage + 1);
   }
 
   getLogIconAndColor(action: string) {

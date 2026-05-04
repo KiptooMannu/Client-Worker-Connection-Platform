@@ -18,7 +18,7 @@ import { NotificationService } from '../../../core/services/notification.service
           <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg">
             <mat-icon>corporate_fare</mat-icon>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">ProMarket</span>
+          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">Kazi Konnect</span>
         </div>
       </header>
 

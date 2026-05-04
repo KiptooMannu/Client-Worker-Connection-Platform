@@ -83,9 +83,15 @@ import { PlatformStateService } from '../../core/services/platform-state.service
             </div>
           </header>
 
-          <main class="max-w-[1440px] mx-auto">
+          <main class="max-w-[1440px] mx-auto min-h-[60vh]">
             <router-outlet></router-outlet>
           </main>
+
+          <footer class="py-12 flex justify-center items-center">
+            <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
+              &copy; 2024 Kazi Konnect. All rights reserved.
+            </p>
+          </footer>
         </mat-sidenav-content>
       </mat-sidenav-container>
     </div>

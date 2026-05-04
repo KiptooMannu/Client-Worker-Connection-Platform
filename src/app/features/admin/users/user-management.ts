@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -19,12 +19,12 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-admin-users',
   standalone: true,
   imports: [
-    CommonModule, 
-    MatCardModule, 
-    MatButtonModule, 
-    MatIconModule, 
-    MatTableModule, 
-    MatChipsModule, 
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatChipsModule,
     MatProgressBarModule,
     MatSelectModule,
     MatFormFieldModule,
@@ -38,200 +38,206 @@ import { AuthService } from '../../../core/services/auth.service';
       <!-- Detailed Profile Panel (Smooth entry) -->
       @if (selectedUser()) {
         <div id="user-profile-anchor"></div>
-        <mat-card class="!rounded-[40px] !border !border-slate-200/60 !shadow-[0_20px_50px_rgba(0,0,0,0.1)] overflow-hidden mb-12 animate-in slide-in-from-top-10 duration-700 bg-white">
-          <!-- Premium Header -->
-          <div class="p-10 border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 bg-slate-50/30">
-            <div class="flex items-center gap-6">
-              <div class="w-24 h-24 rounded-[32px] bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-3xl font-black text-white shadow-2xl shadow-indigo-100 border-4 border-white overflow-hidden">
+        <mat-card class="max-w-4xl mx-auto !rounded-[32px] !border !border-slate-200/60 !shadow-2xl overflow-hidden mb-12 animate-in slide-in-from-top-4 duration-500 bg-white">
+          <!-- Compact Premium Header -->
+          <div class="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <div class="flex items-center gap-5">
+              <div class="w-16 h-16 rounded-2xl bg-slate-900 flex items-center justify-center text-xl font-black text-white shadow-lg overflow-hidden">
                 @if (selectedUser().image) { <img [src]="selectedUser().image" class="w-full h-full object-cover"> } @else { {{ selectedUser().initials }} }
               </div>
               <div>
-                <div class="flex items-center gap-3 mb-2">
-                  <h3 class="text-3xl font-black text-slate-900 tracking-tight">{{ selectedUser().name }}</h3>
-                  <span class="px-3 py-1 rounded-lg bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase tracking-widest border border-indigo-100">
+                <div class="flex items-center gap-2 mb-1">
+                  <h3 class="text-xl font-black text-slate-900 tracking-tight">{{ selectedUser().name }}</h3>
+                  <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 text-[8px] font-black uppercase tracking-widest border border-indigo-100">
                     {{ selectedUser().role }}
                   </span>
                 </div>
-                <div class="flex items-center gap-4 text-slate-400 font-medium text-sm">
-                  <span class="flex items-center gap-1"><mat-icon class="!text-xs">email</mat-icon> {{ selectedUser().email }}</span>
-                  <span class="h-1 w-1 rounded-full bg-slate-300"></span>
-                  <span class="flex items-center gap-1"><mat-icon class="!text-xs">verified</mat-icon> {{ selectedUser().tier }}</span>
+                <div class="flex items-center gap-3 text-slate-400 font-bold text-[10px] uppercase tracking-widest">
+                  <span>{{ selectedUser().email }}</span>
+                  <span class="h-1 w-1 rounded-full bg-slate-200"></span>
+                  <span>{{ selectedUser().tier }} Membership</span>
                 </div>
               </div>
             </div>
-            <div class="flex gap-3">
-              <button (click)="closeProfile()" class="w-12 h-12 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all shadow-sm">
-                <mat-icon>close</mat-icon>
-              </button>
-            </div>
+            <button (click)="closeProfile()" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-900 transition-all shadow-sm">
+              <mat-icon class="!text-lg">close</mat-icon>
+            </button>
           </div>
           
-          <div class="p-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
-            <!-- Left Side: Information -->
-            <div class="lg:col-span-2 space-y-12">
-              <section>
-                <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Profile Narrative</h4>
-                <div class="p-8 bg-slate-50 rounded-[32px] border border-slate-100">
-                   <p class="text-slate-600 text-lg leading-relaxed italic border-l-4 border-indigo-500 pl-6">
-                     {{ selectedUser().bio || 'No professional biography provided for this profile.' }}
-                   </p>
-                </div>
-              </section>
+          <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left Side: Narrative & Competencies -->
+            <div class="lg:col-span-7 space-y-6">
+              <div class="space-y-2">
+                 <h4 class="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em]">Profile Narrative</h4>
+                 <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-100">
+                    <p class="text-slate-600 text-xs font-medium leading-relaxed italic border-l-2 border-indigo-500 pl-4">
+                      {{ selectedUser().bio || 'No professional biography provided for this profile.' }}
+                    </p>
+                 </div>
+              </div>
 
               @if (selectedUser().role === 'Service Provider') {
-                <section>
-                   <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Verified Expertise</h4>
-                   <div class="flex flex-wrap gap-2">
+                <div class="space-y-2">
+                   <h4 class="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em]">Core Competencies</h4>
+                   <div class="flex flex-wrap gap-1.5">
                       @for (skill of selectedUser().skills; track skill) {
-                        <span class="px-5 py-2.5 rounded-2xl bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-100 shadow-sm">{{ skill }}</span>
+                        <span class="px-3 py-1.5 rounded-lg bg-white text-slate-700 text-[9px] font-bold border border-slate-200 shadow-sm">{{ skill }}</span>
                       }
-                      @if (!selectedUser().skills?.length) { <p class="text-slate-400 italic">No skills listed.</p> }
                    </div>
-                </section>
+                </div>
               }
 
-              @if (selectedUser().role === 'Enterprise Client') {
-                <section>
-                  <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Platform Engagement</h4>
-                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                    @for (stat of [
-                      { label: 'Total Volume', value: '$14.2k', icon: 'payments', color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                      { label: 'Active Hires', value: '12', icon: 'handshake', color: 'text-indigo-600', bg: 'bg-indigo-50' },
-                      { label: 'Trust Rating', value: '98%', icon: 'star', color: 'text-amber-600', bg: 'bg-amber-50' }
-                    ]; track stat.label) {
-                      <div class="p-8 rounded-[32px] border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all text-center">
-                        <div class="w-10 h-10 rounded-xl mx-auto mb-4 flex items-center justify-center" [ngClass]="stat.bg">
-                          <mat-icon class="!text-lg" [ngClass]="stat.color">{{ stat.icon }}</mat-icon>
+              @if (selectedUser().role === 'Enterprise Client' && selectedUser().totalSpend) {
+                <div class="space-y-2">
+                  <h4 class="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em]">Platform Engagement</h4>
+                  <div class="grid grid-cols-2 gap-3">
+                      <div class="p-4 rounded-xl border border-slate-100 bg-white shadow-sm flex items-center gap-4">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                          <mat-icon class="!text-sm">payments</mat-icon>
                         </div>
-                        <p class="text-2xl font-black text-slate-900">{{ stat.value }}</p>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">{{ stat.label }}</p>
+                        <div>
+                          <p class="text-sm font-black text-slate-900 leading-none mb-1">\${{ selectedUser().totalSpend }}</p>
+                          <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Volume</p>
+                        </div>
                       </div>
-                    }
+                      <div class="p-4 rounded-xl border border-slate-100 bg-white shadow-sm flex items-center gap-4">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                          <mat-icon class="!text-sm">handshake</mat-icon>
+                        </div>
+                        <div>
+                          <p class="text-sm font-black text-slate-900 leading-none mb-1">{{ selectedUser().activeBookings || 0 }}</p>
+                          <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Active Hires</p>
+                        </div>
+                      </div>
                   </div>
-                </section>
+                </div>
               }
             </div>
 
-            <!-- Right Side: Controls -->
-            <div class="space-y-8">
-              <section>
-                <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Governance Controls</h4>
-                <div class="p-8 bg-white border border-slate-200/60 rounded-[32px] shadow-xl space-y-8">
-                  <div class="flex justify-between items-center">
-                    <span class="text-xs font-black text-slate-500 uppercase tracking-widest">Account Status</span>
-                    <span class="px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest" [ngClass]="selectedUser().statusClass">
-                      {{ selectedUser().status || 'Active' }}
-                    </span>
-                  </div>
-                  
-                  <div class="space-y-4">
-                    <div class="flex justify-between items-end mb-2">
-                      <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Profile Health</span>
-                      <span class="text-xs font-black text-slate-900">{{ selectedUser().progress }}%</span>
-                    </div>
-                    <mat-progress-bar mode="determinate" [value]="selectedUser().progress" [ngClass]="selectedUser().progressClass" class="!h-2 rounded-full"></mat-progress-bar>
-                  </div>
+            <!-- Right Side: Governance -->
+            <div class="lg:col-span-5 space-y-4">
+               <h4 class="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em]">Governance</h4>
+               <div class="p-5 bg-white border border-slate-200/60 rounded-2xl shadow-xl shadow-slate-100/50 space-y-5">
+                 <div class="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                   <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Account Status</span>
+                   <span class="px-2 py-1 rounded text-[8px] font-black uppercase tracking-widest" [ngClass]="selectedUser().statusClass">
+                     {{ selectedUser().status || 'Active' }}
+                   </span>
+                 </div>
+                 
+                 <div class="space-y-2 px-1">
+                   <div class="flex justify-between items-end">
+                     <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">Profile Health</span>
+                     <span class="text-[10px] font-black text-slate-900">{{ selectedUser().progress }}%</span>
+                   </div>
+                   <mat-progress-bar mode="determinate" [value]="selectedUser().progress" [ngClass]="selectedUser().progressClass" class="!h-1 rounded-full"></mat-progress-bar>
+                 </div>
 
-                  <mat-divider></mat-divider>
-                  
-                  <div class="flex flex-col gap-3">
-                    <button (click)="promoteUser(selectedUser())" 
-                            [disabled]="selectedUser().status === 'Verified' || selectedUser().status === 'Active'"
-                            class="w-full py-4 rounded-2xl bg-indigo-600 text-white font-black text-xs uppercase tracking-widest shadow-xl shadow-indigo-100 hover:bg-indigo-700 disabled:opacity-50 transition-all">
-                      {{ selectedUser().status === 'Verified' ? 'Account Verified' : 'Verify & Promote' }}
-                    </button>
-                    <button (click)="suspendUser(selectedUser())" class="w-full py-4 rounded-2xl bg-white text-rose-600 border border-rose-100 font-black text-xs uppercase tracking-widest hover:bg-rose-50 transition-all">
-                      Suspend Access
-                    </button>
-                  </div>
-                </div>
-              </section>
+                 <div class="flex flex-col gap-2 pt-1">
+                   <button (click)="promoteUser(selectedUser())" 
+                           [disabled]="selectedUser().status === 'Verified' || selectedUser().status === 'Active'"
+                           class="w-full py-3 rounded-xl bg-slate-900 text-white font-black text-[9px] uppercase tracking-widest shadow-lg hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 transition-all">
+                     {{ selectedUser().status === 'Verified' ? 'Verified Expert' : 'Promote Account' }}
+                   </button>
+                   <button (click)="suspendUser(selectedUser())" 
+                           [disabled]="selectedUser().status === 'Suspended'"
+                           class="w-full py-3 rounded-xl bg-white text-rose-600 border border-rose-100 font-black text-[9px] uppercase tracking-widest hover:bg-rose-50 transition-all">
+                     Suspend Access
+                   </button>
+                 </div>
+               </div>
             </div>
           </div>
         </mat-card>
       }
 
       <!-- Header & Main Management Section -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-slate-100 pb-10">
-        <div>
-          <div class="flex items-center gap-3 mb-3">
-            <span class="bg-slate-100 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200/50">Directory Oversight</span>
-            <span class="h-1 w-1 rounded-full bg-slate-300"></span>
-            <span class="text-slate-400 text-[10px] font-medium uppercase tracking-widest">Live Registry</span>
-          </div>
-          <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-2">Participant Registry</h1>
-          <p class="text-slate-500 font-medium text-lg">Comprehensive management of platform users and security credentials.</p>
-        </div>
-        
-        <div class="flex items-center gap-3">
-          <button (click)="exportData()" class="px-6 py-3 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
-             <mat-icon class="!text-sm mr-1">download</mat-icon> Export Data
-          </button>
-          <button (click)="inviteUser()" class="px-6 py-3 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
-             <mat-icon class="!text-sm mr-1">person_add</mat-icon> Invite User
-          </button>
-        </div>
-      </div>
-
-      <!-- Live Stats -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-        @for (stat of dynamicStats; track stat.label) {
-          <div class="p-8 rounded-[32px] border border-slate-100 bg-white shadow-sm hover:shadow-md transition-all">
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{{ stat.label }}</p>
-            <h3 class="text-3xl font-black text-slate-900 tracking-tight">{{ stat.value }}</h3>
-            <div class="flex items-center gap-1 mt-3 font-bold text-[10px]" [ngClass]="stat.trendClass">
-               <mat-icon class="!text-[10px] !w-auto !h-auto">{{ stat.icon }}</mat-icon>
-               <span>{{ stat.subtext }}</span>
+      <!-- Compact Registry Header -->
+      <div class="flex flex-col gap-6 mb-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-slate-400 text-[8px] font-black uppercase tracking-widest">User Registry</span>
             </div>
+            <h1 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Participant Oversight</h1>
           </div>
-        }
+          
+          <div class="flex items-center gap-3">
+             <!-- Compact Stat Strip -->
+             <div class="hidden lg:flex items-center gap-6 px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm">
+                @for (stat of dynamicStats; track stat.label) {
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 text-slate-400">
+                      <mat-icon class="!text-sm">{{ stat.icon }}</mat-icon>
+                    </div>
+                    <div>
+                      <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{{ stat.label }}</p>
+                      <p class="text-sm font-black text-slate-900 leading-none">{{ stat.value }}</p>
+                    </div>
+                    @if (!$last) { <div class="h-6 w-px bg-slate-100 ml-4"></div> }
+                  </div>
+                }
+             </div>
+          </div>
+        </div>
       </div>
 
       <!-- Main Registry Card -->
       <mat-card class="!rounded-[32px] !border !border-slate-200/60 !shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden">
         <!-- Filter Header -->
-        <div class="p-8 border-b border-slate-100 flex flex-col lg:flex-row gap-6 items-center justify-between bg-slate-50/50">
+        <div class="p-6 border-b border-slate-100 flex flex-col lg:flex-row gap-4 items-center justify-between bg-slate-50/50">
           <div class="flex flex-wrap gap-4 w-full lg:w-auto">
-            <div class="relative group w-full sm:w-72">
-              <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 !text-lg">search</mat-icon>
-              <input class="w-full pl-12 pr-6 py-3 rounded-2xl border border-slate-200 bg-white text-sm font-medium focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none" 
+            <div class="relative group w-full sm:w-80">
+              <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 !text-base">search</mat-icon>
+              <input class="w-full pl-11 pr-12 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none" 
                      placeholder="Search identities..." 
                      type="text" 
                      [ngModel]="searchQuery()" 
-                     (ngModelChange)="searchQuery.set($any($event))"/>
+                     (ngModelChange)="setSearch($any($event))"/>
+              @if (searchQuery()) {
+                <button (click)="setSearch('')" class="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400">
+                  <mat-icon class="!text-sm">close</mat-icon>
+                </button>
+              }
             </div>
 
-            <div class="flex gap-3">
+            <div class="flex gap-3 items-center">
               <mat-form-field appearance="outline" class="!text-xs h-[48px] custom-field">
-                <mat-select [value]="selectedRole()" (selectionChange)="selectedRole.set($event.value)">
+                <mat-select [value]="selectedRole()" (selectionChange)="setRole($event.value)">
                   <mat-option value="all">All Roles</mat-option>
                   <mat-option value="worker">Service Providers</mat-option>
                   <mat-option value="client">Enterprise Clients</mat-option>
                 </mat-select>
               </mat-form-field>
-
+              
               <mat-form-field appearance="outline" class="!text-xs h-[48px] custom-field">
-                <mat-select [value]="selectedStatus()" (selectionChange)="selectedStatus.set($event.value)">
+                <mat-select [value]="selectedStatus()" (selectionChange)="setStatus($event.value)">
                   <mat-option value="any">Any Status</mat-option>
                   <mat-option value="verified">Verified</mat-option>
                   <mat-option value="pending">Pending Review</mat-option>
                   <mat-option value="suspended">Suspended</mat-option>
                 </mat-select>
               </mat-form-field>
+
+              @if (selectedRole() !== 'all' || selectedStatus() !== 'any' || searchQuery()) {
+                <button (click)="resetFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all border border-indigo-100">
+                  Reset Filters
+                </button>
+              }
             </div>
           </div>
           
           <div class="flex items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            <span>Showing {{ users.length }} active results</span>
+            <span>Showing {{ pagedUsers.length }} of {{ users.length }} results</span>
             <div class="flex gap-1">
-              <button class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all"><mat-icon class="!text-sm">chevron_left</mat-icon></button>
-              <button class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all"><mat-icon class="!text-sm">chevron_right</mat-icon></button>
+              <button (click)="prevPage()" [disabled]="currentPage() === 1" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all disabled:opacity-40"><mat-icon class="!text-sm">chevron_left</mat-icon></button>
+              <button (click)="nextPage()" [disabled]="currentPage() >= totalPages" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all disabled:opacity-40"><mat-icon class="!text-sm">chevron_right</mat-icon></button>
             </div>
           </div>
         </div>
 
         <div class="overflow-x-auto">
-          <table mat-table [dataSource]="users" class="w-full !bg-transparent">
+          <table mat-table [dataSource]="pagedUsers" class="w-full !bg-transparent">
             <!-- Identity Column -->
             <ng-container matColumnDef="identity">
               <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em] !py-6 !px-8">User Identity</th>
@@ -317,6 +323,18 @@ import { AuthService } from '../../../core/services/auth.service';
             <p class="text-slate-400 font-medium text-sm">Refine your filters or search terms.</p>
           </div>
         }
+        @if (users.length > pageSize) {
+          <div class="p-5 bg-slate-50/30 border-t border-slate-100 flex items-center justify-center gap-2">
+            @for (p of pageNumbers; track p) {
+              <button
+                (click)="goToPage(p)"
+                class="w-8 h-8 rounded-lg border text-[10px] font-black transition-all"
+                [ngClass]="p === currentPage() ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'">
+                {{ p }}
+              </button>
+            }
+          </div>
+        }
       </mat-card>
     </div>
   `,
@@ -339,17 +357,19 @@ import { AuthService } from '../../../core/services/auth.service';
     }
   `]
 })
-export class AdminUserManagementPage {
+export class AdminUserManagementPage implements OnInit {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
   private auth = inject(AuthService);
-  
+
   displayedColumns: string[] = ['identity', 'role', 'status', 'progress', 'actions'];
   selectedRole = signal<string>('all');
   selectedStatus = signal<string>('any');
   searchQuery = signal<string>('');
   selectedUser = signal<any | null>(null);
-  
+  currentPage = signal<number>(1);
+  readonly pageSize = 5;
+
   get dynamicStats() {
     return [
       { label: 'Total Users', value: this.state.workers().length + this.state.clients().length, subtext: 'live', icon: 'group', trendClass: 'text-emerald-500' },
@@ -363,29 +383,29 @@ export class AdminUserManagementPage {
     const role = this.selectedRole();
     const status = this.selectedStatus();
     const query = this.searchQuery().toLowerCase();
-    
+
     let workers: any[] = [];
     let clients: any[] = [];
 
     if (role === 'all' || role === 'worker') {
       workers = this.state.workers()
         .filter(w => {
-           const matchesSearch = !query || w.name.toLowerCase().includes(query) || w.email.toLowerCase().includes(query);
-           const matchesStatus = status === 'any' || 
-                                (status === 'verified' && w.status === 'Verified') || 
-                                (status === 'pending' && (w.status === 'Pending' || w.status === 'Priority')) ||
-                                (status === 'suspended' && w.status === 'Suspended');
-           return matchesSearch && matchesStatus;
+          const matchesSearch = !query || w.name.toLowerCase().includes(query) || w.email.toLowerCase().includes(query);
+          const matchesStatus = status === 'any' ||
+            (status === 'verified' && w.status === 'Verified') ||
+            (status === 'pending' && (w.status === 'Pending' || w.status === 'Priority')) ||
+            (status === 'suspended' && w.status === 'Suspended');
+          return matchesSearch && matchesStatus;
         })
         .map(w => ({
           ...w,
           identity: w.name,
           role: 'Service Provider',
-          tier: w.status === 'Verified' ? 'Tier 3 Platinum' : 'Tier 1 New',
-          statusClass: w.status === 'Verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 
-                       w.status === 'Suspended' ? 'bg-rose-50 text-rose-700 border border-rose-100 animate-pulse' :
-                       w.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border border-rose-100' : 
-                       'bg-slate-50 text-slate-500 border border-slate-100',
+          tier: w.status === 'Verified' ? 'Verified Professional' : 'New Applicant',
+          statusClass: w.status === 'Verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+            w.status === 'Suspended' ? 'bg-rose-50 text-rose-700 border border-rose-100 animate-pulse' :
+              w.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
+                'bg-slate-50 text-slate-500 border border-slate-100',
           progress: w.status === 'Verified' ? 100 : 85,
           progressClass: w.status === 'Verified' ? 'health-teal' : 'health-blue'
         }));
@@ -394,9 +414,11 @@ export class AdminUserManagementPage {
     if (role === 'all' || role === 'client') {
       clients = this.state.clients()
         .filter(c => {
-           const matchesSearch = !query || c.name.toLowerCase().includes(query) || c.email.toLowerCase().includes(query);
-           const matchesStatus = status === 'any' || (status === 'verified' && c.status === 'Active');
-           return matchesSearch && matchesStatus;
+          const matchesSearch = !query || c.name.toLowerCase().includes(query) || c.email.toLowerCase().includes(query);
+          const matchesStatus = status === 'any' || 
+            (status === 'verified' && c.status === 'Active') ||
+            (status === 'suspended' && c.status === 'Suspended');
+          return matchesSearch && matchesStatus;
         })
         .map(c => ({
           ...c,
@@ -412,10 +434,62 @@ export class AdminUserManagementPage {
     return [...workers, ...clients];
   }
 
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.users.length / this.pageSize));
+  }
+
+  get pagedUsers() {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.users.slice(start, start + this.pageSize);
+  }
+
+  get pageNumbers() {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  ngOnInit() {
+    this.state.fetchAdminUsers();
+    this.state.fetchAdminClients();
+  }
+
+  setRole(value: string) {
+    this.selectedRole.set(value);
+    this.currentPage.set(1);
+  }
+
+  setStatus(value: string) {
+    this.selectedStatus.set(value);
+    this.currentPage.set(1);
+  }
+
+  setSearch(value: string) {
+    this.searchQuery.set(value);
+    this.currentPage.set(1);
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage.set(page);
+  }
+
+  resetFilters() {
+    this.selectedRole.set('all');
+    this.selectedStatus.set('any');
+    this.searchQuery.set('');
+    this.currentPage.set(1);
+  }
+
+  prevPage() {
+    this.goToPage(this.currentPage() - 1);
+  }
+
+  nextPage() {
+    this.goToPage(this.currentPage() + 1);
+  }
+
   viewUser(user: any) {
     this.selectedUser.set(user);
-    this.notification.info(`Loading professional dossier for ${user.identity}...`);
-    
+
     // Smooth scroll to the top where the panel appeared
     setTimeout(() => {
       const element = document.getElementById('user-profile-anchor');

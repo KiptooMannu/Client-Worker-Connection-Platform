@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
+import { guestGuard } from './core/guest.guard';
 
 export const routes: Routes = [
   { 
@@ -8,16 +9,26 @@ export const routes: Routes = [
   },
   { 
     path: 'login', 
+    canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/login/login').then(m => m.LoginPage) 
   },
   { 
     path: 'register', 
+    canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterPage) 
   },
   
   { path: 'workers', redirectTo: 'client/marketplace', pathMatch: 'full' },
   { path: 'clients', redirectTo: 'client', pathMatch: 'full' },
   { path: 'admins', redirectTo: 'admin', pathMatch: 'full' },
+  { 
+    path: 'enterprise', 
+    loadComponent: () => import('./features/enterprise/enterprise').then(m => m.EnterprisePage) 
+  },
+  { 
+    path: 'solutions', 
+    loadComponent: () => import('./features/solutions/solutions').then(m => m.SolutionsPage) 
+  },
   
   { 
     path: 'worker', 
@@ -95,6 +106,10 @@ export const routes: Routes = [
       { 
         path: 'activity', 
         loadComponent: () => import('./features/admin/activity/platform-activity').then(m => m.AdminActivityPage) 
+      },
+      { 
+        path: 'messages', 
+        loadComponent: () => import('./features/client/messages/messages').then(m => m.ClientMessagesPage) 
       }
     ]
   }

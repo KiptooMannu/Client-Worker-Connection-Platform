@@ -40,7 +40,7 @@ export class AuthService {
         this.userSignal.set(JSON.parse(savedUser));
       }
 
-      const storedUsers = localStorage.getItem('nestfind_users');
+      const storedUsers = localStorage.getItem('kazi_konnect_users') || localStorage.getItem('nestfind_users');
       if (storedUsers) {
         this.users = [...this.users, ...JSON.parse(storedUsers).filter((su: any) => !this.users.find(u => u.email === su.email))];
       }

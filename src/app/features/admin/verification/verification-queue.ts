@@ -74,7 +74,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       <!-- Main Content Card -->
       <mat-card class="!bg-white !border !border-slate-200/60 !shadow-[0_8px_30px_rgb(0,0,0,0.04)] !rounded-[32px] overflow-hidden">
         <div class="overflow-x-auto">
-          <table mat-table [dataSource]="state.pendingWorkers()" class="w-full !bg-transparent">
+          <table mat-table [dataSource]="pagedPendingWorkers()" class="w-full !bg-transparent">
             <!-- Select Column -->
             <ng-container matColumnDef="select">
               <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !px-8 w-20">
@@ -183,6 +183,22 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <p class="text-slate-400 font-medium max-w-sm text-center">There are no pending applications at the moment. Great job keeping the platform safe!</p>
           </div>
         }
+        @if (state.pendingWorkers().length > pageSize) {
+          <div class="p-5 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
+            <button (click)="prevPage()" [disabled]="currentPage === 1" class="px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 disabled:opacity-40">Prev</button>
+            <div class="flex items-center gap-2">
+              @for (p of pageNumbers; track p) {
+                <button
+                  (click)="goToPage(p)"
+                  class="w-8 h-8 rounded-lg border text-[10px] font-black transition-all"
+                  [ngClass]="p === currentPage ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'">
+                  {{ p }}
+                </button>
+              }
+            </div>
+            <button (click)="nextPage()" [disabled]="currentPage >= totalPages" class="px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 disabled:opacity-40">Next</button>
+          </div>
+        }
       </mat-card>
 
       <!-- Detailed Review Panel -->
@@ -193,13 +209,28 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <!-- Left Profile Section -->
             <div class="md:w-1/3 bg-slate-50/50 p-10 border-r border-slate-100">
               <div class="flex flex-col items-center text-center">
-                <div class="w-32 h-32 rounded-[48px] overflow-hidden border-4 border-white shadow-2xl mb-6 bg-gradient-to-br from-slate-700 to-slate-900 flex items-center justify-center text-white text-4xl font-black">
+                <div class="w-32 h-32 rounded-[40px] overflow-hidden border-4 border-white shadow-xl mb-6 bg-slate-900 flex items-center justify-center text-white text-4xl font-black">
                   @if (detailedReview.image) { <img [src]="detailedReview.image" class="w-full h-full object-cover"> } @else { {{ detailedReview.initials }} }
                 </div>
-                <h2 class="text-2xl font-black text-slate-900 mb-1">{{ detailedReview.name }}</h2>
-                <p class="text-indigo-600 font-bold text-sm mb-6">{{ detailedReview.category }}</p>
+                <h2 class="text-2xl font-black text-slate-900 mb-1 leading-tight">{{ detailedReview.name }}</h2>
+                <p class="text-indigo-600 font-black text-[10px] uppercase tracking-widest mb-6">{{ detailedReview.category }}</p>
                 
-                <div class="w-full space-y-4 text-left">
+                <div class="w-full space-y-4">
+                  <div class="grid grid-cols-3 gap-3">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
+                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Skills</span>
+                      <p class="text-sm font-black text-slate-900">{{ detailedReview.skills?.length || 0 }}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
+                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">History</span>
+                      <p class="text-sm font-black text-slate-900">{{ detailedReview.workHistory?.length || 0 }}</p>
+                    </div>
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
+                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Docs</span>
+                      <p class="text-sm font-black text-slate-900">{{ detailedReview.uploadedDocuments?.length || 0 }}</p>
+                    </div>
+                  </div>
+
                   <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Base Compensation</span>
                     <div class="flex items-baseline gap-1">
@@ -211,17 +242,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                   <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
                     <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Location Context</span>
                     <p class="text-sm font-bold text-slate-900 mb-1">{{ detailedReview.location }}</p>
-                    <p class="text-[11px] text-slate-400 font-medium leading-relaxed">{{ detailedReview.preferredLocations.join(', ') }}</p>
+                    <p class="text-[11px] text-slate-400 font-medium leading-relaxed">{{ detailedReview.preferredLocations?.join(', ') }}</p>
                   </div>
-                </div>
-
-                <div class="mt-10 w-full">
-                   <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-4 text-left">Primary Skills</span>
-                   <div class="flex flex-wrap gap-2">
-                      @for (skill of detailedReview.skills; track skill) {
-                        <span class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 text-[10px] font-bold border border-indigo-100">{{ skill }}</span>
-                      }
-                   </div>
                 </div>
               </div>
             </div>
@@ -306,10 +328,12 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               </div>
 
               <!-- Final Actions -->
-              <div class="mt-16 flex justify-end gap-4 items-center">
-                 <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-4">Final Determination</span>
-                 <button (click)="openReject(detailedReview)" class="px-8 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all border border-transparent hover:border-rose-100">Decline Application</button>
-                 <button (click)="approve(detailedReview)" class="px-10 py-4 rounded-2xl bg-indigo-600 text-white text-xs font-bold uppercase tracking-widest shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-1 transition-all">
+              <div class="mt-16 flex justify-end gap-3 items-center">
+                 <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-4">Final Determination</span>
+                 <button (click)="openReject(detailedReview)" class="h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest text-rose-600 bg-rose-50 hover:bg-rose-100 transition-all border border-rose-100">
+                    Decline Application
+                 </button>
+                 <button (click)="approve(detailedReview)" class="h-14 px-10 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1 transition-all">
                     Verify Profile
                  </button>
               </div>
@@ -377,6 +401,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 export class AdminVerificationPage implements OnInit {
   state = inject(PlatformStateService);
   displayedColumns: string[] = ['select', 'applicant', 'category', 'status', 'actions'];
+  currentPage = 1;
+  readonly pageSize = 8;
 
   ngOnInit() {
     this.state.fetchPendingWorkers();
@@ -390,6 +416,19 @@ export class AdminVerificationPage implements OnInit {
   
   selectedIds = new Set<string>();
 
+  get totalPages() {
+    return Math.max(1, Math.ceil(this.state.pendingWorkers().length / this.pageSize));
+  }
+
+  get pageNumbers() {
+    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+  }
+
+  pagedPendingWorkers() {
+    const start = (this.currentPage - 1) * this.pageSize;
+    return this.state.pendingWorkers().slice(start, start + this.pageSize);
+  }
+
   isAllSelected() {
     const pending = this.state.pendingWorkers();
     return pending.length > 0 && this.selectedIds.size === pending.length;
@@ -401,6 +440,19 @@ export class AdminVerificationPage implements OnInit {
     } else {
       this.state.pendingWorkers().forEach(w => this.selectedIds.add(w.id));
     }
+  }
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+  }
+
+  prevPage() {
+    this.goToPage(this.currentPage - 1);
+  }
+
+  nextPage() {
+    this.goToPage(this.currentPage + 1);
   }
 
   toggleSelection(id: string) {
@@ -439,6 +491,7 @@ export class AdminVerificationPage implements OnInit {
   approve(user: any) {
     this.state.approveWorker(user.id);
     this.reviewingId = null;
+    this.detailedReview = null;
   }
 
   openReject(user: any) {
@@ -460,5 +513,6 @@ export class AdminVerificationPage implements OnInit {
     }
     this.cancelReject();
     this.reviewingId = null;
+    this.detailedReview = null;
   }
 }

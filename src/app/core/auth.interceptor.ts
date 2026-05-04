@@ -8,7 +8,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const user = authService.currentUser();
   
   const handleAuthError = (error: HttpErrorResponse) => {
-    if (error.status === 401 || error.status === 403) {
+    if (error.status === 401 && !req.url.includes('/auth/login')) {
       authService.logout();
     }
     return throwError(() => error);

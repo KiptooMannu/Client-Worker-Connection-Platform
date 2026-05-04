@@ -4,7 +4,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../../core/services/auth.service';
 import { PlatformStateService } from '../../core/services/platform-state.service';
 
@@ -17,53 +16,51 @@ import { PlatformStateService } from '../../core/services/platform-state.service
     RouterLinkActive, 
     MatIconModule, 
     MatButtonModule, 
-    MatMenuModule, 
-    MatBadgeModule
+    MatMenuModule
   ],
   template: `
-    <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm flex justify-between items-center px-6 md:px-12 h-20 w-full sticky top-0 z-50 backdrop-blur-md bg-white/90">
-      <div class="flex items-center gap-12">
+    <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm flex justify-between items-center px-4 sm:px-6 md:px-12 h-20 w-full sticky top-0 z-50 backdrop-blur-md bg-white/90 gap-4">
+      <div class="flex items-center gap-6 md:gap-12 min-w-0">
         <div class="flex items-center gap-3 cursor-pointer group" routerLink="/">
           <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
             <mat-icon>corporate_fare</mat-icon>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">ProMarket</span>
+          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">Kazi Konnect</span>
         </div>
         
         <nav class="hidden md:flex items-center gap-8">
-          @if (auth.userRole() === 'Client' || !auth.isAuthenticated()) {
-            <a routerLink="/client/marketplace" routerLinkActive="active-link" 
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-              Find Talent
-            </a>
-          }
-          @if (auth.userRole() === 'Worker') {
-            <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-              My Dashboard
-            </a>
-          }
+          <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
+             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+            Find Work
+          </a>
+          <a routerLink="/client/marketplace" routerLinkActive="active-link" 
+             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+            Hire Talent
+          </a>
+          <a routerLink="/enterprise" routerLinkActive="active-link" 
+             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+            Enterprise
+          </a>
+          <a routerLink="/solutions" routerLinkActive="active-link" 
+             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+            Solutions
+          </a>
+          <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
+             routerLinkActive="active-link"
+             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
+            Messages
+            @if (state.unreadMessagesCount() > 0) {
+              <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
+            }
+          </a>
+          
           @if (auth.userRole() === 'Client') {
-            <a routerLink="/client/messages" routerLinkActive="active-link"
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer flex items-center gap-2">
-              Messages
-              @if (state.unreadMessagesCount() > 0) {
-                <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
-              }
-            </a>
             <a routerLink="/client/bookings" routerLinkActive="active-link"
                class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
               My Bookings
             </a>
           }
           @if (auth.userRole() === 'Worker') {
-            <a routerLink="/worker/messages" routerLinkActive="active-link"
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer flex items-center gap-2">
-              Messages
-              @if (state.unreadMessagesCount() > 0) {
-                <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
-              }
-            </a>
             <a routerLink="/worker/history" routerLinkActive="active-link"
                class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
               My Jobs
@@ -72,7 +69,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
         </nav>
       </div>
 
-      <div class="flex items-center gap-6">
+      <div class="flex items-center gap-2 sm:gap-3 md:gap-6 shrink-0">
         @if (auth.isAuthenticated()) {
           <div class="flex items-center gap-4">
              <div class="hidden lg:flex flex-col items-end mr-2">
@@ -81,11 +78,13 @@ import { PlatformStateService } from '../../core/services/platform-state.service
              </div>
              
              <!-- Notification Bell -->
-             <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="!bg-slate-50 !rounded-xl hover:!bg-slate-100 transition-colors cursor-pointer relative">
-               <mat-icon [matBadge]="state.unreadNotificationsCount()" 
-                         [matBadgeHidden]="state.unreadNotificationsCount() === 0"
-                         matBadgeColor="warn"
-                         class="!text-slate-500">notifications</mat-icon>
+             <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="!bg-slate-50 !rounded-xl hover:!bg-slate-100 transition-colors cursor-pointer relative !w-10 !h-10">
+               <span class="text-base leading-none">🔔</span>
+               @if (state.unreadNotificationsCount() > 0) {
+                 <span class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black leading-4 text-center">
+                   {{ state.unreadNotificationsCount() > 99 ? '99+' : state.unreadNotificationsCount() }}
+                 </span>
+               }
              </button>
 
              <mat-menu #notifMenu="matMenu" class="!rounded-2xl !mt-4 !shadow-2xl border border-slate-100 overflow-hidden">
@@ -126,9 +125,13 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                </div>
              </mat-menu>
 
-             <button (click)="auth.logout()" class="bg-[#0f172a] text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 cursor-pointer">
-                Log Out
-             </button>
+            <button (click)="auth.logout()" class="text-slate-600 hover:text-rose-600 transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">
+              Log Out
+            </button>
+            <button [routerLink]="auth.userRole() === 'Admin' ? '/admin' : (auth.userRole() === 'Worker' ? '/worker/dashboard' : '/client/marketplace')" 
+                    class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">
+              Dashboard
+            </button>
           </div>
         } @else {
           <div class="flex items-center gap-4">

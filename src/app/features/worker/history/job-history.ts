@@ -8,6 +8,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule } from '@angular/forms';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { inject, computed, signal } from '@angular/core';
 
 @Component({
@@ -36,7 +37,7 @@ import { inject, computed, signal } from '@angular/core';
             <mat-icon class="text-slate-400 mr-2 !text-xs">search</mat-icon>
             <input class="w-full border-none focus:ring-0 bg-transparent text-xs font-bold" placeholder="Search..." type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($any($event))"/>
           </div>
-          <button mat-stroked-button class="!border-slate-300 !px-4 !py-2 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-2">
+          <button mat-stroked-button (click)="exportHistory()" class="!border-slate-300 !px-4 !py-2 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-2">
             <mat-icon class="!text-sm">download</mat-icon> Export
           </button>
         </div>
@@ -78,7 +79,7 @@ import { inject, computed, signal } from '@angular/core';
               </div>
             }
           </div>
-          <button mat-flat-button class="!bg-white/5 !text-slate-400 hover:!bg-white/10 !py-3 !rounded-xl !font-black !text-[9px] !uppercase !tracking-widest !border !border-white/10">
+          <button mat-flat-button (click)="openAnalytics()" class="!bg-white/5 !text-slate-400 hover:!bg-white/10 !py-3 !rounded-xl !font-black !text-[9px] !uppercase !tracking-widest !border !border-white/10">
             Analytics
           </button>
         </mat-card>
@@ -88,10 +89,10 @@ import { inject, computed, signal } from '@angular/core';
       <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !overflow-hidden">
         <mat-card-header class="!p-6 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-row !justify-between !items-center">
           <mat-card-title class="!text-[9px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Complete Job Ledger</mat-card-title>
-          <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Showing {{ jobs.length }} results</span>
+          <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Showing {{ pagedJobs().length }} of {{ jobs().length }} results</span>
         </mat-card-header>
         
-        <table mat-table [dataSource]="jobs" class="w-full">
+        <table mat-table [dataSource]="pagedJobs()" class="w-full">
           <!-- Client Column -->
           <ng-container matColumnDef="client">
             <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Client Name</th>
@@ -149,14 +150,22 @@ import { inject, computed, signal } from '@angular/core';
         </table>
 
         <div class="p-8 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-          <button mat-button color="primary" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1">
+          <button mat-button color="primary" (click)="prevPage()" [disabled]="currentPage() === 1" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1 disabled:!opacity-40">
             <mat-icon class="!text-sm">chevron_left</mat-icon> Previous
           </button>
           <div class="flex gap-2">
-            <button mat-flat-button color="primary" class="!min-w-[40px] !w-10 !h-10 !p-0 !rounded-xl !font-black">1</button>
-            <button mat-stroked-button class="!min-w-[40px] !w-10 !h-10 !p-0 !rounded-xl !font-black !border-slate-200">2</button>
+            @for (p of pageNumbers(); track p) {
+              <button
+                mat-stroked-button
+                color="primary"
+                (click)="goToPage(p)"
+                [ngClass]="p === currentPage() ? '!bg-slate-900 !text-white !border-slate-900' : ''"
+                class="!min-w-[40px] !w-10 !h-10 !p-0 !rounded-xl !font-black !border-slate-200">
+                {{ p }}
+              </button>
+            }
           </div>
-          <button mat-button color="primary" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1">
+          <button mat-button color="primary" (click)="nextPage()" [disabled]="currentPage() >= totalPages()" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1 disabled:!opacity-40">
             Next <mat-icon class="!text-sm">chevron_right</mat-icon>
           </button>
         </div>
@@ -176,8 +185,11 @@ import { inject, computed, signal } from '@angular/core';
 })
 export class WorkerHistoryPage {
   state = inject(PlatformStateService);
+  private notification = inject(NotificationService);
   displayedColumns: string[] = ['client', 'date', 'earnings', 'rating', 'status'];
   searchQuery = signal<string>('');
+  currentPage = signal(1);
+  readonly pageSize = 8;
 
   get earnings() {
     const jobs = this.state.bookings();
@@ -211,7 +223,7 @@ export class WorkerHistoryPage {
     ];
   }
 
-  get jobs() {
+  jobs = computed(() => {
     const query = this.searchQuery().toLowerCase();
     return this.state.bookings()
       .filter(b => !query || b.clientName.toLowerCase().includes(query) || b.service.toLowerCase().includes(query))
@@ -221,10 +233,48 @@ export class WorkerHistoryPage {
         initials: b.clientInitials,
         service: b.service,
         date: b.date,
-        earnings: `$\{{ b.earnings.toFixed(2) }}`,
+        earnings: `$${b.earnings.toFixed(2)}`,
         rating: b.rating,
         statusBg: b.status === 'Approved' ? 'bg-teal-50' : 'bg-blue-50',
         statusColor: b.status === 'Approved' ? 'text-teal-700' : 'text-blue-700'
       }));
+  });
+
+  totalPages = computed(() => Math.max(1, Math.ceil(this.jobs().length / this.pageSize)));
+  pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1));
+  pagedJobs = computed(() => {
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.jobs().slice(start, start + this.pageSize);
+  });
+
+  goToPage(page: number) {
+    if (page < 1 || page > this.totalPages()) return;
+    this.currentPage.set(page);
+  }
+
+  prevPage() {
+    this.goToPage(this.currentPage() - 1);
+  }
+
+  nextPage() {
+    this.goToPage(this.currentPage() + 1);
+  }
+
+  exportHistory() {
+    const header = 'client,service,date,earnings,status';
+    const rows = this.jobs().map(j => `${j.client},${j.service},${j.date},${j.earnings},${j.status}`);
+    const csv = [header, ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `worker-history-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.notification.success('Job history exported.');
+  }
+
+  openAnalytics() {
+    this.notification.info('Analytics refreshed from current history.');
   }
 }

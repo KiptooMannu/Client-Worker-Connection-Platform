@@ -1,4 +1,8 @@
 @import 'tailwindcss';
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 
 @theme {
   --color-error-container: #ffdad6;
@@ -50,6 +54,10 @@
   --color-primary-fixed-dim: #b7c8de;
 
   --font-inter: "Inter", sans-serif;
+  
+  /* Global Dashboard Scale Adjustment */
+  --dashboard-padding: 1.5rem;
+  --header-height: 4rem;
 }
 
 @layer base {
@@ -85,6 +93,44 @@
   vertical-align: middle;
 }
 
+mat-icon {
+  font-family: 'Material Icons' !important;
+  font-style: normal;
+  font-weight: normal;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+  
+  /* Hard fix for text leak: if the font fails, squash the text */
+  overflow: hidden !important;
+  line-height: 1 !important;
+  letter-spacing: -1em; 
+  text-indent: 0;
+  
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
+}
+
+/* Material Symbols specifically */
+.material-symbols-outlined {
+  letter-spacing: normal !important;
+}
+
+/* Force icons to be symbols and not text labels */
+mat-icon:empty {
+  display: none;
+}
+
 .material-fill {
   font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
@@ -96,26 +142,32 @@
 
 /* Calm brand palette override (reduce shouty accents) */
 :root {
-  --calm-primary: #334155;
-  --calm-primary-soft: #e2e8f0;
-  --calm-accent: #475569;
+  --calm-primary: #1e293b;
+  --calm-primary-soft: #f1f5f9;
+  --calm-accent: #64748b;
+  --calm-indigo: #4f46e5;
 }
 
 .bg-indigo-600,
-.bg-blue-600,
-.bg-indigo-900,
-.bg-blue-700 {
+.bg-blue-600 {
   background-color: var(--calm-primary) !important;
 }
 
 .text-indigo-600,
-.text-blue-600,
-.text-indigo-700,
-.text-blue-700 {
-  color: var(--calm-accent) !important;
+.text-blue-600 {
+  color: var(--calm-indigo) !important;
 }
 
 .bg-indigo-50,
 .bg-blue-50 {
   background-color: var(--calm-primary-soft) !important;
 }
+
+/* Global Scale reduction for 100% screens */
+.text-5xl { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+.text-4xl { font-size: 1.875rem !important; line-height: 2.25rem !important; }
+.p-12 { padding: 2rem !important; }
+.p-10 { padding: 1.5rem !important; }
+.gap-12 { gap: 1.5rem !important; }
+.gap-10 { gap: 1.25rem !important; }
+

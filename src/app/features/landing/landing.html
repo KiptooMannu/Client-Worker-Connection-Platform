@@ -2,17 +2,42 @@
 <nav class="sticky top-0 w-full z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
     <div class="flex justify-between items-center h-16 px-6 lg:px-12 max-w-7xl mx-auto">
         <div class="flex items-center gap-8">
-            <span class="text-xl font-bold text-[#1A2B3C] tracking-tight">ProMarket</span>
-            <div class="hidden md:flex gap-6">
-                <a class="text-slate-600 hover:text-[#1A2B3C] transition-colors font-medium text-sm cursor-pointer" [routerLink]="['/worker']">Find Work</a>
-                <a class="text-slate-600 hover:text-[#1A2B3C] transition-colors font-medium text-sm cursor-pointer" [routerLink]="['/client']">Hire Talent</a>
-                <a class="text-slate-600 hover:text-[#1A2B3C] transition-colors font-medium text-sm" href="#">Enterprise</a>
-                <a class="text-slate-600 hover:text-[#1A2B3C] transition-colors font-medium text-sm" href="#">Solutions</a>
+            <span class="text-xl font-bold text-[#1A2B3C] tracking-tight">Kazi Konnect</span>
+            <div class="hidden md:flex items-center gap-8">
+                <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                    Find Work
+                </a>
+                <a routerLink="/client/marketplace" routerLinkActive="active-link" 
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                    Hire Talent
+                </a>
+                <a routerLink="/enterprise" routerLinkActive="active-link" 
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                    Enterprise
+                </a>
+                <a routerLink="/solutions" routerLinkActive="active-link" 
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                  Solutions
+                </a>
+                <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
+                   routerLinkActive="active-link"
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
+                  Messages
+                  @if (state.unreadMessagesCount() > 0) {
+                    <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
+                  }
+                </a>
             </div>
         </div>
         <div class="flex items-center gap-4">
-            <button [routerLink]="['/login']" class="text-slate-600 hover:text-[#1A2B3C] transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log In</button>
-            <button [routerLink]="['/register']" class="bg-[#1A2B3C] text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-[#2c3e50] transition-all active:scale-95 duration-150 cursor-pointer">Sign Up</button>
+            @if (auth.isAuthenticated()) {
+              <button (click)="auth.logout()" class="text-slate-600 hover:text-rose-600 transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log Out</button>
+              <button [routerLink]="['/admin']" class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">Dashboard</button>
+            } @else {
+              <button [routerLink]="['/login']" class="text-slate-600 hover:text-[#1A2B3C] transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log In</button>
+              <button [routerLink]="['/register']" class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">Sign Up</button>
+            }
         </div>
     </div>
 </nav>
@@ -71,7 +96,7 @@
     <section class="py-24 bg-surface">
         <div class="max-w-7xl mx-auto px-6 lg:px-12 text-center mb-16">
             <h2 class="text-3xl font-bold text-primary mb-4">Uncompromising Standards</h2>
-            <p class="text-on-surface-variant max-w-2xl mx-auto">We've built ProMarket to solve the trust gap in the service economy.</p>
+            <p class="text-on-surface-variant max-w-2xl mx-auto">We've built Kazi Konnect to solve the trust gap in the service economy.</p>
         </div>
         <div class="max-w-7xl mx-auto px-6 lg:px-12 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
@@ -93,6 +118,63 @@
                 <span class="material-symbols-outlined text-secondary text-4xl mb-4">gavel</span>
                 <h3 class="font-bold text-lg text-primary mb-2">Admin Moderation</h3>
                 <p class="text-sm text-on-surface-variant">24/7 human moderation to resolve disputes and maintain platform quality.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Platform Overview -->
+    <section class="py-24 bg-white overflow-hidden relative">
+        <div class="max-w-7xl mx-auto px-margin relative z-10">
+            <!-- Navigation Tabs -->
+            <div class="flex justify-center gap-12 mb-20 border-b border-slate-100 pb-6">
+                <button (click)="selectedOverview.set('trust')" 
+                        [class.text-blue-600]="selectedOverview() === 'trust'"
+                        [class.border-blue-600]="selectedOverview() === 'trust'"
+                        class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+                    Trust & Safety
+                </button>
+                <button (click)="selectedOverview.set('scale')" 
+                        [class.text-blue-600]="selectedOverview() === 'scale'"
+                        [class.border-blue-600]="selectedOverview() === 'scale'"
+                        class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+                    Marketplace Scale
+                </button>
+                <button (click)="selectedOverview.set('settlement')" 
+                        [class.text-blue-600]="selectedOverview() === 'settlement'"
+                        [class.border-blue-600]="selectedOverview() === 'settlement'"
+                        class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+                    Secure Settlement
+                </button>
+            </div>
+
+            <!-- Content Card -->
+            <div class="bg-slate-50/50 backdrop-blur-sm rounded-[3rem] p-12 lg:p-20 border border-slate-100 relative overflow-hidden group">
+                <!-- Ghosted Background Image -->
+                <div class="absolute inset-0 opacity-10 grayscale mix-blend-multiply pointer-events-none group-hover:opacity-20 transition-opacity duration-1000">
+                    <img src="landing_overview_illustration_1777902473022.png" 
+                         class="w-full h-full object-cover" 
+                         alt="Background Architecture">
+                </div>
+
+                <div class="relative z-10 flex flex-col lg:flex-row gap-16 items-start">
+                    <div class="lg:w-1/2">
+                        <span class="text-blue-600 text-sm font-black uppercase tracking-widest block mb-10">Overview</span>
+                        <h3 class="text-3xl md:text-5xl font-black text-[#041627] leading-tight font-['Manrope'] mb-8">
+                            {{ overviews[selectedOverview()].highlight }}
+                        </h3>
+                    </div>
+                    <div class="lg:w-1/2">
+                        <p class="text-lg text-slate-500 leading-relaxed font-medium mb-12">
+                            {{ overviews[selectedOverview()].description }}
+                        </p>
+                        <div class="flex items-center gap-4 pt-10 border-t border-slate-200">
+                            <mat-icon class="text-emerald-500">verified</mat-icon>
+                            <span class="text-xs font-black uppercase tracking-widest text-[#041627]">
+                                {{ overviews[selectedOverview()].footer }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -151,7 +233,7 @@
     <section class="py-24 max-w-7xl mx-auto px-6 lg:px-12 mb-24">
         <div class="bg-[#1A2B3C] rounded-[2rem] p-12 lg:p-20 text-center relative overflow-hidden">
             <div class="relative z-10">
-                <h2 class="text-4xl font-bold text-white mb-6">Ready to Experience ProMarket?</h2>
+                <h2 class="text-4xl font-bold text-white mb-6">Ready to Experience Kazi Konnect?</h2>
                 <p class="text-lg text-primary-fixed-dim mb-10 max-w-2xl mx-auto">Join the community where professional integrity and customer satisfaction are the primary currency.</p>
                 <div class="flex flex-col sm:flex-row gap-6 justify-center">
                     <button [routerLink]="['/register']" [queryParams]="{role: 'client'}" class="bg-secondary text-white px-10 py-5 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-transform active:scale-95">Get Started as a Client</button>
@@ -171,7 +253,7 @@
 <footer class="w-full border-t border-slate-800 bg-[#1A2B3C]">
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 px-6 lg:px-12 py-16 max-w-7xl mx-auto">
         <div class="col-span-2">
-            <span class="text-lg font-black text-white block mb-4">ProMarket</span>
+            <span class="text-lg font-black text-white block mb-4">Kazi Konnect</span>
             <p class="text-slate-400 text-sm max-w-xs mb-6">The gold standard for secure, professional service marketplaces. Built for trust.</p>
             <div class="flex gap-4">
                 <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">public</span>
@@ -199,6 +281,6 @@
         </div>
     </div>
     <div class="border-t border-slate-800 py-8 px-6 lg:px-12 max-w-7xl mx-auto">
-        <p class="text-slate-400 text-sm">© 2024 ProMarket Inc. All rights reserved.</p>
+        <p class="text-slate-400 text-sm">© 2024 Kazi Konnect. All rights reserved.</p>
     </div>
 </footer>

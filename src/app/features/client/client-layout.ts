@@ -23,9 +23,9 @@ import { NavbarComponent } from '../../shared/components/navbar';
       <!-- Footer -->
       <footer class="bg-white border-t border-slate-100 mt-auto">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center py-12 px-12">
-          <div class="flex items-center gap-4 opacity-50">
-            <span class="text-lg font-black tracking-tighter text-[#041627]">ProMarket</span>
-            <p class="text-xs font-medium text-slate-500">© 2024 Infrastructure. All rights reserved.</p>
+          <div class="flex flex-col md:flex-row items-center gap-4">
+            <span class="text-lg font-black tracking-tighter text-[#041627]">Kazi Konnect</span>
+            <p class="text-xs font-medium text-slate-400">© 2024 Kazi Konnect. All rights reserved.</p>
           </div>
           <div class="flex gap-8 mt-6 md:mt-0">
             <a class="text-xs font-black text-slate-400 hover:text-[#041627] transition-colors uppercase tracking-widest cursor-pointer" href="#">Legal</a>

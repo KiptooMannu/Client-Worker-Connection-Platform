@@ -195,8 +195,14 @@ export class PlatformStateService {
           if (u) {
             this.fetchNotifications(u.id);
             this.fetchChats(u.id);
+            
+            if (u.role === 'Admin') {
+              this.fetchAdminActivityLogs();
+              this.fetchPendingWorkers();
+              this.fetchAdminUsers();
+            }
           }
-        }, 30000); // Increased to 30s for better stability
+        }, 15000); // 15s polling for active sessions
       } else {
         if (this.pollingInterval) {
           clearInterval(this.pollingInterval);
@@ -220,8 +226,8 @@ export class PlatformStateService {
   fetchMarketplaceWorkers(skill?: string, location?: string, minExp?: number) {
     let url = `${this.apiUrl}/marketplace/search`;
     const params: string[] = [];
-    if (skill) params.push(`skill=${skill}`);
-    if (location) params.push(`location=${location}`);
+    if (skill) params.push(`skill=${encodeURIComponent(skill)}`);
+    if (location) params.push(`location=${encodeURIComponent(location)}`);
     if (minExp) params.push(`minExp=${minExp}`);
 
     if (params.length > 0) url += `?${params.join('&')}`;
@@ -388,7 +394,7 @@ export class PlatformStateService {
   }
 
   markNotificationAsRead(notificationId: string) {
-    this.http.put(`${this.apiUrl}/notifications/${notificationId}/read`, {}).subscribe({
+    this.http.put(`${this.apiUrl}/notifications/${notificationId}/read`, {}, { responseType: 'text' }).subscribe({
       next: () => {
         this.notifications.update(prev => prev.map(n =>
           n.id === notificationId ? { ...n, isRead: true } : n
@@ -402,7 +408,7 @@ export class PlatformStateService {
     const user = this.auth.currentUser();
     if (!user) return;
 
-    this.http.put(`${this.apiUrl}/notifications/user/${user.id}/read-all`, {}).subscribe({
+    this.http.put(`${this.apiUrl}/notifications/user/${user.id}/read-all`, {}, { responseType: 'text' }).subscribe({
       next: () => {
         this.notifications.update(prev => prev.map(n => ({ ...n, isRead: true })));
       },
@@ -494,12 +500,13 @@ export class PlatformStateService {
       currentWorker: this.currentWorker(),
       currentClient: this.currentClient()
     };
-    localStorage.setItem('nestfind_state', JSON.stringify(data));
+    localStorage.setItem('kazi_konnect_state', JSON.stringify(data));
   }
 
   private loadState() {
     if (!isPlatformBrowser(this.platformId)) return;
-    const saved = localStorage.getItem('nestfind_state');
+    // Backward-compatible read from old key during migration.
+    const saved = localStorage.getItem('kazi_konnect_state') || localStorage.getItem('nestfind_state');
     if (saved) {
       try {
         const data = JSON.parse(saved);
@@ -594,7 +601,7 @@ export class PlatformStateService {
     const admin = this.auth.currentUser();
     if (!admin || admin.role !== 'Admin') return;
 
-    this.http.put<any>(`${this.apiUrl}/admin/workers/${id}/reject?adminId=${admin.id}&reason=${reason}`, {}).subscribe({
+    this.http.put<any>(`${this.apiUrl}/admin/workers/${id}/reject?adminId=${admin.id}&reason=${encodeURIComponent(reason)}`, {}).subscribe({
       next: (res) => {
         this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Rejected', rejectionReason: reason } : w));
         this.fetchAdminActivityLogs();
@@ -721,7 +728,10 @@ export class PlatformStateService {
           return c;
         }));
       },
-      error: (err) => console.error('Error sending message', err)
+      error: (err) => {
+        this.notification.error('Failed to send message. Please try again.');
+        console.error('Error sending message', err);
+      }
     });
   }
 
@@ -815,7 +825,9 @@ export class PlatformStateService {
   }
 
   setActiveChat(chatId: string) {
-    this.chats.update(chats => chats.map(c => ({ ...c, active: c.id === chatId })));
+    this.chats.update(chats =>
+      chats.map(c => ({ ...c, active: c.id === chatId, unread: c.id === chatId ? 0 : c.unread }))
+    );
     const chat = this.chats().find(c => c.id === chatId);
     if (chat && chat.messages.length === 0) {
       this.fetchConversation(chat.workerId);

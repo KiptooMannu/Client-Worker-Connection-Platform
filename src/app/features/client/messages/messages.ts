@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDividerModule } from '@angular/material/divider';
 import { FormsModule } from '@angular/forms';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-client-messages',
@@ -32,7 +33,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         <div class="p-8 border-b border-slate-50">
           <div class="flex items-center justify-between mb-8">
             <h2 class="text-3xl font-black text-slate-900 tracking-tighter">Messages</h2>
-            <button mat-icon-button class="!bg-indigo-50 !text-indigo-600 !rounded-xl"><mat-icon>edit_square</mat-icon></button>
+            <button mat-icon-button (click)="startNewChat()" class="!bg-indigo-50 !text-indigo-600 !rounded-xl"><mat-icon>edit_square</mat-icon></button>
           </div>
           <div class="flex gap-2">
             <span class="px-4 py-1.5 bg-indigo-900 text-white text-[10px] font-black uppercase tracking-widest rounded-full cursor-pointer shadow-lg shadow-indigo-900/20">All</span>
@@ -96,10 +97,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
           </div>
           <div class="flex items-center gap-3">
-            <button mat-icon-button class="!text-slate-400 hover:!text-indigo-600"><mat-icon>videocam</mat-icon></button>
-            <button mat-icon-button class="!text-slate-400 hover:!text-indigo-600"><mat-icon>call</mat-icon></button>
+            <button mat-icon-button (click)="openMediaAction('Video calling')" class="!text-slate-400 hover:!text-indigo-600"><mat-icon>videocam</mat-icon></button>
+            <button mat-icon-button (click)="openMediaAction('Voice calling')" class="!text-slate-400 hover:!text-indigo-600"><mat-icon>call</mat-icon></button>
             <mat-divider vertical class="!h-6 !mx-2"></mat-divider>
-            <button mat-icon-button class="!text-slate-400"><mat-icon>more_vert</mat-icon></button>
+            <button mat-icon-button (click)="openMediaAction('More actions')" class="!text-slate-400"><mat-icon>more_vert</mat-icon></button>
           </div>
         </header>
 
@@ -188,6 +189,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 })
 export class ClientMessagesPage {
   state = inject(PlatformStateService);
+  private notification = inject(NotificationService);
   
   newMessage = '';
   todayDate = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
@@ -205,5 +207,13 @@ export class ClientMessagesPage {
       this.state.sendMessage(chat.id, this.newMessage);
       this.newMessage = '';
     }
+  }
+
+  startNewChat() {
+    this.notification.info('Select a worker profile to start a new chat.');
+  }
+
+  openMediaAction(label: string) {
+    this.notification.info(`${label} is not enabled yet.`);
   }
 }

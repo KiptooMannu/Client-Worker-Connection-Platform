@@ -18,7 +18,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg">
             <mat-icon>corporate_fare</mat-icon>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">ProMarket</span>
+          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">Kazi Konnect</span>
         </div>
       </header>
 
@@ -31,30 +31,30 @@ import { AuthService } from '../../../core/services/auth.service';
 
           <form (submit)="onSubmit()" class="space-y-6">
             <div class="space-y-2">
-              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
-              <div class="relative">
-                <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</mat-icon>
+              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
+              <div class="relative flex items-center">
+                <mat-icon class="absolute left-4 text-slate-400 !text-lg pointer-events-none">mail</mat-icon>
                 <input type="email" [(ngModel)]="email" name="email" required
-                       class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
+                       class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
                        placeholder="e.g. admin@pro.com">
               </div>
             </div>
 
             <div class="space-y-2">
-              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Secure Password</label>
-              <div class="relative">
-                <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</mat-icon>
+              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Secure Password</label>
+              <div class="relative flex items-center">
+                <mat-icon class="absolute left-4 text-slate-400 !text-lg pointer-events-none">lock</mat-icon>
                 <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" required
-                       class="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
+                       class="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
                        placeholder="Enter your password">
                 <button type="button" (click)="showPassword = !showPassword" 
-                        class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-600 transition-colors">
-                  <mat-icon>{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+                        class="absolute right-4 text-slate-400 hover:text-blue-600 transition-colors flex items-center justify-center">
+                  <mat-icon class="!text-lg">{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
                 </button>
               </div>
             </div>
 
-            <div class="flex items-center justify-between text-xs font-black uppercase tracking-widest">
+            <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
               <label class="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-blue-600 transition-colors">
                 <input type="checkbox" class="rounded border-slate-200 text-blue-600 focus:ring-blue-600/10">
                 Remember Me
@@ -63,7 +63,7 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
 
             <button type="submit" [disabled]="loading()"
-                    class="w-full bg-[#0f172a] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 hover:shadow-2xl disabled:opacity-50 cursor-pointer">
+                    class="w-full bg-[#0f172a] text-white py-4 rounded-xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 hover:shadow-2xl disabled:opacity-50 cursor-pointer">
               {{ loading() ? 'Verifying Credentials...' : 'Sign In' }}
             </button>
           </form>
