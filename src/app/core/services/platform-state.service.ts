@@ -26,7 +26,7 @@ export interface WorkerProfile {
   initials: string;
   email: string;
   category: string;
-  status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft';
+  status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft' | 'Suspended';
   image?: string;
   rate: number;
   rating: number;
@@ -154,6 +154,7 @@ export class PlatformStateService {
   private notification = inject(NotificationService);
   private platformId = inject(PLATFORM_ID);
   private apiUrl = environment.apiUrl;
+  private pollingInterval: any;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
@@ -175,11 +176,32 @@ export class PlatformStateService {
       if (user) {
         if (user.role === 'Worker') {
           this.fetchWorkerProfile(user.id);
+        } else if (user.role === 'Admin') {
+          this.fetchPendingWorkers();
+          this.fetchAdminUsers();
+          this.fetchAdminClients();
+          this.fetchAdminActivityLogs();
         } else if (user.role === 'Client') {
           this.fetchClientProfile(user.id);
+          this.fetchClientJobs(user.id);
         }
         this.fetchNotifications(user.id);
         this.fetchChats(user.id);
+
+        // Start polling for real-time feel (every 15 seconds)
+        if (this.pollingInterval) clearInterval(this.pollingInterval);
+        this.pollingInterval = setInterval(() => {
+          const u = this.auth.currentUser();
+          if (u) {
+            this.fetchNotifications(u.id);
+            this.fetchChats(u.id);
+          }
+        }, 30000); // Increased to 30s for better stability
+      } else {
+        if (this.pollingInterval) {
+          clearInterval(this.pollingInterval);
+          this.pollingInterval = null;
+        }
       }
     });
   }
@@ -189,6 +211,7 @@ export class PlatformStateService {
       next: (data) => {
         const mapped = this.mapWorkerProfile(data);
         this.currentWorker.set(mapped);
+        this.fetchWorkerJobs(mapped.id);
       },
       error: (err) => console.error('Error fetching worker profile', err)
     });
@@ -206,10 +229,7 @@ export class PlatformStateService {
     this.http.get<any[]>(url).subscribe({
       next: (data) => {
         const mapped = data.map(w => this.mapWorkerProfile(w));
-        // We merge with existing workers to keep current worker if present
-        const currentId = this.currentWorker().id;
-        const filtered = mapped.filter(w => w.id !== currentId);
-        this.workers.set([...filtered, this.currentWorker()]);
+        this.workers.set(mapped);
       },
       error: (err) => console.error('Error fetching marketplace workers', err)
     });
@@ -251,6 +271,10 @@ export class PlatformStateService {
     return this.http.post(`${this.apiUrl}/workers/${workerProfileId}/profile-picture`, formData);
   }
 
+  deleteDocument(documentId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/documents/${documentId}`);
+  }
+
   private fetchClientProfile(userId: string) {
     this.http.get<any>(`${this.apiUrl}/clients/profile/${userId}`).subscribe({
       next: (data) => {
@@ -259,6 +283,75 @@ export class PlatformStateService {
       },
       error: (err) => console.error('Error fetching client profile', err)
     });
+  }
+
+  fetchAdminUsers() {
+    this.http.get<any[]>(`${this.apiUrl}/admin/users`).subscribe({
+      next: (data) => {
+        const currentClients = this.clients();
+        const mappedClients = data
+          .filter(u => u.role === 'CLIENT')
+          .map(u => {
+            const existing = currentClients.find(c => c.email === u.email);
+            return {
+              id: u.id,
+              name: u.fullName || u.username,
+              email: u.email,
+              status: u.active === false ? 'Suspended' : (existing?.status || 'Active'),
+              tier: existing?.tier || 'Standard',
+              progress: existing?.progress || 100
+            } as ClientProfile;
+          });
+        this.clients.set(mappedClients);
+      },
+      error: (err) => console.error('Error fetching admin users', err)
+    });
+  }
+
+  fetchAdminClients() {
+    this.http.get<any[]>(`${this.apiUrl}/admin/clients`).subscribe({
+      next: (data) => {
+        const mapped = data.map(c => ({
+          id: c.id,
+          name: c.fullName,
+          email: c.email,
+          status: 'Active',
+          tier: 'Standard',
+          progress: 100
+        } as ClientProfile));
+        this.clients.set(mapped);
+      },
+      error: (err) => console.error('Error fetching clients', err)
+    });
+  }
+
+  fetchAdminActivityLogs() {
+    this.http.get<any[]>(`${this.apiUrl}/admin/logs`).subscribe({
+      next: (data) => {
+        const logs = data.map(l => ({
+          id: l.id,
+          workerId: l.targetId,
+          workerName: l.targetId,
+          action: l.action === 'APPROVE_WORKER' ? 'approved' : 'rejected',
+          timestamp: new Date(l.createdAt),
+          adminName: l.adminId
+        })) as ActivityLog[];
+        this.activityLogs.set(logs);
+      },
+      error: (err) => console.error('Error fetching admin logs', err)
+    });
+  }
+
+  suspendUser(userId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/admin/users/${userId}/suspend`, {});
+  }
+
+  activateUser(userId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/admin/users/${userId}/activate`, {});
+  }
+
+  updateUserName(userId: string, fullName: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/admin/users/${userId}/name?fullName=${encodeURIComponent(fullName)}`, {});
   }
 
   updateClientProfile(profileId: string, updates: Partial<ClientProfile>): Observable<any> {
@@ -285,8 +378,8 @@ export class PlatformStateService {
           title: n.title,
           message: n.message,
           time: this.formatNotificationTime(n.createdAt),
-          isRead: n.read,
-          type: n.type.toLowerCase() as any
+          isRead: n.isRead, // Corrected from n.read
+          type: (n.type || 'info').toLowerCase() as any
         }));
         this.notifications.set(mapped);
       },
@@ -350,8 +443,8 @@ export class PlatformStateService {
       status: this.mapStatus(data.status),
       image: data.profilePictureUrl,
       rate: data.hourlyRate || 0,
-      rating: 4.5,
-      reviews: 10,
+      rating: Number(data.averageRating || 0),
+      reviews: Number(data.reviewCount || 0),
       skills: Array.from(data.skills || []),
       bio: data.bio || '',
       rejectionReason: data.rejectionReason,
@@ -410,7 +503,7 @@ export class PlatformStateService {
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        
+
         // Identity Check: We load the worker profile if it exists
         // The identity check will be verified against the auth signal later if needed
         // but for instant load we trust the cache temporarily
@@ -418,7 +511,7 @@ export class PlatformStateService {
           console.log('Restoring worker profile from cache:', data.currentWorker.name);
           this.currentWorker.set(data.currentWorker);
         }
-        
+
         this.workers.set(data.workers || []);
         this.notifications.set(data.notifications || []);
         this.activityLogs.set(data.activityLogs || []);
@@ -432,7 +525,16 @@ export class PlatformStateService {
 
   verifiedWorkers = computed(() => this.workers().filter(w => w.status === 'Verified'));
   pendingWorkers = computed(() => this.workers().filter(w => w.status === 'Pending' || w.status === 'Priority'));
-  workerNotifications = computed(() => this.notifications().filter(n => n.userId === this.currentWorker().id));
+  workerNotifications = computed(() => {
+    const user = this.auth.currentUser();
+    if (!user) return [];
+    return this.notifications().filter(n => n.userId === user.id);
+  });
+  unreadNotificationsCount = computed(() => this.workerNotifications().filter(n => !n.isRead).length);
+
+  unreadMessagesCount = computed(() => {
+    return this.chats().reduce((acc, chat) => acc + (chat.unread || 0), 0);
+  });
   workerBookings = computed(() => this.bookings().filter(b => b.workerId === this.currentWorker().id));
 
   currentWorkerCompletion = computed(() => {
@@ -473,15 +575,16 @@ export class PlatformStateService {
     const admin = this.auth.currentUser();
     if (!admin || admin.role !== 'Admin') return;
 
-    this.http.put(`${this.apiUrl}/admin/workers/${id}/approve?adminId=${admin.id}`, {}).subscribe({
-      next: () => {
+    this.http.put<any>(`${this.apiUrl}/admin/workers/${id}/approve?adminId=${admin.id}`, {}).subscribe({
+      next: (res) => {
         this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Verified' } : w));
-        this.addActivityLog(id, 'approved');
-        this.addNotification('Account Verified!', 'Your professional profile is now live in the marketplace.', 'success', id);
-        this.notification.success('Worker approved successfully.');
+        this.fetchAdminActivityLogs();
+        this.fetchPendingWorkers();
+        this.notification.success(res.message || 'Worker approved successfully.');
       },
       error: (err) => {
-        this.notification.error('Failed to approve worker.');
+        const errorMsg = err.error?.message || err.error || 'Failed to approve worker.';
+        this.notification.error(errorMsg);
         console.error('Error approving worker', err);
       }
     });
@@ -491,15 +594,16 @@ export class PlatformStateService {
     const admin = this.auth.currentUser();
     if (!admin || admin.role !== 'Admin') return;
 
-    this.http.put(`${this.apiUrl}/admin/workers/${id}/reject?adminId=${admin.id}&reason=${reason}`, {}).subscribe({
-      next: () => {
+    this.http.put<any>(`${this.apiUrl}/admin/workers/${id}/reject?adminId=${admin.id}&reason=${reason}`, {}).subscribe({
+      next: (res) => {
         this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Rejected', rejectionReason: reason } : w));
-        this.addActivityLog(id, 'rejected', reason);
-        this.addNotification('Action Required', `Your verification was rejected: ${reason || 'Please review and resubmit.'}`, 'warning', id);
-        this.notification.info('Worker rejected.');
+        this.fetchAdminActivityLogs();
+        this.fetchPendingWorkers();
+        this.notification.info(res.message || 'Worker rejected.');
       },
       error: (err) => {
-        this.notification.error('Failed to reject worker.');
+        const errorMsg = err.error?.message || err.error || 'Failed to reject worker.';
+        this.notification.error(errorMsg);
         console.error('Error rejecting worker', err);
       }
     });
@@ -511,10 +615,8 @@ export class PlatformStateService {
         const mapped = this.mapWorkerProfile(data);
         if (id === this.currentWorker().id) {
           this.currentWorker.set(mapped);
-          this.addNotification('Application Resubmitted', 'Your updated profile is now being reviewed by our administrators.', 'info', id);
         }
         this.workers.update(prev => prev.map(w => w.id === id ? mapped : w));
-        this.addActivityLog(id, 'resubmitted');
         this.notification.success('Profile resubmitted for verification.');
       },
       error: (err) => {
@@ -540,9 +642,8 @@ export class PlatformStateService {
           return [mapped, ...prev];
         });
 
-        this.addNotification('Application Submitted', 'Your profile is now being reviewed by our administrators.', 'info', workerId);
-        this.addActivityLog(workerId, 'submitted');
         this.notification.success('Profile submitted for verification!');
+        this.fetchPendingWorkers();
       },
       error: (err) => {
         this.notification.error('Failed to submit profile for verification.');
@@ -553,43 +654,43 @@ export class PlatformStateService {
 
   hireWorker(workerId: string) {
     const worker = this.workers().find(w => w.id === workerId);
-    if (!worker) return;
-
-    const newBooking: Booking = {
-      id: Math.random().toString(36).substring(7),
-      clientId: 'c_current',
-      clientName: 'Infrastructure Client',
-      clientInitials: 'IC',
-      workerId: worker.id,
-      workerName: worker.name,
-      workerInitials: worker.initials,
-      service: worker.category,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      earnings: worker.rate * 4,
-      status: 'Pending'
+    const user = this.auth.currentUser();
+    if (!worker || !user || user.role !== 'Client') return;
+    const payload = {
+      description: `Hire request for ${worker.category} service`
     };
-
-    this.bookings.update(prev => [newBooking, ...prev]);
-    this.addNotification('Hire Request Sent', `You have successfully sent a hire request to ${worker.name}.`, 'success', 'c_current');
+    this.http.post<any>(`${this.apiUrl}/jobs/request?clientId=${user.id}&workerProfileId=${worker.id}`, payload).subscribe({
+      next: () => {
+        this.fetchClientJobs(user.id);
+        this.notification.success(`Hire request sent to ${worker.name}.`);
+      },
+      error: (err) => {
+        this.notification.error('Failed to create hire request.');
+        console.error('Error creating hire request', err);
+      }
+    });
   }
 
   acceptBooking(bookingId: string) {
-    this.bookings.update(prev => prev.map(b =>
-      b.id === bookingId ? { ...b, status: 'Approved' } : b
-    ));
-    const booking = this.bookings().find(b => b.id === bookingId);
-    if (booking) {
-      this.addNotification('Booking Accepted', `You have accepted the project for ${booking.clientName}.`, 'success', booking.workerId);
-      // In a real app, we'd also notify the client.
-    }
+    this.http.put<any>(`${this.apiUrl}/jobs/${bookingId}/status?status=ACCEPTED`, {}).subscribe({
+      next: () => {
+        const user = this.auth.currentUser();
+        if (user?.role === 'Worker') this.fetchWorkerJobs(this.currentWorker().id);
+        if (user?.role === 'Client') this.fetchClientJobs(user.id);
+      },
+      error: (err) => console.error('Error accepting booking', err)
+    });
   }
 
   declineBooking(bookingId: string) {
-    const booking = this.bookings().find(b => b.id === bookingId);
-    this.bookings.update(prev => prev.filter(b => b.id !== bookingId));
-    if (booking) {
-      this.addNotification('Booking Declined', `You have declined the request.`, 'info', booking.workerId);
-    }
+    this.http.put<any>(`${this.apiUrl}/jobs/${bookingId}/status?status=REJECTED`, {}).subscribe({
+      next: () => {
+        const user = this.auth.currentUser();
+        if (user?.role === 'Worker') this.fetchWorkerJobs(this.currentWorker().id);
+        if (user?.role === 'Client') this.fetchClientJobs(user.id);
+      },
+      error: (err) => console.error('Error declining booking', err)
+    });
   }
 
   toggleAvailability(workerId: string) {
@@ -627,10 +728,18 @@ export class PlatformStateService {
   fetchChats(userId: string) {
     this.http.get<any[]>(`${this.apiUrl}/messages/user/${userId}/recent`).subscribe({
       next: (data) => {
+        const currentChats = this.chats();
         const mapped = data.map(m => {
           const isSender = m.senderId === userId;
           const otherId = isSender ? m.receiverId : m.senderId;
-          const otherName = isSender ? m.receiverName : m.senderName;
+          const otherName = isSender ? m.receiverName : m.senderName || 'Unknown';
+          
+          // Preserve active state and existing messages if already loaded
+          const existing = currentChats.find(c => c.id === otherId);
+          
+          // Calculate unread status from the last message
+          const isUnread = !m.isRead && m.receiverId === userId;
+          
           return {
             id: otherId,
             workerId: otherId,
@@ -638,9 +747,10 @@ export class PlatformStateService {
             initials: otherName.split(' ').map((n: any) => n[0]).join('').toUpperCase(),
             lastMessage: m.content,
             time: this.formatNotificationTime(m.sentAt),
-            active: false,
+            active: existing ? existing.active : false,
             online: true,
-            messages: []
+            unread: isUnread ? 1 : 0,
+            messages: existing ? existing.messages : []
           };
         });
         this.chats.set(mapped);
@@ -712,30 +822,38 @@ export class PlatformStateService {
     }
   }
 
-  private addActivityLog(workerId: string, action: 'approved' | 'rejected' | 'submitted' | 'resubmitted', reason?: string) {
-    const worker = this.workers().find(w => w.id === workerId);
-    const log: ActivityLog = {
-      id: Math.random().toString(36).substring(7),
-      workerId,
-      workerName: worker?.name || 'Unknown',
-      action,
-      reason,
-      timestamp: new Date(),
-      adminName: 'System Admin'
-    };
-    this.activityLogs.update(prev => [log, ...prev]);
+  fetchClientJobs(clientUserId: string) {
+    this.http.get<any[]>(`${this.apiUrl}/jobs/client/${clientUserId}`).subscribe({
+      next: (jobs) => this.bookings.set(jobs.map(j => this.mapJobToBooking(j))),
+      error: (err) => console.error('Error fetching client jobs', err)
+    });
   }
 
-  private addNotification(title: string, message: string, type: 'success' | 'info' | 'warning' = 'info', userId?: string) {
-    const n: Notification = {
-      id: Math.random().toString(36).substring(7),
-      userId,
-      title,
-      message,
-      time: 'Just now',
-      isRead: false,
-      type
+  fetchWorkerJobs(workerProfileId: string) {
+    if (!workerProfileId) return;
+    this.http.get<any[]>(`${this.apiUrl}/jobs/worker/${workerProfileId}`).subscribe({
+      next: (jobs) => this.bookings.set(jobs.map(j => this.mapJobToBooking(j))),
+      error: (err) => console.error('Error fetching worker jobs', err)
+    });
+  }
+
+  private mapJobToBooking(job: any): Booking {
+    const clientName = job.clientName || 'Client';
+    const workerName = job.workerName || 'Worker';
+    return {
+      id: job.id,
+      clientId: job.clientId,
+      clientName,
+      clientInitials: clientName.split(' ').map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'CL',
+      workerId: job.workerId,
+      workerName,
+      workerInitials: workerName.split(' ').map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'WK',
+      service: 'Service Request',
+      date: new Date(job.createdAt).toLocaleDateString(),
+      earnings: 0,
+      status: job.status === 'ACCEPTED' ? 'Approved' :
+        job.status === 'REJECTED' ? 'Processing' :
+        job.status === 'COMPLETED' ? 'Completed' : 'Pending'
     };
-    this.notifications.update(prev => [n, ...prev]);
   }
 }

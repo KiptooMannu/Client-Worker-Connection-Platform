@@ -33,7 +33,7 @@ import { AuthService } from '../../../core/services/auth.service';
   ],
   template: `
     <div class="space-y-8 animate-in fade-in duration-500">
-      <!-- Rejection Alert -->
+      <!-- Rejection Alert (unchanged) -->
       @if (status === 'Rejected' && rejectionReason) {
         <mat-card class="!rounded-2xl !bg-red-50 !border-2 !border-red-100 !shadow-sm animate-in slide-in-from-top">
           <mat-card-content class="!p-6 flex items-start gap-4">
@@ -49,7 +49,7 @@ import { AuthService } from '../../../core/services/auth.service';
         </mat-card>
       }
 
-      <!-- Header -->
+      <!-- Header (unchanged) -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 class="header-title text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">Profile Management</h1>
@@ -74,7 +74,7 @@ import { AuthService } from '../../../core/services/auth.service';
       </div>
 
       <div class="grid grid-cols-12 gap-8">
-        <!-- Sidebar -->
+        <!-- Sidebar (unchanged) -->
         <div class="col-span-12 lg:col-span-4 space-y-6">
           <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !overflow-hidden">
             <mat-card-content class="!p-6 text-center">
@@ -121,164 +121,194 @@ import { AuthService } from '../../../core/services/auth.service';
           </mat-card>
         </div>
 
-        <!-- Main Form -->
-        <div class="col-span-12 lg:col-span-8 space-y-8">
-           <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
-             <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Profile Completion</h4>
-             <div class="flex items-center gap-4">
-               <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                 <div class="h-full bg-blue-600 transition-all duration-1000" [style.width.%]="completionPercentage()"></div>
-               </div>
-               <span class="text-[10px] font-black text-slate-900">{{ completionPercentage() }}%</span>
-             </div>
-           </mat-card>
-
-          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
-            <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Professional Identity</h4>
-            <div class="space-y-4">
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Full Name</mat-label>
-                <input matInput [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" name="name" placeholder="Enter your full name">
-              </mat-form-field>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <mat-form-field appearance="outline">
-                  <mat-label>Primary Category</mat-label>
-                  <mat-select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)" name="category">
-                    <mat-option value="Plumber">Plumber</mat-option>
-                    <mat-option value="Electrician">Electrician</mat-option>
-                    <mat-option value="Farm Worker">Farm Worker</mat-option>
-                    <mat-option value="Cleaner">Cleaner</mat-option>
-                    <mat-option value="Mechanic">Mechanic</mat-option>
-                    <mat-option value="General Laborer">General Laborer</mat-option>
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                  <mat-label>Hourly Rate ($)</mat-label>
-                  <input matInput type="number" [ngModel]="form.rate()" (ngModelChange)="form.rate.set($event)" name="rate" placeholder="0">
-                </mat-form-field>
+        <!-- Main Form with Tabs -->
+        <div class="col-span-12 lg:col-span-8 space-y-6">
+          <!-- Profile Completion Card (still visible across tabs) -->
+          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
+            <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Profile Completion</h4>
+            <div class="flex items-center gap-4">
+              <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div class="h-full bg-blue-600 transition-all duration-1000" [style.width.%]="completionPercentage()"></div>
               </div>
-
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Professional Bio</mat-label>
-                <textarea matInput rows="3" [ngModel]="form.bio()" (ngModelChange)="form.bio.set($event)" name="bio" placeholder="Describe your experience..."></textarea>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline" class="w-full">
-                <mat-label>Core Skills (Comma separated)</mat-label>
-                <input matInput [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)" name="skills" placeholder="e.g. Plumbing, Leak Detection">
-              </mat-form-field>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <mat-form-field appearance="outline">
-                  <mat-label>Primary Work Location</mat-label>
-                  <input matInput [ngModel]="form.location()" (ngModelChange)="form.location.set($event)" name="location" placeholder="e.g. Nairobi">
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                  <mat-label>Preferred Job Locations (Comma separated)</mat-label>
-                  <input matInput [ngModel]="form.preferredLocations()" (ngModelChange)="form.preferredLocations.set($event)" name="preferredLocations" placeholder="e.g. Westlands, Kilimani">
-                </mat-form-field>
-              </div>
+              <span class="text-[10px] font-black text-slate-900">{{ completionPercentage() }}%</span>
             </div>
           </mat-card>
 
-          <!-- Work History & Experience -->
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
-            <div class="flex justify-between items-center mb-6">
-              <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Work History & Experience</h4>
-              <button mat-button color="primary" (click)="addWorkHistory()" class="!font-black !text-[10px] !uppercase !tracking-widest">
-                <mat-icon class="!text-sm">add</mat-icon> Add Experience
+          <!-- Tab Switcher -->
+          <div class="flex gap-1 p-1 bg-slate-100/50 rounded-xl border border-slate-200 overflow-x-auto no-scrollbar whitespace-nowrap">
+            @for (tab of tabs; track tab.id) {
+              <button (click)="activeTab.set(tab.id)"
+                      class="flex-shrink-0 flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 font-black text-[10px] uppercase tracking-wider"
+                      [class]="activeTab() === tab.id ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'">
+                <mat-icon class="!text-base">{{ tab.icon }}</mat-icon>
+                {{ tab.label }}
               </button>
-            </div>
-            <div class="space-y-6">
-              @for (work of form.workHistory(); track $index) {
-                <div class="p-6 bg-slate-50 rounded-2xl border border-slate-100 relative group/item">
-                  <button mat-icon-button (click)="removeWorkHistory($index)" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Company / Project</mat-label>
-                      <input matInput [(ngModel)]="work.company">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Role</mat-label>
-                      <input matInput [(ngModel)]="work.role">
-                    </mat-form-field>
-                  </div>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Period</mat-label>
-                      <input matInput [(ngModel)]="work.period">
-                    </mat-form-field>
-                  </div>
+            }
+          </div>
+
+          <!-- Tab Content (each section in its own scrollable container) -->
+          <div class="min-h-[500px] transition-all duration-300">
+            <!-- Identity Tab -->
+            @if (activeTab() === 'identity') {
+              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+                <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Professional Identity</h4>
+                <div class="space-y-4">
                   <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Description</mat-label>
-                    <textarea matInput rows="2" [(ngModel)]="work.description"></textarea>
+                    <mat-label>Full Name</mat-label>
+                    <input matInput [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" name="name" placeholder="Enter your full name">
                   </mat-form-field>
-                </div>
-              }
-            </div>
-          </mat-card>
 
-          <!-- Certifications -->
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
-            <div class="flex justify-between items-center mb-6">
-              <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Professional Certifications</h4>
-              <button mat-button color="primary" (click)="addCertification()" class="!font-black !text-[10px] !uppercase !tracking-widest">
-                <mat-icon class="!text-sm">add</mat-icon> Add Certification
-              </button>
-            </div>
-            <div class="space-y-4">
-              @for (cert of form.certifications(); track $index) {
-                <div class="flex flex-col md:flex-row gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 items-end group/cert">
-                  <mat-form-field appearance="outline" class="flex-1">
-                    <mat-label>Certificate Name</mat-label>
-                    <input matInput [(ngModel)]="cert.name">
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Primary Category</mat-label>
+                      <mat-select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)" name="category">
+                        <mat-option value="Plumber">Plumber</mat-option>
+                        <mat-option value="Electrician">Electrician</mat-option>
+                        <mat-option value="Farm Worker">Farm Worker</mat-option>
+                        <mat-option value="Cleaner">Cleaner</mat-option>
+                        <mat-option value="Mechanic">Mechanic</mat-option>
+                        <mat-option value="General Laborer">General Laborer</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Hourly Rate ($)</mat-label>
+                      <input matInput type="number" [ngModel]="form.rate()" (ngModelChange)="form.rate.set($event)" name="rate" placeholder="0">
+                    </mat-form-field>
+                  </div>
+
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Professional Bio</mat-label>
+                    <textarea matInput rows="3" [ngModel]="form.bio()" (ngModelChange)="form.bio.set($event)" name="bio" placeholder="Describe your experience..."></textarea>
                   </mat-form-field>
-                  <mat-form-field appearance="outline" class="flex-1">
-                    <mat-label>Issuing Institution</mat-label>
-                    <input matInput [(ngModel)]="cert.issuer">
+
+                  <mat-form-field appearance="outline" class="w-full">
+                    <mat-label>Core Skills (Comma separated)</mat-label>
+                    <input matInput [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)" name="skills" placeholder="e.g. Plumbing, Leak Detection">
                   </mat-form-field>
-                  <mat-form-field appearance="outline" class="w-24">
-                    <mat-label>Year</mat-label>
-                    <input matInput [(ngModel)]="cert.year">
-                  </mat-form-field>
-                  <button mat-icon-button (click)="removeCertification($index)" class="mb-4 text-slate-300 hover:text-red-500 opacity-0 group-hover/cert:opacity-100 transition-opacity">
-                    <mat-icon>delete</mat-icon>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Primary Work Location</mat-label>
+                      <input matInput [ngModel]="form.location()" (ngModelChange)="form.location.set($event)" name="location" placeholder="e.g. Nairobi">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Preferred Job Locations (Comma separated)</mat-label>
+                      <input matInput [ngModel]="form.preferredLocations()" (ngModelChange)="form.preferredLocations.set($event)" name="preferredLocations" placeholder="e.g. Westlands, Kilimani">
+                    </mat-form-field>
+                  </div>
+                </div>
+              </mat-card>
+            }
+
+            <!-- Work History Tab -->
+            @if (activeTab() === 'experience') {
+              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+                <div class="flex justify-between items-center mb-6">
+                  <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Work History & Experience</h4>
+                  <button mat-button color="primary" (click)="addWorkHistory()" class="!font-black !text-[10px] !uppercase !tracking-widest">
+                    <mat-icon class="!text-sm">add</mat-icon> Add Experience
                   </button>
                 </div>
-              }
-            </div>
-          </mat-card>
+                <!-- Scrollable list of work entries -->
+                <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                  @for (work of form.workHistory(); track $index) {
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 relative group/item">
+                      <button mat-icon-button (click)="removeWorkHistory($index)" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <mat-form-field appearance="outline" class="!mb-0">
+                          <mat-label>Company / Project</mat-label>
+                          <input matInput [(ngModel)]="work.company">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline" class="!mb-0">
+                          <mat-label>Role</mat-label>
+                          <input matInput [(ngModel)]="work.role">
+                        </mat-form-field>
+                      </div>
+                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
+                        <mat-form-field appearance="outline" class="!mb-0">
+                          <mat-label>Period</mat-label>
+                          <input matInput [(ngModel)]="work.period">
+                        </mat-form-field>
+                      </div>
+                      <mat-form-field appearance="outline" class="w-full !mb-0">
+                        <mat-label>Description</mat-label>
+                        <textarea matInput rows="2" [(ngModel)]="work.description"></textarea>
+                      </mat-form-field>
+                    </div>
+                  } @empty {
+                    <div class="text-center py-8 text-slate-400 text-sm">No experience added yet. Click "Add Experience" to start.</div>
+                  }
+                </div>
+              </mat-card>
+            }
 
-          <!-- Availability Details -->
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
-            <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Detailed Availability</h4>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div class="flex flex-col">
-                  <span class="text-xs font-black text-slate-900 uppercase">Weekdays</span>
-                  <span class="text-[10px] text-slate-500">Mon - Fri</span>
+            <!-- Certifications Tab -->
+            @if (activeTab() === 'certifications') {
+              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+                <div class="flex justify-between items-center mb-6">
+                  <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Professional Certifications</h4>
+                  <button mat-button color="primary" (click)="addCertification()" class="!font-black !text-[10px] !uppercase !tracking-widest">
+                    <mat-icon class="!text-sm">add</mat-icon> Add Certification
+                  </button>
                 </div>
-                <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().weekdays" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), weekdays: $event})" name="weekdays"></mat-slide-toggle>
-              </div>
-              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div class="flex flex-col">
-                  <span class="text-xs font-black text-slate-900 uppercase">Weekends</span>
-                  <span class="text-[10px] text-slate-500">Sat - Sun</span>
+                <div class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                  @for (cert of form.certifications(); track $index) {
+                    <div class="flex flex-col md:flex-row gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 items-end group/cert">
+                      <mat-form-field appearance="outline" class="flex-1 !mb-0">
+                        <mat-label>Certificate Name</mat-label>
+                        <input matInput [(ngModel)]="cert.name">
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="flex-1 !mb-0">
+                        <mat-label>Issuing Institution</mat-label>
+                        <input matInput [(ngModel)]="cert.issuer">
+                      </mat-form-field>
+                      <mat-form-field appearance="outline" class="w-24 !mb-0">
+                        <mat-label>Year</mat-label>
+                        <input matInput [(ngModel)]="cert.year">
+                      </mat-form-field>
+                      <button mat-icon-button (click)="removeCertification($index)" class="text-slate-300 hover:text-red-500 opacity-0 group-hover/cert:opacity-100 transition-opacity">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  } @empty {
+                    <div class="text-center py-8 text-slate-400 text-sm">No certifications added yet. Click "Add Certification" to start.</div>
+                  }
                 </div>
-                <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().weekends" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), weekends: $event})" name="weekends"></mat-slide-toggle>
-              </div>
-              <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <div class="flex flex-col">
-                  <span class="text-xs font-black text-slate-900 uppercase">Evenings</span>
-                  <span class="text-[10px] text-slate-500">After 6 PM</span>
+              </mat-card>
+            }
+
+            <!-- Availability Tab -->
+            @if (activeTab() === 'availability') {
+              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+                <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Detailed Availability</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div class="flex items-center justify-between flex-wrap gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 availability-card">
+                    <div class="flex flex-col min-w-[120px]">
+                      <span class="text-xs font-black text-slate-900 uppercase">Weekdays</span>
+                      <span class="text-[10px] text-slate-500">Mon - Fri</span>
+                    </div>
+                    <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().weekdays" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), weekdays: $event})" name="weekdays"></mat-slide-toggle>
+                  </div>
+                  <div class="flex items-center justify-between flex-wrap gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 availability-card">
+                    <div class="flex flex-col min-w-[120px]">
+                      <span class="text-xs font-black text-slate-900 uppercase">Weekends</span>
+                      <span class="text-[10px] text-slate-500">Sat - Sun</span>
+                    </div>
+                    <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().weekends" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), weekends: $event})" name="weekends"></mat-slide-toggle>
+                  </div>
+                  <div class="flex items-center justify-between flex-wrap gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 availability-card">
+                    <div class="flex flex-col min-w-[120px]">
+                      <span class="text-xs font-black text-slate-900 uppercase">Evenings</span>
+                      <span class="text-[10px] text-slate-500">After 6 PM</span>
+                    </div>
+                    <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().evenings" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), evenings: $event})" name="evenings"></mat-slide-toggle>
+                  </div>
                 </div>
-                <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().evenings" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), evenings: $event})" name="evenings"></mat-slide-toggle>
-              </div>
-            </div>
-          </mat-card>
+              </mat-card>
+            }
+          </div>
         </div>
       </div>
     </div>
@@ -286,13 +316,43 @@ import { AuthService } from '../../../core/services/auth.service';
   styles: [`
     :host { display: block; }
     
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .availability-card {
+      transition: all 0.2s ease;
+    }
+    .availability-card:hover {
+      border-color: #cbd5e1 !important;
+      background: #f8fafc !important;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    
     @media (max-width: 768px) {
       .header-title { font-size: 1.75rem !important; }
       mat-card-content { padding: 1.25rem !important; }
       .gap-8 { gap: 1rem !important; }
       .w-32 { width: 6rem !important; height: 6rem !important; }
       .flex-col.md\\:flex-row { align-items: stretch !important; }
-      .flex.gap-3, .flex.gap-2 { flex-direction: column !important; }
     }
   `]
 })
@@ -302,25 +362,41 @@ export class WorkerProfilePage {
   public auth = inject(AuthService);
   state = inject(PlatformStateService);
 
-  get status() {
-    return this.state.currentWorker().status;
-  }
+  activeTab = signal<'identity' | 'experience' | 'certifications' | 'availability'>('identity');
 
-  get rejectionReason() {
-    return this.state.currentWorker().rejectionReason;
-  }
+  tabs: { id: 'identity' | 'experience' | 'certifications' | 'availability', label: string, icon: string }[] = [
+    { id: 'identity', label: 'Identity', icon: 'person' },
+    { id: 'experience', label: 'Experience', icon: 'work' },
+    { id: 'certifications', label: 'Certifications', icon: 'verified' },
+    { id: 'availability', label: 'Availability', icon: 'schedule' }
+  ];
+
+  get status() { return this.state.currentWorker().status; }
+  get rejectionReason() { return this.state.currentWorker().rejectionReason; }
 
   completionPercentage = computed(() => this.state.currentWorkerCompletion());
   isSaving = signal(false);
   worker = this.state.currentWorker;
 
+  // Local reactive form state
+  form = {
+    name: signal(''),
+    category: signal(''),
+    rate: signal(0),
+    bio: signal(''),
+    skills: signal(''),
+    location: signal(''),
+    preferredLocations: signal(''),
+    workHistory: signal<any[]>([]),
+    certifications: signal<any[]>([]),
+    availabilityDetails: signal({ weekdays: true, weekends: false, evenings: false }),
+    image: signal<string | undefined>(undefined)
+  };
+
   constructor() {
-    // Sync form with worker data when it loads from backend
     effect(() => {
       const w = this.state.currentWorker();
-      console.log('Worker Data Received from State:', w);
       if (w && w.id) {
-        // Update signals
         this.form.name.set(w.name || '');
         this.form.category.set(w.category || '');
         this.form.rate.set(w.rate || 0);
@@ -336,41 +412,19 @@ export class WorkerProfilePage {
     });
   }
 
-  // Local reactive form state using signals
-  form = {
-    name: signal(''),
-    category: signal(''),
-    rate: signal(0),
-    bio: signal(''),
-    skills: signal(''),
-    location: signal(''),
-    preferredLocations: signal(''),
-    workHistory: signal<any[]>([]),
-    certifications: signal<any[]>([]),
-    availabilityDetails: signal({ weekdays: true, weekends: false, evenings: false }),
-    image: signal<string | undefined>(undefined)
-  };
-
-
   async onAvatarSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
-
     const file = input.files[0];
-    console.log('Attempting to upload file:', file.name, 'size:', file.size);
     this.notification.info('Uploading profile picture...');
-
     this.state.uploadProfilePicture(this.worker().id, file).subscribe({
       next: (response: any) => {
-        console.log('Upload Success! Server Response:', response);
         const mapped = this.state.mapWorkerProfile(response);
         this.state.currentWorker.set(mapped);
-        // The effect will automatically update this.form.image.set(mapped.image)
-        this.notification.success(' Profile picture updated!');
+        this.notification.success('Profile picture updated!');
       },
       error: (err: any) => {
-        console.error('Upload Failed! Error Details:', err);
-        this.notification.error(` Upload failed: ${err.error || err.message || 'Unknown error'}`);
+        this.notification.error(`Upload failed: ${err.error || err.message || 'Unknown error'}`);
       }
     });
   }
@@ -405,19 +459,14 @@ export class WorkerProfilePage {
       availabilityDetails: this.form.availabilityDetails(),
       profilePictureUrl: this.form.image()
     };
-
-    console.log('Saving profile updates:', updates);
     this.isSaving.set(true);
-
     this.state.updateWorkerProfile(this.worker().id, updates).subscribe({
-      next: (res) => {
-        console.log('Profile Save Success:', res);
+      next: () => {
         this.isSaving.set(false);
         this.notification.success('✓ Profile saved successfully!');
         this.state.fetchWorkerProfile(this.auth.currentUser()!.id);
       },
-      error: (err: any) => {
-        console.error('Profile Save Failed:', err);
+      error: () => {
         this.isSaving.set(false);
         this.notification.error('❌ Failed to save profile updates.');
       }

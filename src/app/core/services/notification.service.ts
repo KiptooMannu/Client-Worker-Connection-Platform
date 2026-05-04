@@ -21,7 +21,7 @@ export class NotificationService {
   }
 
   error(message: string): void {
-    this.snackBar.open(message, 'Retry', {
+    this.snackBar.open(message, 'Close', {
       ...this.defaultConfig,
       duration: 7000, // Error messages stay longer
       panelClass: ['error-snackbar']

@@ -204,22 +204,6 @@ export class ClientMessagesPage {
     if (chat) {
       this.state.sendMessage(chat.id, this.newMessage);
       this.newMessage = '';
-      
-      // Auto reply mock
-      setTimeout(() => {
-        this.state.chats.update(chats => chats.map(c => {
-          if (c.id === chat.id) {
-            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            return {
-              ...c,
-              lastMessage: 'I received your message.',
-              time,
-              messages: [...c.messages, { id: Math.random().toString(), text: 'Thanks for the message. I am currently away but will respond soon.', time, sent: false }]
-            };
-          }
-          return c;
-        }));
-      }, 2000);
     }
   }
 }

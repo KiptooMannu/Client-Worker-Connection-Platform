@@ -64,10 +64,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                     <mat-icon class="!text-slate-400 !text-lg">location_on</mat-icon> {{ worker()?.location || 'Not Specified' }}
                   </div>
                   <div class="flex items-center gap-2">
-                    <mat-icon class="!text-slate-400 !text-lg">schedule</mat-icon> 9:45 AM local
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <mat-icon class="!text-slate-400 !text-lg">language</mat-icon> English, German
+                    <mat-icon class="!text-slate-400 !text-lg">work_history</mat-icon> {{ worker()?.workHistory?.length || 0 }} work records
                   </div>
                 </div>
 
@@ -84,7 +81,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                   </div>
                   <div>
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Success Rate</p>
-                    <p class="text-2xl font-black text-slate-900 tracking-tighter">99%</p>
+                    <p class="text-2xl font-black text-slate-900 tracking-tighter">{{ successRate() }}%</p>
                   </div>
                 </div>
               </div>
@@ -163,7 +160,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
           <mat-card class="!rounded-[2.5rem] !border !border-slate-100 !shadow-sm !p-10">
             <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-10">Platform Performance</h3>
             <div class="space-y-8">
-              @for (m of metrics; track m.label) {
+          @for (m of metrics(); track m.label) {
                 <div>
                   <div class="flex justify-between mb-3 text-[10px] font-black uppercase tracking-widest">
                     <span class="text-slate-400">{{ m.label }}</span>
@@ -216,11 +213,21 @@ export class ClientWorkerProfilePage {
   displayCerts = computed(() => this.worker()?.certifications || []);
   displayHistory = computed(() => this.worker()?.workHistory || []);
 
-  metrics = [
-    { label: 'Job Success', value: 99 },
-    { label: 'Client Recommendation', value: 100 },
-    { label: 'On-Time Delivery', value: 96 }
-  ];
+  metrics = computed(() => {
+    const w = this.worker();
+    const rating = Math.round((w?.rating || 0) * 20);
+    const reviewCoverage = Math.min(100, (w?.reviews || 0) * 10);
+    return [
+      { label: 'Job Success', value: this.successRate() },
+      { label: 'Client Recommendation', value: rating },
+      { label: 'Review Coverage', value: reviewCoverage }
+    ];
+  });
+
+  successRate = computed(() => {
+    const reviews = this.worker()?.reviews || 0;
+    return reviews > 0 ? Math.min(100, 80 + reviews) : 0;
+  });
 
   hire() {
     const w = this.worker();

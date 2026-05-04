@@ -6,121 +6,186 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-admin-activity',
   standalone: true,
   imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatTableModule, MatChipsModule],
   template: `
-    <div class="space-y-8 animate-in fade-in duration-500">
-      <!-- Header -->
-      <div class="flex justify-between items-end">
+    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-1000 p-4 md:p-0">
+      
+      <!-- Header Section -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-slate-100 pb-10">
         <div>
-          <h2 class="text-4xl font-black text-slate-900 tracking-tight">System Activity</h2>
-          <p class="text-slate-500 font-medium">Real-time event stream and global platform surveillance.</p>
+          <div class="flex items-center gap-3 mb-3">
+            <span class="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-100/50">Audit Trail</span>
+            <span class="h-1 w-1 rounded-full bg-slate-300"></span>
+            <span class="text-slate-400 text-[10px] font-medium uppercase tracking-widest">Real-time Telemetry</span>
+          </div>
+          <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-2">Platform Activity</h1>
+          <p class="text-slate-500 font-medium text-lg">Continuous monitoring of administrative and professional events.</p>
         </div>
-        <div class="flex gap-3">
-          <button mat-stroked-button class="!border-slate-300">
-            <mat-icon>filter_list</mat-icon> Advanced Filter
+        
+        <div class="flex items-center gap-3">
+          <button (click)="toggleRejectedOnly()" class="px-6 py-3 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
+             <mat-icon class="!text-sm mr-1">filter_list</mat-icon> Filter Events
           </button>
-          <button mat-flat-button color="primary">
-            <mat-icon>refresh</mat-icon> Refresh Feed
+          <button (click)="refresh()" class="px-6 py-3 rounded-2xl text-[11px] font-bold uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
+             <mat-icon class="!text-sm mr-1">refresh</mat-icon> Live Refresh
           </button>
         </div>
       </div>
 
-      <!-- Activity Table -->
-      <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !overflow-hidden">
-        <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-          <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-            <mat-icon class="!w-4 !h-4 !text-[16px] !text-blue-600">bolt</mat-icon>
-            Live Event Stream
-          </h3>
-          <mat-chip class="!min-h-0 !p-0 px-2 py-0.5 !bg-teal-50 !text-teal-700 rounded text-[9px] font-black uppercase">
-            System Synchronized
-          </mat-chip>
+      <!-- Activity Feed Card -->
+      <mat-card class="!rounded-[32px] !border !border-slate-200/60 !shadow-[0_8px_30px_rgb(0,0,0,0.04)] overflow-hidden bg-white">
+        <!-- Live Header -->
+        <div class="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+            <h3 class="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em]">Live Synchronization</h3>
+          </div>
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Events: {{ visibleLogs().length }}</span>
         </div>
 
-        <table mat-table [dataSource]="state.activityLogs()" class="w-full">
-          <!-- Type Column -->
-          <ng-container matColumnDef="type">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Event Type</th>
-            <td mat-cell *matCellDef="let event">
-              <div class="flex items-center gap-3 py-4">
-                <div class="p-2 rounded-xl" [ngClass]="getLogIconAndColor(event.action).bgClass">
-                  <mat-icon class="!w-5 !h-5 !text-[20px]">{{ getLogIconAndColor(event.action).icon }}</mat-icon>
+        <div class="overflow-x-auto">
+          <table mat-table [dataSource]="visibleLogs()" class="w-full !bg-transparent">
+            
+            <!-- Type Column -->
+            <ng-container matColumnDef="type">
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em] !py-6 !px-8">Event Profile</th>
+              <td mat-cell *matCellDef="let event" class="!border-b !border-slate-50 !px-8">
+                <div class="flex items-center gap-4 py-6">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all" [ngClass]="getLogIconAndColor(event.action).bgClass">
+                    <mat-icon class="!text-xl">{{ getLogIconAndColor(event.action).icon }}</mat-icon>
+                  </div>
+                  <div>
+                    <p class="text-sm font-bold text-slate-900 leading-tight mb-0.5">{{ event.action | titlecase }}</p>
+                    <p class="text-[10px] text-slate-400 font-medium uppercase tracking-wider">Automated Event</p>
+                  </div>
                 </div>
-                <span class="text-sm font-black text-slate-900">{{ event.action | titlecase }}</span>
-              </div>
-            </td>
-          </ng-container>
+              </td>
+            </ng-container>
 
-          <!-- Description Column -->
-          <ng-container matColumnDef="description">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Description</th>
-            <td mat-cell *matCellDef="let event">
-              <p class="text-sm text-slate-600 max-w-md leading-relaxed font-medium">
-                {{ event.action === 'approved' ? 'Approved application for' : 
-                   event.action === 'rejected' ? 'Rejected application for' : 
-                   event.action === 'submitted' ? 'New application submitted by' : 'Resubmitted application from' }} 
-                <strong>{{ event.workerName }}</strong>
-                @if (event.reason) {
-                  <br><span class="text-xs text-slate-400">Reason: {{ event.reason }}</span>
-                }
-              </p>
-            </td>
-          </ng-container>
+            <!-- Description Column -->
+            <ng-container matColumnDef="description">
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em]">Context Dossier</th>
+              <td mat-cell *matCellDef="let event" class="!border-b !border-slate-50">
+                <div class="max-w-md py-6">
+                  <p class="text-sm text-slate-600 font-medium leading-relaxed">
+                    {{ event.action === 'approved' ? 'Successfully verified application for' : 
+                       event.action === 'rejected' ? 'Declined application for' : 
+                       event.action === 'submitted' ? 'New service provider submission from' : 'Profile updated and resubmitted by' }} 
+                    <span class="text-slate-900 font-bold">{{ event.workerName }}</span>
+                  </p>
+                  @if (event.reason) {
+                    <p class="mt-2 text-[11px] text-rose-500 font-bold bg-rose-50/50 px-3 py-1 rounded-lg border border-rose-100/50 w-fit">Feedback: {{ event.reason }}</p>
+                  }
+                </div>
+              </td>
+            </ng-container>
 
-          <!-- User Column -->
-          <ng-container matColumnDef="user">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Origin User</th>
-            <td mat-cell *matCellDef="let event">
-              <p class="text-sm font-bold text-slate-900">{{ event.adminName || event.workerName }}</p>
-              <p class="text-[9px] text-slate-400 font-black uppercase">{{ event.adminName ? 'Staff Admin' : 'Worker' }}</p>
-            </td>
-          </ng-container>
+            <!-- User Column -->
+            <ng-container matColumnDef="user">
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em]">Origin Agent</th>
+              <td mat-cell *matCellDef="let event" class="!border-b !border-slate-50">
+                <div class="flex flex-col">
+                  <p class="text-sm font-bold text-slate-900">{{ event.adminName || event.workerName }}</p>
+                  <span class="text-[10px] font-black uppercase tracking-tighter" [ngClass]="event.adminName ? 'text-indigo-600' : 'text-slate-400'">
+                    {{ event.adminName ? 'Staff Authority' : 'Professional' }}
+                  </span>
+                </div>
+              </td>
+            </ng-container>
 
-          <!-- Time Column -->
-          <ng-container matColumnDef="time">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Timestamp</th>
-            <td mat-cell *matCellDef="let event">
-              <p class="text-sm font-bold text-slate-900">{{ event.timestamp | date:'shortTime' }}</p>
-              <p class="text-[9px] text-slate-400 font-black uppercase">{{ event.timestamp | date:'mediumDate' }}</p>
-            </td>
-          </ng-container>
+            <!-- Time Column -->
+            <ng-container matColumnDef="time">
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em]">Temporal Stamp</th>
+              <td mat-cell *matCellDef="let event" class="!border-b !border-slate-50">
+                <div class="flex flex-col">
+                  <p class="text-sm font-bold text-slate-900">{{ event.timestamp | date:'shortTime' }}</p>
+                  <p class="text-[10px] text-slate-400 font-medium uppercase">{{ event.timestamp | date:'mediumDate' }}</p>
+                </div>
+              </td>
+            </ng-container>
 
-          <!-- Severity Column -->
-          <ng-container matColumnDef="severity">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Severity</th>
-            <td mat-cell *matCellDef="let event" class="text-right">
-              <span class="inline-block px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" [ngClass]="getLogIconAndColor(event.action).sevClass">
-                {{ event.action === 'rejected' ? 'Medium' : 'Low' }}
-              </span>
-            </td>
-          </ng-container>
+            <!-- Severity Column -->
+            <ng-container matColumnDef="severity">
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em] text-right !px-8">Criticality</th>
+              <td mat-cell *matCellDef="let event" class="text-right !px-8 !border-b !border-slate-50">
+                <span class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border" 
+                      [ngClass]="getLogIconAndColor(event.action).sevClass">
+                  {{ event.action === 'rejected' ? 'Medium' : 'Low' }}
+                </span>
+              </td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let event; columns: displayedColumns;" class="hover:bg-slate-50 transition-colors"></tr>
-        </table>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let event; columns: displayedColumns;" class="hover:bg-slate-50 transition-all duration-300"></tr>
+          </table>
+        </div>
 
-        <div class="p-6 bg-slate-50 flex justify-center border-t border-slate-100">
-          <button mat-button class="!text-blue-600 !font-black !text-xs !uppercase !tracking-widest">Load Previous Events</button>
+        @if (visibleLogs().length === 0) {
+          <div class="py-32 flex flex-col items-center justify-center bg-slate-50/30">
+            <div class="w-20 h-20 rounded-[32px] bg-white shadow-xl shadow-slate-100 flex items-center justify-center mb-6 border border-slate-100">
+              <mat-icon class="!text-[32px] !w-auto !h-auto text-slate-200">history_toggle_off</mat-icon>
+            </div>
+            <h3 class="text-xl font-black text-slate-900 mb-1">Quiet Stream</h3>
+            <p class="text-slate-400 font-medium text-sm">No significant events detected in the current cycle.</p>
+          </div>
+        }
+
+        <div class="p-8 bg-slate-50/30 flex justify-center border-t border-slate-100">
+          <button (click)="loadHistoricalArchives()" class="px-8 py-3 rounded-2xl bg-white text-indigo-600 font-black text-xs uppercase tracking-widest border border-slate-200 hover:bg-slate-50 transition-all shadow-sm">
+            Load Historical Archives
+          </button>
         </div>
       </mat-card>
     </div>
-  `
+  `,
+  styles: [`
+    :host { display: block; }
+    @media (max-width: 768px) {
+      .mat-mdc-table { display: block; overflow-x: auto; }
+      .mat-mdc-header-row, .mat-mdc-row { min-width: 900px; }
+    }
+  `]
 })
 export class AdminActivityPage {
   state = inject(PlatformStateService);
+  private notification = inject(NotificationService);
   displayedColumns: string[] = ['type', 'description', 'user', 'time', 'severity'];
+  rejectedOnly = false;
+  showAll = false;
   
+  refresh() {
+    this.state.fetchAdminActivityLogs();
+  }
+
+  visibleLogs() {
+    let logs = this.state.activityLogs();
+    if (this.rejectedOnly) logs = logs.filter(l => l.action === 'rejected');
+    if (!this.showAll) logs = logs.slice(0, 50);
+    return logs;
+  }
+
+  toggleRejectedOnly() {
+    this.rejectedOnly = !this.rejectedOnly;
+    this.notification.info(this.rejectedOnly ? 'Filter: rejected events only.' : 'Filter cleared.');
+  }
+
+  loadHistoricalArchives() {
+    this.showAll = true;
+    this.notification.success('Historical activity loaded.');
+  }
+
   getLogIconAndColor(action: string) {
     switch (action) {
-      case 'approved': return { icon: 'verified', bgClass: 'bg-teal-50 text-teal-600', sevClass: 'bg-teal-50 text-teal-700' };
-      case 'rejected': return { icon: 'cancel', bgClass: 'bg-red-50 text-red-600', sevClass: 'bg-red-600 text-white' };
-      case 'submitted': return { icon: 'file_upload', bgClass: 'bg-blue-50 text-blue-600', sevClass: 'bg-blue-50 text-blue-700' };
-      case 'resubmitted': return { icon: 'published_with_changes', bgClass: 'bg-amber-50 text-amber-600', sevClass: 'bg-amber-50 text-amber-700' };
-      default: return { icon: 'info', bgClass: 'bg-slate-100 text-slate-700', sevClass: 'bg-slate-100 text-slate-700' };
+      case 'approved': return { icon: 'verified', bgClass: 'bg-emerald-50 text-emerald-600', sevClass: 'bg-emerald-50 text-emerald-700 border-emerald-100' };
+      case 'rejected': return { icon: 'report_problem', bgClass: 'bg-rose-50 text-rose-600', sevClass: 'bg-rose-50 text-rose-700 border-rose-100' };
+      case 'submitted': return { icon: 'assignment_turned_in', bgClass: 'bg-indigo-50 text-indigo-600', sevClass: 'bg-indigo-50 text-indigo-700 border-indigo-100' };
+      case 'resubmitted': return { icon: 'history', bgClass: 'bg-amber-50 text-amber-600', sevClass: 'bg-amber-50 text-amber-700 border-amber-100' };
+      default: return { icon: 'info', bgClass: 'bg-slate-50 text-slate-500', sevClass: 'bg-slate-50 text-slate-600 border-slate-100' };
     }
   }
 }

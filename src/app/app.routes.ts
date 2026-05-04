@@ -1,32 +1,19 @@
 import { Routes } from '@angular/router';
-import { LandingPage } from './features/landing/landing';
-import { LoginPage } from './features/auth/login/login';
-import { RegisterPage } from './features/auth/register/register';
-
-import { AdminLayout } from './features/admin/admin-layout';
-import { AdminOverviewPage } from './features/admin/dashboard/overview';
-import { AdminVerificationPage } from './features/admin/verification/verification-queue';
-import { AdminUserManagementPage } from './features/admin/users/user-management';
-import { AdminActivityPage } from './features/admin/activity/platform-activity';
-
-import { WorkerLayout } from './features/worker/worker-layout';
-import { WorkerDashboardOverviewPage } from './features/worker/dashboard/overview';
-import { WorkerProfilePage } from './features/worker/profile/profile-management';
-import { WorkerVerificationPage } from './features/worker/verification/verification-documents';
-import { WorkerHistoryPage } from './features/worker/history/job-history';
-
-import { ClientLayout } from './features/client/client-layout';
-import { ClientDashboardPage } from './features/client/client-dashboard';
-import { ClientWorkerProfilePage } from './features/client/worker-profile/worker-profile';
-import { ClientMessagesPage } from './features/client/messages/messages';
-import { ClientBookingsPage } from './features/client/bookings/my-bookings';
-
 import { authGuard } from './core/auth.guard';
 
 export const routes: Routes = [
-  { path: '', component: LandingPage },
-  { path: 'login', component: LoginPage },
-  { path: 'register', component: RegisterPage },
+  { 
+    path: '', 
+    loadComponent: () => import('./features/landing/landing').then(m => m.LandingPage) 
+  },
+  { 
+    path: 'login', 
+    loadComponent: () => import('./features/auth/login/login').then(m => m.LoginPage) 
+  },
+  { 
+    path: 'register', 
+    loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterPage) 
+  },
   
   { path: 'workers', redirectTo: 'client/marketplace', pathMatch: 'full' },
   { path: 'clients', redirectTo: 'client', pathMatch: 'full' },
@@ -34,42 +21,81 @@ export const routes: Routes = [
   
   { 
     path: 'worker', 
-    component: WorkerLayout,
+    loadComponent: () => import('./features/worker/worker-layout').then(m => m.WorkerLayout),
     canActivate: [authGuard],
     data: { role: 'Worker' },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: WorkerDashboardOverviewPage },
-      { path: 'profile', component: WorkerProfilePage },
-      { path: 'verification', component: WorkerVerificationPage },
-      { path: 'history', component: WorkerHistoryPage },
-      { path: 'messages', component: ClientMessagesPage }
+      { 
+        path: 'dashboard', 
+        loadComponent: () => import('./features/worker/dashboard/overview').then(m => m.WorkerDashboardOverviewPage) 
+      },
+      { 
+        path: 'profile', 
+        loadComponent: () => import('./features/worker/profile/profile-management').then(m => m.WorkerProfilePage) 
+      },
+      { 
+        path: 'verification', 
+        loadComponent: () => import('./features/worker/verification/verification-documents').then(m => m.WorkerVerificationPage) 
+      },
+      { 
+        path: 'history', 
+        loadComponent: () => import('./features/worker/history/job-history').then(m => m.WorkerHistoryPage) 
+      },
+      { 
+        path: 'messages', 
+        loadComponent: () => import('./features/client/messages/messages').then(m => m.ClientMessagesPage) 
+      }
     ]
   },
   { 
     path: 'client', 
-    component: ClientLayout,
+    loadComponent: () => import('./features/client/client-layout').then(m => m.ClientLayout),
     canActivate: [authGuard],
     data: { role: 'Client' },
     children: [
       { path: '', redirectTo: 'marketplace', pathMatch: 'full' },
-      { path: 'marketplace', component: ClientDashboardPage },
-      { path: 'profile/:id', component: ClientWorkerProfilePage },
-      { path: 'messages', component: ClientMessagesPage },
-      { path: 'bookings', component: ClientBookingsPage }
+      { 
+        path: 'marketplace', 
+        loadComponent: () => import('./features/client/client-dashboard').then(m => m.ClientDashboardPage) 
+      },
+      { 
+        path: 'profile/:id', 
+        loadComponent: () => import('./features/client/worker-profile/worker-profile').then(m => m.ClientWorkerProfilePage) 
+      },
+      { 
+        path: 'messages', 
+        loadComponent: () => import('./features/client/messages/messages').then(m => m.ClientMessagesPage) 
+      },
+      { 
+        path: 'bookings', 
+        loadComponent: () => import('./features/client/bookings/my-bookings').then(m => m.ClientBookingsPage) 
+      }
     ]
   },
   { 
     path: 'admin', 
-    component: AdminLayout,
+    loadComponent: () => import('./features/admin/admin-layout').then(m => m.AdminLayout),
     canActivate: [authGuard],
     data: { role: 'Admin' },
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: AdminOverviewPage },
-      { path: 'verification', component: AdminVerificationPage },
-      { path: 'users', component: AdminUserManagementPage },
-      { path: 'activity', component: AdminActivityPage }
+      { 
+        path: 'dashboard', 
+        loadComponent: () => import('./features/admin/dashboard/overview').then(m => m.AdminOverviewPage) 
+      },
+      { 
+        path: 'verification', 
+        loadComponent: () => import('./features/admin/verification/verification-queue').then(m => m.AdminVerificationPage) 
+      },
+      { 
+        path: 'users', 
+        loadComponent: () => import('./features/admin/users/user-management').then(m => m.AdminUserManagementPage) 
+      },
+      { 
+        path: 'activity', 
+        loadComponent: () => import('./features/admin/activity/platform-activity').then(m => m.AdminActivityPage) 
+      }
     ]
   }
 ];

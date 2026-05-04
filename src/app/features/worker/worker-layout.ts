@@ -14,13 +14,13 @@ import { PlatformStateService } from '../../core/services/platform-state.service
   selector: 'app-worker-layout',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterOutlet, 
-    RouterLink, 
-    RouterLinkActive, 
-    MatSidenavModule, 
-    MatListModule, 
-    MatIconModule, 
+    CommonModule,
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    MatSidenavModule,
+    MatListModule,
+    MatIconModule,
     MatButtonModule,
     NavbarComponent
   ],
@@ -69,10 +69,15 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                   <mat-icon class="!text-teal-600 !text-sm !w-auto !h-auto">verified</mat-icon>
                   <span class="text-[10px] font-black text-teal-800 uppercase tracking-widest">Verified Expert</span>
                 </div>
+              } @else if (worker().status === 'Draft') {
+                <div class="bg-slate-100 px-6 py-3 rounded-2xl border border-slate-200 flex items-center gap-3">
+                  <mat-icon class="!text-slate-500 !text-sm !w-auto !h-auto">edit_note</mat-icon>
+                  <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest">Draft Profile</span>
+                </div>
               } @else {
-                <div class="bg-blue-50 px-6 py-3 rounded-2xl border border-blue-100 flex items-center gap-3">
-                  <mat-icon class="!text-blue-600 !text-sm !w-auto !h-auto">pending_actions</mat-icon>
-                  <span class="text-[10px] font-black text-blue-800 uppercase tracking-widest">{{ worker().status }} Profile</span>
+                <div class="bg-amber-50 px-6 py-3 rounded-2xl border border-amber-100 flex items-center gap-3">
+                  <mat-icon class="!text-amber-600 !text-sm !w-auto !h-auto">pending_actions</mat-icon>
+                  <span class="text-[10px] font-black text-amber-800 uppercase tracking-widest">{{ worker().status }} Profile</span>
                 </div>
               }
             </div>

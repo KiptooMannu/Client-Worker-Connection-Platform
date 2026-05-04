@@ -45,8 +45,11 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           }
           @if (auth.userRole() === 'Client') {
             <a routerLink="/client/messages" routerLinkActive="active-link"
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
+               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer flex items-center gap-2">
               Messages
+              @if (state.unreadMessagesCount() > 0) {
+                <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
+              }
             </a>
             <a routerLink="/client/bookings" routerLinkActive="active-link"
                class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
@@ -55,8 +58,11 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           }
           @if (auth.userRole() === 'Worker') {
             <a routerLink="/worker/messages" routerLinkActive="active-link"
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
+               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer flex items-center gap-2">
               Messages
+              @if (state.unreadMessagesCount() > 0) {
+                <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
+              }
             </a>
             <a routerLink="/worker/history" routerLinkActive="active-link"
                class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
@@ -76,8 +82,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
              
              <!-- Notification Bell -->
              <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="!bg-slate-50 !rounded-xl hover:!bg-slate-100 transition-colors cursor-pointer relative">
-               <mat-icon [matBadge]="state.workerNotifications().length" 
-                         [matBadgeHidden]="state.workerNotifications().length === 0"
+               <mat-icon [matBadge]="state.unreadNotificationsCount()" 
+                         [matBadgeHidden]="state.unreadNotificationsCount() === 0"
                          matBadgeColor="warn"
                          class="!text-slate-500">notifications</mat-icon>
              </button>
@@ -86,7 +92,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                <div class="w-80 max-h-[400px] flex flex-col">
                  <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
                     <span class="text-[10px] font-black uppercase tracking-widest text-slate-900">Notifications</span>
-                    <button class="text-[9px] font-black uppercase text-blue-600 hover:underline">Mark all read</button>
+                   <button (click)="state.markAllNotificationsAsRead()" class="text-[9px] font-black uppercase text-blue-600 hover:underline">Mark all read</button>
                  </div>
                  
                  <div class="overflow-y-auto">

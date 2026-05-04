@@ -14,11 +14,11 @@ import { inject, computed, signal } from '@angular/core';
   selector: 'app-worker-history',
   standalone: true,
   imports: [
-    CommonModule, 
-    MatCardModule, 
-    MatButtonModule, 
-    MatIconModule, 
-    MatTableModule, 
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
     MatChipsModule,
     MatDividerModule,
     FormsModule
@@ -48,14 +48,13 @@ import { inject, computed, signal } from '@angular/core';
           <div class="flex justify-between items-center mb-8">
             <h3 class="text-xl font-black text-slate-900 tracking-tight">Monthly Earnings</h3>
             <mat-chip class="!bg-teal-50 !text-teal-700 !border-none !min-h-0 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-              <mat-icon class="!text-xs !w-auto !h-auto mr-1">trending_up</mat-icon> +12%
+              <mat-icon class="!text-xs !w-auto !h-auto mr-1">trending_up</mat-icon> {{ state.bookings().length }} Jobs
             </mat-chip>
           </div>
           <div class="h-60 flex items-end justify-between gap-4 px-4 border-b border-slate-100 pb-2">
             @for (bar of earnings; track $index) {
               <div class="flex flex-col items-center gap-3 flex-1 group">
                 <div class="w-full bg-slate-100 rounded-t-lg transition-all group-hover:bg-blue-600 group-hover:shadow-lg group-hover:shadow-blue-900/20" 
-                     [ngClass]="{'!bg-blue-600 !shadow-lg !shadow-blue-900/20': bar.active}" 
                      [style.height]="bar.height + '%'"></div>
                 <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ bar.label }}</span>
               </div>
@@ -89,7 +88,7 @@ import { inject, computed, signal } from '@angular/core';
       <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !overflow-hidden">
         <mat-card-header class="!p-6 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-row !justify-between !items-center">
           <mat-card-title class="!text-[9px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Complete Job Ledger</mat-card-title>
-          <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Showing 50 results</span>
+          <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Showing {{ jobs.length }} results</span>
         </mat-card-header>
         
         <table mat-table [dataSource]="jobs" class="w-full">
@@ -179,21 +178,38 @@ export class WorkerHistoryPage {
   state = inject(PlatformStateService);
   displayedColumns: string[] = ['client', 'date', 'earnings', 'rating', 'status'];
   searchQuery = signal<string>('');
-  
-  earnings = [
-    { label: 'JAN', height: 40 },
-    { label: 'FEB', height: 60 },
-    { label: 'MAR', height: 50 },
-    { label: 'APR', height: 85, active: true },
-    { label: 'MAY', height: 70 },
-    { label: 'JUN', height: 75 }
-  ];
 
-  metrics = [
-    { label: 'On-time Arrival', value: '98%', icon: 'schedule' },
-    { label: 'Completion Rate', value: '100%', icon: 'verified' },
-    { label: 'Avg. Rating', value: '4.92', icon: 'star' }
-  ];
+  get earnings() {
+    const jobs = this.state.bookings();
+    if (jobs.length === 0) return [];
+    const grouped = new Map<string, number>();
+    jobs.forEach(b => {
+      const d = new Date(b.date);
+      const key = d.toLocaleDateString('en-US', { month: 'short' }).toUpperCase();
+      grouped.set(key, (grouped.get(key) || 0) + (b.earnings || 0));
+    });
+    const max = Math.max(...Array.from(grouped.values()), 1);
+    const entries = Array.from(grouped.entries());
+    return entries.map(([label, value], index) => ({
+      label,
+      height: Math.max(10, Math.round((value / max) * 100)),
+      active: index === entries.length - 1
+    }));
+  }
+
+  get metrics() {
+    const jobs = this.state.bookings();
+    const completed = jobs.filter(j => j.status === 'Completed').length;
+    const approved = jobs.filter(j => j.status === 'Approved').length;
+    const total = jobs.length || 1;
+    const rated = jobs.filter(j => typeof j.rating === 'number') as any[];
+    const avgRating = rated.length ? (rated.reduce((s, r) => s + (r.rating || 0), 0) / rated.length) : 0;
+    return [
+      { label: 'Completion Rate', value: `${Math.round((completed / total) * 100)}%`, icon: 'verified' },
+      { label: 'Accepted Requests', value: `${Math.round((approved / total) * 100)}%`, icon: 'schedule' },
+      { label: 'Avg. Rating', value: avgRating.toFixed(2), icon: 'star' }
+    ];
+  }
 
   get jobs() {
     const query = this.searchQuery().toLowerCase();

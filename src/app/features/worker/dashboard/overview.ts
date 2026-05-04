@@ -13,10 +13,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   selector: 'app-worker-dashboard-overview',
   standalone: true,
   imports: [
-    CommonModule, 
-    MatCardModule, 
-    MatButtonModule, 
-    MatIconModule, 
+    CommonModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
     MatDividerModule,
     MatProgressBarModule,
     RouterLink

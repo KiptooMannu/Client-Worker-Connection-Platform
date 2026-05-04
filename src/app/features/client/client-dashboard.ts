@@ -92,27 +92,24 @@ import { PlatformStateService } from '../../core/services/platform-state.service
             <ul class="space-y-6">
               <li class="flex items-center justify-between">
                 <span class="text-sm font-medium text-slate-500">Active Experts</span>
-                <span class="text-sm font-black text-slate-900">12,482</span>
+                <span class="text-sm font-black text-slate-900">{{ state.verifiedWorkers().length }}</span>
               </li>
               <li class="flex items-center justify-between">
                 <span class="text-sm font-medium text-slate-500">Avg. Hourly Rate</span>
-                <span class="text-sm font-black text-slate-900">$145/hr</span>
+                <span class="text-sm font-black text-slate-900">\${{ averageRate() }}/hr</span>
               </li>
               <li class="flex items-center justify-between">
-                <span class="text-sm font-medium text-slate-500">New Today</span>
-                <span class="text-[10px] font-black text-teal-700 bg-teal-50 px-2 py-0.5 rounded tracking-tighter uppercase">+84 Verified</span>
+                <span class="text-sm font-medium text-slate-500">Matched Results</span>
+                <span class="text-[10px] font-black text-teal-700 bg-teal-50 px-2 py-0.5 rounded tracking-tighter uppercase">{{ filteredWorkers().length }} workers</span>
               </li>
             </ul>
           </div>
           
           <!-- Featured Card -->
-          <div class="relative premium-card overflow-hidden aspect-[3/4] group shadow-2xl">
-            <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcuq8zz7T8AZVH5TUwgdKehTUJSSyK9AWXGyv-jPQDhzm-bkZwDvfewYuXfl_xGiiwZ7PEZESBpj9yrfCxL_rEGlEUVPGG8cCn3wXtYxM0C75JWAlipyFH3ufJXIgi1WvcW0sMTN5BRDI9xvnSjdncLYle9zQNe3CNoMlqwOAIfyAyFVDuFXvuOlZjEmN0P4VKGaaarZsOW3B0zhWuqvE1mtfjbj95EEvgu8ly7IpOFDnPZnHi5d0_1AclqEhGVz8bJdEdLN8vyTs">
-            <div class="absolute inset-0 bg-gradient-to-t from-slate-900/90 via-slate-900/20 to-transparent flex flex-col justify-end p-8">
-              <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Top Rated</p>
-              <h4 class="text-2xl font-black text-white leading-tight">Samuel Ochieng</h4>
-              <p class="text-sm font-medium text-slate-300">Certified Electrician</p>
-            </div>
+          <div class="relative premium-card overflow-hidden aspect-[3/4] group shadow-2xl bg-slate-900 text-white p-8 flex flex-col justify-end">
+            <p class="text-[10px] font-black text-blue-300 uppercase tracking-widest mb-1">Top Rated</p>
+            <h4 class="text-2xl font-black text-white leading-tight">{{ topWorker()?.name || 'No verified worker yet' }}</h4>
+            <p class="text-sm font-medium text-slate-300">{{ topWorker()?.category || 'Awaiting approvals' }}</p>
           </div>
         </aside>
 
@@ -215,6 +212,18 @@ export class ClientDashboardPage {
   selectedExperience = signal<string | null>(null);
   selectedAvailability = signal<string | null>(null);
   selectedSort = signal<string>('Highest Rated');
+
+  averageRate = computed(() => {
+    const workers = this.state.verifiedWorkers();
+    if (!workers.length) return 0;
+    const total = workers.reduce((sum, w) => sum + (w.rate || 0), 0);
+    return Math.round(total / workers.length);
+  });
+
+  topWorker = computed(() => {
+    const workers = this.state.verifiedWorkers();
+    return workers.length ? workers[0] : null;
+  });
 
   filteredWorkers = computed(() => {
     let list = this.state.verifiedWorkers();

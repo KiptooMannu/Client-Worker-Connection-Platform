@@ -93,3 +93,29 @@
 .premium-card {
   border-radius: 2.5rem !important;
 }
+
+/* Calm brand palette override (reduce shouty accents) */
+:root {
+  --calm-primary: #334155;
+  --calm-primary-soft: #e2e8f0;
+  --calm-accent: #475569;
+}
+
+.bg-indigo-600,
+.bg-blue-600,
+.bg-indigo-900,
+.bg-blue-700 {
+  background-color: var(--calm-primary) !important;
+}
+
+.text-indigo-600,
+.text-blue-600,
+.text-indigo-700,
+.text-blue-700 {
+  color: var(--calm-accent) !important;
+}
+
+.bg-indigo-50,
+.bg-blue-50 {
+  background-color: var(--calm-primary-soft) !important;
+}

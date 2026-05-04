@@ -48,7 +48,7 @@ import { NotificationService } from '../../../core/services/notification.service
         <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Spent</p>
             <p class="text-4xl font-black text-slate-900 tracking-tighter">$\{{ totalSpent }}</p>
-            <p class="text-xs text-slate-500 font-medium mt-2">Fiscal year 2026</p>
+            <p class="text-xs text-slate-500 font-medium mt-2">From completed/approved jobs</p>
         </mat-card>
         <mat-card class="!rounded-3xl !bg-indigo-900 !text-white !shadow-xl !p-8">
             <p class="text-[10px] font-black text-indigo-100 uppercase tracking-widest mb-2">Pending Requests</p>
@@ -157,7 +157,18 @@ export class ClientBookingsPage {
   displayedColumns: string[] = ['worker', 'date', 'cost', 'status'];
 
   showHistory() {
-    this.notification.info('Viewing historical records (Simulation)');
+    const rows = this.state.bookings().map(b =>
+      `${b.clientName},${b.workerName},${b.status},${b.date},${b.earnings}`
+    );
+    const csv = ['client,worker,status,date,amount', ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `booking-history-${Date.now()}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.notification.success('Booking history exported.');
   }
 
   get activeCount() { return this.state.bookings().filter(b => b.status === 'Approved' || b.status === 'Processing').length; }
