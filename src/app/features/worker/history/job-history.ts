@@ -137,11 +137,29 @@ import { inject, computed, signal } from '@angular/core';
 
           <!-- Status Column -->
           <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Status</th>
+            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Status & Actions</th>
             <td mat-cell *matCellDef="let job" class="text-right">
-              <span class="inline-block px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" [ngClass]="job.statusBg + ' ' + job.statusColor">
-                {{ job.status }}
-              </span>
+              <div class="flex flex-col items-end gap-2">
+                <span class="inline-block px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" [ngClass]="job.statusBg + ' ' + job.statusColor">
+                  {{ job.status }}
+                </span>
+                
+                <div class="flex gap-1">
+                  @if (job.status === 'Pending') {
+                    <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" class="bg-indigo-600 text-white p-1 rounded hover:bg-indigo-700 transition-colors" title="Accept Request">
+                      <mat-icon class="!text-xs !w-auto !h-auto">check</mat-icon>
+                    </button>
+                    <button (click)="state.updateJobStatus(job.id, 'REJECTED')" class="bg-rose-600 text-white p-1 rounded hover:bg-rose-700 transition-colors" title="Decline Request">
+                      <mat-icon class="!text-xs !w-auto !h-auto">close</mat-icon>
+                    </button>
+                  }
+                  @if (job.status === 'Approved' || job.status === 'Accepted') {
+                    <button (click)="state.updateJobStatus(job.id, 'COMPLETED')" class="bg-emerald-600 text-white px-2 py-1 rounded hover:bg-emerald-700 transition-colors text-[8px] font-black uppercase tracking-widest" title="Mark as Finished">
+                      Complete Job
+                    </button>
+                  }
+                </div>
+              </div>
             </td>
           </ng-container>
 

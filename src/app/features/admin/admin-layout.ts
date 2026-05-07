@@ -19,7 +19,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
   template: `
     <div class="min-h-screen bg-slate-50 flex flex-col font-sans">
       <app-navbar></app-navbar>
-      <mat-sidenav-container class="flex-grow !bg-transparent min-h-0" autosize>
+      <mat-sidenav-container class="flex-grow !bg-transparent min-h-0" autosize [hasBackdrop]="(isHandset$ | async) === true">
         <mat-sidenav #sidenav 
                      [mode]="(isHandset$ | async) ? 'over' : 'side'" 
                      [opened]="(isHandset$ | async) === false"
@@ -144,6 +144,7 @@ export class AdminLayout {
     { path: 'dashboard', label: 'Executive Overview', icon: 'grid_view' },
     { path: 'verification', label: 'Verification Queue', icon: 'fact_check' },
     { path: 'users', label: 'Participant Directory', icon: 'people_alt' },
+    { path: 'messages', label: 'Messages', icon: 'mail' },
     { path: 'activity', label: 'System Audit', icon: 'history_edu' }
   ];
 

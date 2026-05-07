@@ -4,39 +4,47 @@
         <div class="flex items-center gap-8">
             <span class="text-xl font-bold text-[#1A2B3C] tracking-tight">Kazi Konnect</span>
             <div class="hidden md:flex items-center gap-8">
-                <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
-                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                <a routerLink="/worker/dashboard" routerLinkActive="active-link"
+                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
                     Find Work
                 </a>
-                <a routerLink="/client/marketplace" routerLinkActive="active-link" 
-                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                <a routerLink="/client/marketplace" routerLinkActive="active-link"
+                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
                     Hire Talent
                 </a>
-                <a routerLink="/enterprise" routerLinkActive="active-link" 
-                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                <a routerLink="/enterprise" routerLinkActive="active-link"
+                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
                     Enterprise
                 </a>
-                <a routerLink="/solutions" routerLinkActive="active-link" 
-                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                  Solutions
+                <a routerLink="/solutions" routerLinkActive="active-link"
+                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                    Solutions
                 </a>
                 <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
-                   routerLinkActive="active-link"
-                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
-                  Messages
-                  @if (state.unreadMessagesCount() > 0) {
-                    <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
-                  }
+                    routerLinkActive="active-link"
+                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
+                    Messages
+                    @if (state.unreadMessagesCount() > 0) {
+                    <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{
+                        state.unreadMessagesCount() }}</span>
+                    }
                 </a>
             </div>
         </div>
         <div class="flex items-center gap-4">
             @if (auth.isAuthenticated()) {
-              <button (click)="auth.logout()" class="text-slate-600 hover:text-rose-600 transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log Out</button>
-              <button [routerLink]="['/admin']" class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">Dashboard</button>
+            <button (click)="auth.logout()"
+                class="text-slate-600 hover:text-rose-600 transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log
+                Out</button>
+            <button [routerLink]="['/admin']"
+                class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">Dashboard</button>
             } @else {
-              <button [routerLink]="['/login']" class="text-slate-600 hover:text-[#1A2B3C] transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log In</button>
-              <button [routerLink]="['/register']" class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">Sign Up</button>
+            <button [routerLink]="['/login']"
+                class="text-slate-600 hover:text-[#1A2B3C] transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log
+                In</button>
+            <button [routerLink]="['/register']"
+                class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">Sign
+                Up</button>
             }
         </div>
     </div>
@@ -47,7 +55,9 @@
     <section class="relative overflow-hidden pt-20 pb-24 lg:pt-32 lg:pb-40">
         <div class="max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-12 items-center">
             <div class="z-10">
-                <span class="inline-block py-1 px-3 mb-6 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold text-[12px] uppercase tracking-wider">VERIFIED SERVICE MARKETPLACE</span>
+                <span
+                    class="inline-block py-1 px-3 mb-6 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold text-[12px] uppercase tracking-wider">VERIFIED
+                    SERVICE MARKETPLACE</span>
                 <h1 class="text-5xl font-bold text-primary mb-6 max-w-lg leading-tight">
                     Connect with Verified Talent for Your Highest Stakes.
                 </h1>
@@ -55,35 +65,46 @@
                     The professional marketplace built on trust, transparency, and top-tier security for local services.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4">
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'client'}" class="bg-secondary text-on-secondary font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-on-secondary-fixed-variant transition-all active:scale-95">Find a Professional</button>
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}" class="border-2 border-primary text-primary font-bold px-8 py-4 rounded-xl hover:bg-surface-container transition-all active:scale-95">Join as Worker</button>
+                    <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
+                        class="bg-secondary text-on-secondary font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-on-secondary-fixed-variant transition-all active:scale-95">Find
+                        a Professional</button>
+                    <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
+                        class="border-2 border-primary text-primary font-bold px-8 py-4 rounded-xl hover:bg-surface-container transition-all active:scale-95">Join
+                        as Worker</button>
                 </div>
             </div>
             <div class="relative">
                 <div class="aspect-square rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
-                    <img alt="Professional home inspector" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRVgje7w63DTDR8h9k6rxxNdivO5BtC_PGpMHRa90Ya4vDcafgsZY68DN6k6wDmL-VHbSIC33PHaSqOjC67CLiOvrGORDaiB_nQPdQboJJfRrFmnxmvJkLIJEpNjPbyaxWMJ6ZNykTSRNkU6iOGG1nYGTuej2TZxk09EVuG6s7xshFCphmM70yGXCt8mugEE5ocHAQwWwvYAirwznxIavSNj3kvt0CJdIizOzMBUhV4S83GeClMf4bXJgMw0DEKUHDaw_KZxS0rlE"/>
+                    <img alt="Professional home inspector" class="w-full h-full object-cover"
+                        src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop" />
                 </div>
                 <!-- Floating Badge -->
-                <div class="absolute -bottom-6 -left-6 tonal-layer-2 p-6 rounded-2xl flex items-center gap-4 animate-bounce-subtle">
+                <div
+                    class="absolute -bottom-6 -left-6 tonal-layer-2 p-6 rounded-2xl flex items-center gap-4 animate-bounce-subtle">
                     <div class="w-12 h-12 rounded-full bg-on-tertiary-container flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        <span class="material-symbols-outlined text-white"
+                            style="font-variation-settings: 'FILL' 1;">verified</span>
                     </div>
                     <div>
-                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">TRUST STATUS</p>
+                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">TRUST STATUS
+                        </p>
                         <p class="font-bold text-primary">Identity Verified</p>
                     </div>
                 </div>
             </div>
         </div>
         <!-- Background Decorative Elements -->
-        <div class="absolute top-0 right-0 -z-10 w-1/3 h-full bg-gradient-to-l from-primary-fixed/20 to-transparent"></div>
+        <div class="absolute top-0 right-0 -z-10 w-1/3 h-full bg-gradient-to-l from-primary-fixed/20 to-transparent">
+        </div>
     </section>
 
     <!-- Trust Indicators -->
     <section class="py-12 bg-surface-container-low border-y border-outline-variant">
         <div class="max-w-7xl mx-auto px-6 lg:px-12">
-            <p class="text-center text-xs font-bold text-outline mb-10 uppercase tracking-widest">PARTNERED WITH INDUSTRY LEADERS</p>
-            <div class="flex flex-wrap justify-center items-center gap-12 lg:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all">
+            <p class="text-center text-xs font-bold text-outline mb-10 uppercase tracking-widest">PARTNERED WITH
+                INDUSTRY LEADERS</p>
+            <div
+                class="flex flex-wrap justify-center items-center gap-12 lg:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all">
                 <span class="text-2xl font-bold text-primary tracking-tighter">GlobalTrust</span>
                 <span class="text-2xl font-bold text-primary tracking-tighter">SafetyFirst</span>
                 <span class="text-2xl font-bold text-primary tracking-tighter">SecurePay</span>
@@ -96,28 +117,33 @@
     <section class="py-24 bg-surface">
         <div class="max-w-7xl mx-auto px-6 lg:px-12 text-center mb-16">
             <h2 class="text-3xl font-bold text-primary mb-4">Uncompromising Standards</h2>
-            <p class="text-on-surface-variant max-w-2xl mx-auto">We've built Kazi Konnect to solve the trust gap in the service economy.</p>
+            <p class="text-on-surface-variant max-w-2xl mx-auto">We've built Kazi Konnect to solve the trust gap in the
+                service economy.</p>
         </div>
         <div class="max-w-7xl mx-auto px-6 lg:px-12 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
                 <span class="material-symbols-outlined text-secondary text-4xl mb-4">badge</span>
                 <h3 class="font-bold text-lg text-primary mb-2">Strict Verification</h3>
-                <p class="text-sm text-on-surface-variant">Multi-layer background checks and license validation for every provider.</p>
+                <p class="text-sm text-on-surface-variant">Multi-layer background checks and license validation for
+                    every provider.</p>
             </div>
             <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
                 <span class="material-symbols-outlined text-secondary text-4xl mb-4">distance</span>
                 <h3 class="font-bold text-lg text-primary mb-2">Local Connections</h3>
-                <p class="text-sm text-on-surface-variant">Proximity-based matching ensures fast responses and community integrity.</p>
+                <p class="text-sm text-on-surface-variant">Proximity-based matching ensures fast responses and community
+                    integrity.</p>
             </div>
             <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
                 <span class="material-symbols-outlined text-secondary text-4xl mb-4">payments</span>
                 <h3 class="font-bold text-lg text-primary mb-2">Secure Payments</h3>
-                <p class="text-sm text-on-surface-variant">Funds are held in escrow until you are 100% satisfied with the work.</p>
+                <p class="text-sm text-on-surface-variant">Funds are held in escrow until you are 100% satisfied with
+                    the work.</p>
             </div>
             <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
                 <span class="material-symbols-outlined text-secondary text-4xl mb-4">gavel</span>
                 <h3 class="font-bold text-lg text-primary mb-2">Admin Moderation</h3>
-                <p class="text-sm text-on-surface-variant">24/7 human moderation to resolve disputes and maintain platform quality.</p>
+                <p class="text-sm text-on-surface-variant">24/7 human moderation to resolve disputes and maintain
+                    platform quality.</p>
             </div>
         </div>
     </section>
@@ -127,38 +153,38 @@
         <div class="max-w-7xl mx-auto px-margin relative z-10">
             <!-- Navigation Tabs -->
             <div class="flex justify-center gap-12 mb-20 border-b border-slate-100 pb-6">
-                <button (click)="selectedOverview.set('trust')" 
-                        [class.text-blue-600]="selectedOverview() === 'trust'"
-                        [class.border-blue-600]="selectedOverview() === 'trust'"
-                        class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+                <button (click)="selectedOverview.set('trust')" [class.text-blue-600]="selectedOverview() === 'trust'"
+                    [class.border-blue-600]="selectedOverview() === 'trust'"
+                    class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
                     Trust & Safety
                 </button>
-                <button (click)="selectedOverview.set('scale')" 
-                        [class.text-blue-600]="selectedOverview() === 'scale'"
-                        [class.border-blue-600]="selectedOverview() === 'scale'"
-                        class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+                <button (click)="selectedOverview.set('scale')" [class.text-blue-600]="selectedOverview() === 'scale'"
+                    [class.border-blue-600]="selectedOverview() === 'scale'"
+                    class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
                     Marketplace Scale
                 </button>
-                <button (click)="selectedOverview.set('settlement')" 
-                        [class.text-blue-600]="selectedOverview() === 'settlement'"
-                        [class.border-blue-600]="selectedOverview() === 'settlement'"
-                        class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+                <button (click)="selectedOverview.set('settlement')"
+                    [class.text-blue-600]="selectedOverview() === 'settlement'"
+                    [class.border-blue-600]="selectedOverview() === 'settlement'"
+                    class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
                     Secure Settlement
                 </button>
             </div>
 
             <!-- Content Card -->
-            <div class="bg-slate-50/50 backdrop-blur-sm rounded-[3rem] p-12 lg:p-20 border border-slate-100 relative overflow-hidden group">
+            <div
+                class="bg-slate-50/50 backdrop-blur-sm rounded-[3rem] p-12 lg:p-20 border border-slate-100 relative overflow-hidden group">
                 <!-- Ghosted Background Image -->
-                <div class="absolute inset-0 opacity-10 grayscale mix-blend-multiply pointer-events-none group-hover:opacity-20 transition-opacity duration-1000">
-                    <img src="landing_overview_illustration_1777902473022.png" 
-                         class="w-full h-full object-cover" 
-                         alt="Background Architecture">
+                <div
+                    class="absolute inset-0 opacity-10 grayscale mix-blend-multiply pointer-events-none group-hover:opacity-20 transition-opacity duration-1000">
+                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
+                        class="w-full h-full object-cover" alt="Modern Architecture">
                 </div>
 
                 <div class="relative z-10 flex flex-col lg:flex-row gap-16 items-start">
                     <div class="lg:w-1/2">
-                        <span class="text-blue-600 text-sm font-black uppercase tracking-widest block mb-10">Overview</span>
+                        <span
+                            class="text-blue-600 text-sm font-black uppercase tracking-widest block mb-10">Overview</span>
                         <h3 class="text-3xl md:text-5xl font-black text-[#041627] leading-tight font-['Manrope'] mb-8">
                             {{ overviews[selectedOverview()].highlight }}
                         </h3>
@@ -185,7 +211,8 @@
             <!-- For Professionals -->
             <div class="tonal-layer-1 rounded-3xl overflow-hidden flex flex-col">
                 <div class="h-64 relative">
-                    <img alt="Professional electrician" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvI5zJMtP__DjypshFGKBjE5TaDZTKuKVJYY9uaZkxwzrBCeoiKXPL3p4T1V_eku9GsUEvcECoN0XpbZwyN0nSM_04E1OjAkdciP7PwvMpdt2HVZ7fXzPPHMqrbUY_1Fd_UGYKcE5TLfzKMFXSc-aULES_EwPNawuk7uW7t1yC6mvrfYeN9OfEBfkUqwvbLdFGHzj10Jbek-a8sDXiSuQa9MnhFw0jZH_vIUFEI24idVNxR2CoBJgfHsofdRcNodELkeRI_pRq6kE"/>
+                    <img alt="Professional electrician" class="w-full h-full object-cover"
+                        src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop" />
                     <div class="absolute inset-0 bg-primary/40 flex items-end p-8">
                         <h3 class="text-3xl font-bold text-white">For Professionals</h3>
                     </div>
@@ -193,21 +220,26 @@
                 <div class="p-10 flex-grow">
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="material-symbols-outlined text-on-tertiary-container"
+                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
                             <span class="text-on-surface">Get a 'Verified' badge to boost trust</span>
                         </li>
                         <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-on-tertiary-container" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="material-symbols-outlined text-on-tertiary-container"
+                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
                             <span class="text-on-surface">Access to high-value local contracts</span>
                         </li>
                     </ul>
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}" class="w-full py-4 border-2 border-primary text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all">Apply as a Professional</button>
+                    <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
+                        class="w-full py-4 border-2 border-primary text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all">Apply
+                        as a Professional</button>
                 </div>
             </div>
             <!-- For Clients -->
             <div class="tonal-layer-1 rounded-3xl overflow-hidden flex flex-col">
                 <div class="h-64 relative">
-                    <img alt="Happy homeowner" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwCM3PUoDc_PA67bJxBuJvDbDi_hUxsuYId4wv10P87Yj6tEM9yU-Z2RetcQrE-J0G-i2jXVP4UJvAANX10FDqq7_ymQwPKARGVtkovQY3TWapyk57ueX0ck5rBcYruflJZ-xqnoAGEF5MszmHsS5LcmhjWifCeSJPLgyBYdor6_NBbuHRvSMxKZm1auxEaG8l9fcjGtiaIIBEIdTKYArVoCa_4CUDRdSP4DMuRZq5Wo9THHoyOZdWEX7dKRRv1bZOuBu1GW9_GBg"/>
+                    <img alt="Happy homeowner" class="w-full h-full object-cover"
+                        src="https://images.unsplash.com/photo-1556911220-e150223eaa77?q=80&w=2070&auto=format&fit=crop" />
                     <div class="absolute inset-0 bg-secondary/40 flex items-end p-8">
                         <h3 class="text-3xl font-bold text-white">For Clients</h3>
                     </div>
@@ -215,15 +247,19 @@
                 <div class="p-10 flex-grow">
                     <ul class="space-y-4 mb-8">
                         <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="material-symbols-outlined text-secondary"
+                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
                             <span class="text-on-surface">Hire with confidence via background checks</span>
                         </li>
                         <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+                            <span class="material-symbols-outlined text-secondary"
+                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
                             <span class="text-on-surface">Browse portfolio and verified reviews</span>
                         </li>
                     </ul>
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'client'}" class="w-full py-4 bg-secondary text-white font-bold rounded-xl hover:bg-on-secondary-fixed-variant transition-all">Start Your Search</button>
+                    <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
+                        class="w-full py-4 bg-secondary text-white font-bold rounded-xl hover:bg-on-secondary-fixed-variant transition-all">Start
+                        Your Search</button>
                 </div>
             </div>
         </div>
@@ -234,16 +270,25 @@
         <div class="bg-[#1A2B3C] rounded-[2rem] p-12 lg:p-20 text-center relative overflow-hidden">
             <div class="relative z-10">
                 <h2 class="text-4xl font-bold text-white mb-6">Ready to Experience Kazi Konnect?</h2>
-                <p class="text-lg text-primary-fixed-dim mb-10 max-w-2xl mx-auto">Join the community where professional integrity and customer satisfaction are the primary currency.</p>
+                <p class="text-lg text-primary-fixed-dim mb-10 max-w-2xl mx-auto">Join the community where professional
+                    integrity and customer satisfaction are the primary currency.</p>
                 <div class="flex flex-col sm:flex-row gap-6 justify-center">
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'client'}" class="bg-secondary text-white px-10 py-5 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-transform active:scale-95">Get Started as a Client</button>
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}" class="bg-white text-[#1A2B3C] px-10 py-5 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-transform active:scale-95">Apply to Provide Services</button>
+                    <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
+                        class="bg-secondary text-white px-10 py-5 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-transform active:scale-95">Get
+                        Started as a Client</button>
+                    <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
+                        class="bg-white text-[#1A2B3C] px-10 py-5 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-transform active:scale-95">Apply
+                        to Provide Services</button>
                 </div>
             </div>
             <!-- Abstract BG pattern -->
             <div class="absolute inset-0 opacity-10 pointer-events-none">
-                <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl"></div>
-                <div class="absolute bottom-0 right-0 w-96 h-96 bg-secondary rounded-full translate-x-1/2 translate-y-1/2 blur-3xl"></div>
+                <div
+                    class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl">
+                </div>
+                <div
+                    class="absolute bottom-0 right-0 w-96 h-96 bg-secondary rounded-full translate-x-1/2 translate-y-1/2 blur-3xl">
+                </div>
             </div>
         </div>
     </section>
@@ -254,30 +299,37 @@
     <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 px-6 lg:px-12 py-16 max-w-7xl mx-auto">
         <div class="col-span-2">
             <span class="text-lg font-black text-white block mb-4">Kazi Konnect</span>
-            <p class="text-slate-400 text-sm max-w-xs mb-6">The gold standard for secure, professional service marketplaces. Built for trust.</p>
+            <p class="text-slate-400 text-sm max-w-xs mb-6">The gold standard for secure, professional service
+                marketplaces. Built for trust.</p>
             <div class="flex gap-4">
                 <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">public</span>
-                <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">account_balance</span>
-                <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">shield_person</span>
+                <span
+                    class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">account_balance</span>
+                <span
+                    class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">shield_person</span>
             </div>
         </div>
         <div>
             <h6 class="text-white font-semibold mb-6">Marketplace</h6>
             <ul class="space-y-4">
-                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Find Work</a></li>
-                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Hire Talent</a></li>
+                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Find
+                        Work</a></li>
+                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Hire
+                        Talent</a></li>
             </ul>
         </div>
         <div>
             <h6 class="text-white font-semibold mb-6">Resources</h6>
             <ul class="space-y-4">
-                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Help Center</a></li>
-                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Security</a></li>
+                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Help
+                        Center</a></li>
+                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline"
+                        href="#">Security</a></li>
             </ul>
         </div>
         <div class="col-span-1 cursor-pointer group" [routerLink]="['/admin']">
-             <h6 class="text-white font-semibold mb-6 group-hover:text-secondary">Administration</h6>
-             <p class="text-xs text-slate-500">Platform Governance Access</p>
+            <h6 class="text-white font-semibold mb-6 group-hover:text-secondary">Administration</h6>
+            <p class="text-xs text-slate-500">Platform Governance Access</p>
         </div>
     </div>
     <div class="border-t border-slate-800 py-8 px-6 lg:px-12 max-w-7xl mx-auto">

@@ -50,7 +50,7 @@ This guide follows the "Client Connection Platform" workflow from registration t
     "bio": "Certified Plumber specialized in residential maintenance."
   }
   ```
-- **Expected Response:** `200 OK` - Profile object with `status: PENDING` and `isVisible: false`.
+- **Expected Response:** `200 OK` - Profile object with `status: DRAFT` and `isVisible: false`.
 
 ### 4. Upload Verification Documents
 - **Setup:** Authorization: Bearer Token.
@@ -69,7 +69,7 @@ This guide follows the "Client Connection Platform" workflow from registration t
 - **Body (JSON):**
   ```json
   {
-    "email": "admin@nestfind.com",
+    "email": "admin@kazikonnect.com",
     "password": "admin123"
   }
   ```

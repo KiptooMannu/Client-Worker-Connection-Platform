@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,53 +31,50 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     MatCheckboxModule
   ],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-1000 p-4 md:p-0">
-      <!-- Header Section -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-slate-100 pb-10">
+    <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 p-4 md:p-0">
+      <!-- Header Section (Thinner) -->
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
         <div>
-          <div class="flex items-center gap-3 mb-3">
-            <span class="bg-indigo-50 text-indigo-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-indigo-100/50">Verification Center</span>
-            <span class="h-1 w-1 rounded-full bg-slate-300"></span>
-            <span class="text-slate-400 text-[10px] font-medium uppercase tracking-widest">Active Session</span>
+          <div class="flex items-center gap-3 mb-2">
+            <span class="bg-indigo-50 text-indigo-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-indigo-100/50">Admin Queue</span>
+            <span class="text-slate-400 text-[9px] font-bold uppercase tracking-widest">
+              @if (state.isLoadingWorkers() && state.pendingWorkers().length === 0) { Syncing... } @else { {{ state.pendingWorkers().length }} Pending Reviews }
+            </span>
           </div>
-          <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight mb-2">Service Provider Queue</h1>
-          <p class="text-slate-500 font-medium text-lg">Maintain platform integrity by reviewing and verifying new professional applicants.</p>
+          <h1 class="text-3xl font-black text-slate-900 tracking-tight">Service Provider Queue</h1>
         </div>
         
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
           @if (selectedIds.size > 0) {
-            <div class="bg-white border border-indigo-100 px-6 py-4 rounded-3xl flex items-center gap-6 shadow-2xl shadow-indigo-100/50 animate-in slide-in-from-right-10">
-              <div class="flex flex-col">
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selected</span>
-                <span class="text-lg font-black text-indigo-600">{{ selectedIds.size }} Profiles</span>
-              </div>
-              <div class="h-10 w-[1px] bg-slate-100"></div>
-              <div class="flex gap-3">
-                <button (click)="openBulkReject()" class="px-5 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-all border border-red-100">Bulk Reject</button>
-                <button (click)="bulkApprove()" class="px-6 py-2.5 rounded-xl text-[11px] font-bold uppercase tracking-wider bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-200">Bulk Approve</button>
-              </div>
-            </div>
-          } @else {
-            <div class="bg-slate-50 border border-slate-100 px-6 py-4 rounded-3xl flex items-center gap-4">
-              <div class="w-10 h-10 rounded-2xl bg-white flex items-center justify-center shadow-sm border border-slate-100">
-                <mat-icon class="text-slate-400 !text-xl">hourglass_empty</mat-icon>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-xs font-bold text-slate-900">{{ state.pendingWorkers().length }} Pending</span>
-                <span class="text-[10px] font-medium text-slate-400 uppercase tracking-widest">Awaiting Review</span>
+            <div class="bg-white border border-slate-200 px-4 py-2 rounded-2xl flex items-center gap-4 shadow-sm animate-in slide-in-from-right-10">
+              <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{{ selectedIds.size }} Selected</span>
+              <div class="h-6 w-[1px] bg-slate-100"></div>
+              <div class="flex gap-2">
+                <button (click)="openBulkReject()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-all border border-red-100">Reject</button>
+                <button (click)="bulkApprove()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-indigo-600 text-white hover:bg-indigo-700 transition-all">Approve</button>
               </div>
             </div>
           }
+          <div class="bg-slate-50 border border-slate-100 px-4 py-2 rounded-2xl flex items-center gap-3">
+             <mat-icon class="text-slate-400 !text-lg">search</mat-icon>
+             <input type="text" placeholder="Search applicants..." class="bg-transparent border-none text-xs font-medium focus:outline-none w-32 md:w-48">
+          </div>
         </div>
       </div>
 
-      <!-- Main Content Card -->
-      <mat-card class="!bg-white !border !border-slate-200/60 !shadow-[0_8px_30px_rgb(0,0,0,0.04)] !rounded-[32px] overflow-hidden">
+      <!-- Main Content Card (Thinner Rows) -->
+      <mat-card class="!bg-white !border !border-slate-200/60 !shadow-sm !rounded-3xl overflow-hidden relative">
+        @if (state.isLoadingWorkers()) {
+          <div class="absolute top-0 left-0 right-0 z-10">
+            <mat-progress-bar mode="indeterminate" class="!h-0.5"></mat-progress-bar>
+          </div>
+        }
+        
         <div class="overflow-x-auto">
           <table mat-table [dataSource]="pagedPendingWorkers()" class="w-full !bg-transparent">
             <!-- Select Column -->
             <ng-container matColumnDef="select">
-              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !px-8 w-20">
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !px-6 w-12">
                 <mat-checkbox 
                   (change)="$event ? masterToggle() : null"
                   [checked]="isAllSelected()"
@@ -85,7 +82,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                   color="primary">
                 </mat-checkbox>
               </th>
-              <td mat-cell *matCellDef="let user" class="!px-8 !border-b !border-slate-50">
+              <td mat-cell *matCellDef="let user" class="!px-6 !border-b !border-slate-50">
                 <mat-checkbox 
                   (click)="$event.stopPropagation()"
                   (change)="$event ? toggleSelection(user.id) : null"
@@ -97,24 +94,17 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
             <!-- Applicant Column -->
             <ng-container matColumnDef="applicant">
-              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em] !py-6">Applicant Details</th>
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest !py-4">Applicant</th>
               <td mat-cell *matCellDef="let user" class="!border-b !border-slate-50">
-                <div class="flex items-center gap-5 py-6">
-                  <div class="relative">
-                    <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-md bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg">
+                <div class="flex items-center gap-4 py-3">
+                  <div class="relative flex-shrink-0">
+                    <div class="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-sm bg-slate-100 flex items-center justify-center text-slate-400 font-bold text-xs">
                       @if (user.image) { <img [src]="user.image" class="w-full h-full object-cover"> } @else { {{ user.initials }} }
                     </div>
-                    <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg bg-white shadow-sm flex items-center justify-center border border-slate-100">
-                       <mat-icon class="!text-[12px] !w-auto !h-auto text-amber-500">verified_user</mat-icon>
-                    </div>
                   </div>
-                  <div>
-                    <h3 class="text-base font-bold text-slate-900 leading-tight mb-1">{{ user.name }}</h3>
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-slate-400">{{ user.email }}</span>
-                      <span class="h-1 w-1 rounded-full bg-slate-200"></span>
-                      <span class="text-xs text-slate-400">{{ user.location }}</span>
-                    </div>
+                  <div class="min-w-0">
+                    <h3 class="text-sm font-bold text-slate-900 truncate">{{ user.name }}</h3>
+                    <p class="text-[10px] text-slate-400 truncate">{{ user.email }} • {{ user.location }}</p>
                   </div>
                 </div>
               </td>
@@ -122,20 +112,17 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
             <!-- Category Column -->
             <ng-container matColumnDef="category">
-              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em]">Specialization</th>
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">Category</th>
               <td mat-cell *matCellDef="let user" class="!border-b !border-slate-50">
-                <div class="flex flex-col">
-                  <span class="text-sm font-bold text-slate-900">{{ user.category }}</span>
-                  <span class="text-[10px] text-slate-400 font-medium">Verified Expertise</span>
-                </div>
+                <span class="text-xs font-bold text-slate-700">{{ user.category }}</span>
               </td>
             </ng-container>
 
             <!-- Status Column -->
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em]">Priority</th>
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">Priority</th>
               <td mat-cell *matCellDef="let user" class="!border-b !border-slate-50">
-                <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider" 
+                <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider" 
                       [ngClass]="user.status === 'Priority' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-blue-50 text-blue-600 border border-blue-100'">
                   {{ user.status }}
                 </span>
@@ -144,25 +131,25 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
             <!-- Actions Column -->
             <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em] text-right !px-8">Review</th>
-              <td mat-cell *matCellDef="let user" class="text-right !px-8 !border-b !border-slate-50">
+              <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest text-right !px-6">Review</th>
+              <td mat-cell *matCellDef="let user" class="text-right !px-6 !border-b !border-slate-50">
                 @if (reviewingId === user.id && !detailedReview) {
-                  <div class="flex items-center justify-end gap-3 animate-in slide-in-from-right-8">
-                    <button (click)="openDetailedReview(user)" class="p-2.5 rounded-xl hover:bg-slate-100 text-slate-400 transition-all" title="View Details">
-                      <mat-icon class="!text-xl">visibility</mat-icon>
+                  <div class="flex items-center justify-end gap-2 animate-in slide-in-from-right-4">
+                    <button (click)="openDetailedReview(user)" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center transition-all" title="View Details">
+                      <mat-icon class="!text-lg">visibility</mat-icon>
                     </button>
-                    <button (click)="openReject(user)" class="p-2.5 rounded-xl hover:bg-rose-50 text-rose-600 transition-all border border-transparent hover:border-rose-100" title="Reject">
-                      <mat-icon class="!text-xl">block</mat-icon>
+                    <button (click)="openReject(user)" class="w-8 h-8 rounded-lg hover:bg-rose-50 text-rose-600 flex items-center justify-center transition-all border border-transparent hover:border-rose-100" title="Reject">
+                      <mat-icon class="!text-lg">block</mat-icon>
                     </button>
-                    <button (click)="approve(user)" class="px-5 py-2.5 rounded-xl bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider shadow-lg shadow-emerald-200 hover:bg-emerald-600 transition-all">
+                    <button (click)="approve(user)" class="px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
                       Approve
                     </button>
-                    <button (click)="reviewingId = null" class="text-slate-400 hover:text-slate-600 ml-2"><mat-icon class="!text-lg">close</mat-icon></button>
+                    <button (click)="reviewingId = null" class="text-slate-300 hover:text-slate-500 ml-1"><mat-icon class="!text-lg">close</mat-icon></button>
                   </div>
                 } @else if (reviewingId === user.id && detailedReview) {
-                  <button (click)="detailedReview = null" class="text-slate-400 hover:text-slate-600"><mat-icon>close</mat-icon></button>
+                  <button (click)="detailedReview = null" class="text-slate-400 hover:text-slate-600"><mat-icon class="!text-lg">close</mat-icon></button>
                 } @else {
-                  <button (click)="reviewingId = user.id" class="px-6 py-2.5 rounded-xl text-indigo-600 text-[11px] font-bold uppercase tracking-widest border border-indigo-50 hover:bg-indigo-50 transition-all">
+                  <button (click)="reviewingId = user.id" class="px-5 py-2 rounded-xl text-indigo-600 text-[10px] font-black uppercase tracking-widest border border-indigo-50 hover:bg-indigo-50 transition-all">
                     Start Review
                   </button>
                 }
@@ -170,33 +157,42 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="group hover:bg-slate-50/80 transition-all cursor-pointer"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="group hover:bg-slate-50/50 transition-all cursor-pointer"></tr>
           </table>
         </div>
         
-        @if (state.pendingWorkers().length === 0) {
-          <div class="py-32 flex flex-col items-center justify-center bg-slate-50/30">
-            <div class="w-24 h-24 rounded-[40px] bg-white shadow-xl shadow-slate-100 flex items-center justify-center mb-8 border border-slate-100 animate-bounce-slow">
-              <mat-icon class="!text-[40px] !w-auto !h-auto text-emerald-500">done_all</mat-icon>
+        @if (state.pendingWorkers().length === 0 && !state.isLoadingWorkers()) {
+          <div class="py-20 flex flex-col items-center justify-center bg-slate-50/30">
+            <div class="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center mb-6 border border-slate-100">
+              <mat-icon class="!text-3xl text-emerald-500">check_circle</mat-icon>
             </div>
-            <h3 class="text-2xl font-black text-slate-900 mb-2">Queue is Clear</h3>
-            <p class="text-slate-400 font-medium max-w-sm text-center">There are no pending applications at the moment. Great job keeping the platform safe!</p>
+            <h3 class="text-xl font-black text-slate-900 mb-1">Queue is Clear</h3>
+            <p class="text-slate-400 text-xs font-medium">No pending applications at the moment.</p>
           </div>
         }
+        
+        <!-- Paginator (Thinner) -->
         @if (state.pendingWorkers().length > pageSize) {
-          <div class="p-5 bg-slate-50/30 border-t border-slate-100 flex items-center justify-between">
-            <button (click)="prevPage()" [disabled]="currentPage === 1" class="px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 disabled:opacity-40">Prev</button>
-            <div class="flex items-center gap-2">
+          <div class="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex items-center justify-between">
+            <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              Page {{ currentPage }} of {{ totalPages }}
+            </div>
+            <div class="flex items-center gap-1">
+              <button (click)="prevPage()" [disabled]="currentPage === 1" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-900 disabled:opacity-30 transition-all">
+                <mat-icon class="!text-lg">chevron_left</mat-icon>
+              </button>
               @for (p of pageNumbers; track p) {
                 <button
                   (click)="goToPage(p)"
-                  class="w-8 h-8 rounded-lg border text-[10px] font-black transition-all"
-                  [ngClass]="p === currentPage ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50'">
+                  class="w-8 h-8 rounded-lg text-[10px] font-black transition-all"
+                  [ngClass]="p === currentPage ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-white'">
                   {{ p }}
                 </button>
               }
+              <button (click)="nextPage()" [disabled]="currentPage >= totalPages" class="w-8 h-8 rounded-lg border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-white hover:text-slate-900 disabled:opacity-30 transition-all">
+                <mat-icon class="!text-lg">chevron_right</mat-icon>
+              </button>
             </div>
-            <button (click)="nextPage()" [disabled]="currentPage >= totalPages" class="px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 disabled:opacity-40">Next</button>
           </div>
         }
       </mat-card>
@@ -328,15 +324,19 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               </div>
 
               <!-- Final Actions -->
-              <div class="mt-16 flex justify-end gap-3 items-center">
-                 <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-4">Final Determination</span>
-                 <button (click)="openReject(detailedReview)" class="h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest text-rose-600 bg-rose-50 hover:bg-rose-100 transition-all border border-rose-100">
-                    Decline Application
-                 </button>
-                 <button (click)="approve(detailedReview)" class="h-14 px-10 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1 transition-all">
-                    Verify Profile
-                 </button>
-              </div>
+               <div class="mt-16 flex justify-end gap-3 items-center">
+                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-4">Final Determination</span>
+                  <button (click)="openReject(detailedReview)" 
+                          [disabled]="isProcessing()"
+                          class="h-14 px-8 rounded-2xl text-[10px] font-black uppercase tracking-widest text-rose-600 bg-rose-50 hover:bg-rose-100 transition-all border border-rose-100 cursor-pointer disabled:cursor-not-allowed">
+                     Decline Application
+                  </button>
+                  <button (click)="approve(detailedReview)" 
+                          [disabled]="isProcessing()"
+                          class="h-14 px-10 rounded-2xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest shadow-2xl shadow-slate-200 hover:bg-slate-800 hover:-translate-y-1 transition-all cursor-pointer disabled:cursor-not-allowed">
+                     {{ isProcessing() ? 'Processing...' : 'Verify Profile' }}
+                  </button>
+               </div>
             </div>
           </div>
         </mat-card>
@@ -361,8 +361,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               </mat-form-field>
               
               <div class="flex flex-col gap-3">
-                <button (click)="confirmReject()" [disabled]="!rejectionReason" class="w-full py-4 rounded-2xl bg-rose-600 text-white text-xs font-bold uppercase tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700 disabled:opacity-50 disabled:shadow-none transition-all">
-                  Confirm Rejection
+                <button (click)="confirmReject()" 
+                        [disabled]="!rejectionReason || isProcessing()" 
+                        class="w-full py-4 rounded-2xl bg-rose-600 text-white text-xs font-bold uppercase tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700 disabled:opacity-50 disabled:shadow-none transition-all cursor-pointer disabled:cursor-not-allowed">
+                  {{ isProcessing() ? 'Rejecting...' : 'Confirm Rejection' }}
                 </button>
                 <button (click)="cancelReject()" class="w-full py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all">
                   Go Back
@@ -400,6 +402,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 })
 export class AdminVerificationPage implements OnInit {
   state = inject(PlatformStateService);
+  isProcessing = signal(false);
   displayedColumns: string[] = ['select', 'applicant', 'category', 'status', 'actions'];
   currentPage = 1;
   readonly pageSize = 8;
@@ -464,7 +467,7 @@ export class AdminVerificationPage implements OnInit {
   }
 
   bulkApprove() {
-    this.selectedIds.forEach(id => this.state.approveWorker(id));
+    this.selectedIds.forEach(id => this.state.approveWorker(id).subscribe());
     this.selectedIds.clear();
   }
 
@@ -489,9 +492,26 @@ export class AdminVerificationPage implements OnInit {
   }
 
   approve(user: any) {
-    this.state.approveWorker(user.id);
-    this.reviewingId = null;
-    this.detailedReview = null;
+    if (this.isProcessing()) return;
+    this.isProcessing.set(true);
+    
+    // Optimistic Removal
+    const originalWorkers = this.state.workers();
+    this.state.workers.update(prev => prev.filter(w => w.id !== user.id));
+
+    this.state.approveWorker(user.id).subscribe({
+      next: () => {
+        this.isProcessing.set(false);
+        this.reviewingId = null;
+        this.detailedReview = null;
+        // Delay re-fetch to let backend state settle
+        setTimeout(() => this.state.fetchPendingWorkers(), 1000);
+      },
+      error: () => {
+        this.isProcessing.set(false);
+        this.state.workers.set(originalWorkers); // Rollback
+      }
+    });
   }
 
   openReject(user: any) {
@@ -505,14 +525,39 @@ export class AdminVerificationPage implements OnInit {
   }
 
   confirmReject() {
+    if (this.isProcessing()) return;
+    this.isProcessing.set(true);
+
+    const originalWorkers = this.state.workers();
+
     if (this.bulkRejecting) {
-      this.selectedIds.forEach(id => this.state.rejectWorker(id, this.rejectionReason));
+      // Optimistic
+      const idsToReject = Array.from(this.selectedIds);
+      this.state.workers.update(prev => prev.filter(w => !this.selectedIds.has(w.id)));
+
+      this.selectedIds.forEach(id => this.state.rejectWorker(id, this.rejectionReason).subscribe());
       this.selectedIds.clear();
+      this.isProcessing.set(false);
+      this.cancelReject();
     } else if (this.rejectingUser) {
-      this.state.rejectWorker(this.rejectingUser.id, this.rejectionReason);
+      // Optimistic
+      const targetId = this.rejectingUser.id;
+      this.state.workers.update(prev => prev.filter(w => w.id !== targetId));
+
+      this.state.rejectWorker(targetId, this.rejectionReason).subscribe({
+        next: () => {
+          this.isProcessing.set(false);
+          this.cancelReject();
+          this.reviewingId = null;
+          this.detailedReview = null;
+          // Delay re-fetch
+          setTimeout(() => this.state.fetchPendingWorkers(), 1000);
+        },
+        error: () => {
+          this.isProcessing.set(false);
+          this.state.workers.set(originalWorkers);
+        }
+      });
     }
-    this.cancelReject();
-    this.reviewingId = null;
-    this.detailedReview = null;
   }
 }

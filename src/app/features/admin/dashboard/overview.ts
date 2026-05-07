@@ -123,9 +123,36 @@ import { NotificationService } from '../../../core/services/notification.service
           </div>
         </div>
 
-        <!-- Security Insights (Right) -->
-        <div class="col-span-12 lg:col-span-5">
-           <mat-card class="!rounded-[24px] !border !border-slate-200/60 !shadow-sm !p-6 flex flex-col h-full bg-white max-h-[640px]">
+        <!-- Insights (Right) -->
+        <div class="col-span-12 lg:col-span-5 space-y-6">
+           <!-- Communications -->
+           <mat-card class="!rounded-[24px] !border !border-slate-200/60 !shadow-sm !p-6 bg-white overflow-hidden">
+              <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-3">
+                  <h3 class="text-base font-black text-slate-900 tracking-tight">Messaging Overview</h3>
+                </div>
+                <button routerLink="../messages" class="text-[9px] font-black uppercase text-blue-600 hover:underline">Inbox</button>
+              </div>
+              <div class="space-y-4">
+                 @for (chat of state.chats().slice(0, 3); track chat.id) {
+                    <div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" routerLink="../messages">
+                       <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-xs uppercase overflow-hidden border border-white">
+                          @if (chat.image) { <img [src]="chat.image" class="w-full h-full object-cover"> } @else { {{ chat.initials }} }
+                       </div>
+                       <div class="flex-1 min-w-0">
+                          <p class="text-xs font-black text-slate-900 truncate">{{ chat.name }}</p>
+                          <p class="text-[10px] text-slate-500 truncate">{{ chat.lastMessage }}</p>
+                       </div>
+                    </div>
+                 }
+                 @if (state.chats().length === 0) {
+                    <p class="py-8 text-center text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">No recent messages</p>
+                 }
+              </div>
+           </mat-card>
+
+           <!-- Security Stream -->
+           <mat-card class="!rounded-[24px] !border !border-slate-200/60 !shadow-sm !p-6 flex flex-col bg-white max-h-[400px]">
               <div class="flex justify-between items-center mb-6">
                 <div class="flex items-center gap-3">
                   <h3 class="text-base font-black text-slate-900 tracking-tight">Security Stream</h3>
@@ -163,8 +190,53 @@ import { NotificationService } from '../../../core/services/notification.service
               </button>
            </mat-card>
         </div>
-
       </div>
+
+      <!-- System Oversight (Hires Ledger) -->
+      <mat-card class="!rounded-[24px] !border !border-slate-100 !shadow-sm !overflow-hidden">
+        <mat-card-header class="!p-8 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-row !justify-between !items-center">
+          <mat-card-title class="!text-[10px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Global Hires Ledger (Oversight)</mat-card-title>
+          <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Tracking {{ state.allBookings().length }} platform-wide connections</span>
+        </mat-card-header>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-900 text-white">
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Professional</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Client</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Service</th>
+                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-right">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (job of state.allBookings().slice(0, 5); track job.id) {
+                <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-[10px] uppercase">{{ job.workerInitials }}</div>
+                      <span class="text-xs font-black text-slate-900">{{ job.workerName }}</span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-xs font-bold text-slate-600">{{ job.clientName }}</td>
+                  <td class="px-6 py-4 text-xs font-medium text-slate-500">{{ job.service }}</td>
+                  <td class="px-6 py-4 text-right">
+                    <span class="inline-block px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest" 
+                          [ngClass]="job.status === 'Approved' ? 'bg-teal-50 text-teal-700' : 'bg-blue-50 text-blue-700'">
+                      {{ job.status }}
+                    </span>
+                  </td>
+                </tr>
+              }
+              @if (state.allBookings().length === 0) {
+                <tr>
+                  <td colspan="4" class="px-6 py-12 text-center text-[10px] text-slate-400 font-black uppercase tracking-widest">No active marketplace connections</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </mat-card>
     </div>
   `,
   styles: [`
@@ -174,6 +246,10 @@ import { NotificationService } from '../../../core/services/notification.service
 export class AdminOverviewPage {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
+
+  constructor() {
+    this.state.fetchAllJobs();
+  }
 
   get stats() {
     const totalUsers = this.state.clients().length + this.state.workers().length;

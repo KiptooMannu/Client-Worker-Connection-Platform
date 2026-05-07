@@ -32,31 +32,41 @@ import { PlatformStateService } from '../../core/services/platform-state.service
       <!-- Hero & Search Filters -->
       <section class="mb-12 space-y-6">
         <div class="max-w-2xl">
-          <h1 class="text-5xl font-black text-slate-900 mb-4 tracking-tight">Find Trusted Local Workers</h1>
-          <p class="text-lg text-slate-500 font-medium">Connect with verified plumbers, electricians, mechanics, and cleaners ready to help with your next job.</p>
+          <h1 class="text-4xl font-black text-slate-900 mb-3 tracking-tight">Find Trusted Local Workers</h1>
+          <p class="text-base text-slate-500 font-medium">Connect with verified plumbers, electricians, mechanics, and cleaners ready to help with your next job.</p>
         </div>
         
         <!-- Filter Bar -->
         <div class="bg-white p-6 rounded-3xl shadow-[0_4px_24px_rgba(4,22,39,0.06)] border border-slate-100 grid grid-cols-1 md:grid-cols-4 gap-6">
           <div class="space-y-2">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Search Keyword</label>
-            <div class="flex items-center border border-slate-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-600/10 transition-all">
-              <mat-icon class="text-slate-400 mr-2">search</mat-icon>
-              <input class="w-full border-none focus:ring-0 bg-transparent text-sm font-bold" placeholder="Name, Skill, or Role" type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)"/>
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Professional Skill</label>
+            <div class="flex items-center border border-slate-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-600 transition-all">
+              <mat-icon class="text-slate-400 mr-2">psychology</mat-icon>
+              <select class="w-full border-none focus:ring-0 bg-transparent text-sm font-bold cursor-pointer" [ngModel]="selectedSkill()" (ngModelChange)="selectedSkill.set($event)">
+                <option [value]="null">Select Skill</option>
+                @for (skill of state.availableSkills(); track skill) {
+                  <option [value]="skill">{{ skill }}</option>
+                }
+              </select>
             </div>
           </div>
           <div class="space-y-2">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Location</label>
-            <div class="flex items-center border border-slate-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-600/10 transition-all">
+            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Service Location</label>
+            <div class="flex items-center border border-slate-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-600 transition-all">
               <mat-icon class="text-slate-400 mr-2">location_on</mat-icon>
-              <input class="w-full border-none focus:ring-0 bg-transparent text-sm font-bold" placeholder="Remote or City" type="text" [ngModel]="locationQuery()" (ngModelChange)="locationQuery.set($event)"/>
+              <select class="w-full border-none focus:ring-0 bg-transparent text-sm font-bold cursor-pointer" [ngModel]="locationQuery()" (ngModelChange)="locationQuery.set($event)">
+                <option [value]="null">Select Location</option>
+                @for (loc of state.availableLocations(); track loc) {
+                  <option [value]="loc">{{ loc }}</option>
+                }
+              </select>
             </div>
           </div>
           <div class="space-y-2">
             <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Experience</label>
-            <div class="flex items-center border border-slate-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-600/10 transition-all">
+            <div class="flex items-center border border-slate-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-600 transition-all">
               <mat-icon class="text-slate-400 mr-2">work_history</mat-icon>
-              <select class="w-full border-none focus:ring-0 bg-transparent text-sm font-bold" [ngModel]="selectedExperience()" (ngModelChange)="selectedExperience.set($event)">
+              <select class="w-full border-none focus:ring-0 bg-transparent text-sm font-bold cursor-pointer" [ngModel]="selectedExperience()" (ngModelChange)="selectedExperience.set($event)">
                 <option [value]="null">Any Experience</option>
                 <option value="Senior">Senior (5+ yrs)</option>
                 <option value="Lead">Lead (8+ yrs)</option>
@@ -64,20 +74,9 @@ import { PlatformStateService } from '../../core/services/platform-state.service
               </select>
             </div>
           </div>
-          <div class="space-y-2">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Availability</label>
-            <div class="flex items-center border border-slate-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-600 focus-within:ring-2 focus-within:ring-indigo-600/10 transition-all">
-              <mat-icon class="text-slate-400 mr-2">event_available</mat-icon>
-              <select class="w-full border-none focus:ring-0 bg-transparent text-sm font-bold" [ngModel]="selectedAvailability()" (ngModelChange)="selectedAvailability.set($event)">
-                <option [value]="null">Any Availability</option>
-                <option value="Available Now">Available Now</option>
-                <option value="Next Week">Next Week</option>
-              </select>
-            </div>
-          </div>
           <div class="flex items-end">
             <button (click)="performSearch()" class="w-full bg-[#0f172a] text-white py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-90 active:scale-95 transition-all shadow-xl shadow-indigo-900/20">
-              Search Workers
+              Search Professionals
             </button>
           </div>
         </div>
@@ -87,8 +86,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
       <div class="grid grid-cols-12 gap-8">
         <!-- Sidebar Stats -->
         <aside class="hidden lg:block lg:col-span-3 space-y-8">
-          <div class="bg-slate-50 p-8 premium-card border border-slate-100">
-            <h3 class="text-xl font-black text-slate-900 mb-6">Market Insights</h3>
+          <div class="bg-slate-50 p-6 premium-card border border-slate-100">
+            <h3 class="text-lg font-black text-slate-900 mb-4">Market Insights</h3>
             <ul class="space-y-6">
               <li class="flex items-center justify-between">
                 <span class="text-sm font-medium text-slate-500">Active Experts</span>
@@ -104,12 +103,39 @@ import { PlatformStateService } from '../../core/services/platform-state.service
               </li>
             </ul>
           </div>
+
+          <!-- Messaging Insight -->
+          <div class="bg-white p-6 premium-card border border-slate-100 shadow-sm">
+             <div class="flex justify-between items-center mb-6">
+                <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest">Recent Chats</h3>
+                <button routerLink="/client/messages" class="text-[9px] font-black text-blue-600 hover:underline">All</button>
+             </div>
+             <div class="space-y-4">
+                @for (chat of state.chats().slice(0, 3); track chat.id) {
+                   <div class="flex items-center gap-3 cursor-pointer group" routerLink="/client/messages">
+                      <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center font-black text-[10px] text-slate-500 uppercase overflow-hidden border border-white">
+                         @if (chat.image) { <img [src]="chat.image" class="w-full h-full object-cover"> } @else { {{ chat.initials }} }
+                      </div>
+                      <div class="flex-1 min-w-0">
+                         <p class="text-[11px] font-black text-slate-900 truncate group-hover:text-blue-600 transition-colors">{{ chat.name }}</p>
+                         <p class="text-[9px] text-slate-400 truncate">{{ chat.lastMessage }}</p>
+                      </div>
+                   </div>
+                }
+                @if (state.chats().length === 0) {
+                   <p class="text-center py-4 text-[10px] font-black text-slate-300 uppercase tracking-widest border border-dashed border-slate-200 rounded-xl">No active chats</p>
+                }
+             </div>
+          </div>
           
           <!-- Featured Card -->
-          <div class="relative premium-card overflow-hidden aspect-[3/4] group shadow-2xl bg-slate-900 text-white p-8 flex flex-col justify-end">
-            <p class="text-[10px] font-black text-blue-300 uppercase tracking-widest mb-1">Top Rated</p>
-            <h4 class="text-2xl font-black text-white leading-tight">{{ topWorker()?.name || 'No verified worker yet' }}</h4>
-            <p class="text-sm font-medium text-slate-300">{{ topWorker()?.category || 'Awaiting approvals' }}</p>
+          <div class="relative premium-card overflow-hidden aspect-[4/5] group shadow-2xl bg-slate-900 text-white p-6 flex flex-col justify-end">
+            <div class="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/40 to-transparent"></div>
+            <div class="relative z-10">
+              <p class="text-[9px] font-black text-blue-300 uppercase tracking-widest mb-1">Top Rated</p>
+              <h4 class="text-xl font-black text-white leading-tight mb-1">{{ topWorker()?.name || 'No verified worker yet' }}</h4>
+              <p class="text-xs font-medium text-slate-300">{{ topWorker()?.category || 'Awaiting approvals' }}</p>
+            </div>
           </div>
         </aside>
 
@@ -206,11 +232,12 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 export class ClientDashboardPage {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
-  searchQuery = signal('');
-  locationQuery = signal('');
-  selectedCategory = signal<string | null>(null);
+  
+  // Removed hardcoded options - now wired to database signals
+
+  selectedSkill = signal<string | null>(null);
+  locationQuery = signal<string | null>(null);
   selectedExperience = signal<string | null>(null);
-  selectedAvailability = signal<string | null>(null);
   selectedSort = signal<string>('Highest Rated');
 
   averageRate = computed(() => {
@@ -228,24 +255,16 @@ export class ClientDashboardPage {
   filteredWorkers = computed(() => {
     let list = this.state.verifiedWorkers();
     
-    // Skill/Category Filter
-    if (this.selectedCategory() && this.selectedCategory() !== 'null') {
-      const cat = this.selectedCategory()!.toLowerCase();
-      list = list.filter(w => w.category.toLowerCase().includes(cat) || 
-                              w.skills.some(s => s.toLowerCase().includes(cat)));
-    }
-    
-    // Name/Skill Search
-    if (this.searchQuery()) {
-      const q = this.searchQuery().toLowerCase();
-      list = list.filter(w => w.name.toLowerCase().includes(q) || 
-                              w.category.toLowerCase().includes(q) ||
+    // Skill Filter
+    if (this.selectedSkill() && this.selectedSkill() !== 'null') {
+      const q = this.selectedSkill()!.toLowerCase();
+      list = list.filter(w => w.category.toLowerCase().includes(q) || 
                               w.skills.some(s => s.toLowerCase().includes(q)));
     }
 
     // Location Search
-    if (this.locationQuery()) {
-      const loc = this.locationQuery().toLowerCase();
+    if (this.locationQuery() && this.locationQuery() !== 'null') {
+      const loc = this.locationQuery()!.toLowerCase();
       list = list.filter(w => 
         w.location.toLowerCase().includes(loc) || 
         w.preferredLocations.some(pl => pl.toLowerCase().includes(loc))
@@ -263,11 +282,6 @@ export class ClientDashboardPage {
        );
     }
 
-    // Availability Filter
-    if (this.selectedAvailability() === 'Available Now') {
-       list = list.filter(w => w.isAvailable);
-    }
-
     // Sorting
     const sort = this.selectedSort();
     return [...list].sort((a, b) => {
@@ -281,7 +295,7 @@ export class ClientDashboardPage {
   performSearch() {
     this.notification.info('Searching for professionals...');
     this.state.fetchMarketplaceWorkers(
-      this.searchQuery() || undefined,
+      this.selectedSkill() || undefined,
       this.locationQuery() || undefined,
       this.selectedExperience() === 'Senior' ? 5 : (this.selectedExperience() === 'Lead' ? 8 : (this.selectedExperience() === 'Master' ? 12 : undefined))
     );

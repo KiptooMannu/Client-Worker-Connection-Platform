@@ -138,31 +138,70 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         </div>
       }
 
-      <!-- Quick Actions -->
+      <!-- Quick Actions & Messaging -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 group hover:!border-blue-600 transition-all cursor-pointer" routerLink="../profile">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-              <mat-icon>person</mat-icon>
-            </div>
-            <div>
-              <h3 class="text-lg font-black text-slate-900">Manage Profile</h3>
-              <p class="text-xs text-slate-500 font-medium">Bio, skills, and rates.</p>
-            </div>
-          </div>
+        <mat-card class="!rounded-[24px] !border !border-slate-100 !shadow-sm !p-6 bg-white overflow-hidden">
+           <div class="flex justify-between items-center mb-6">
+             <div class="flex items-center gap-3">
+               <h3 class="text-base font-black text-slate-900 tracking-tight">Recent Dialogues</h3>
+               @if (state.unreadMessagesCount() > 0) {
+                 <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-widest rounded-full">
+                   {{ state.unreadMessagesCount() }} New
+                 </span>
+               }
+             </div>
+             <button routerLink="../messages" class="text-[9px] font-black uppercase text-blue-600 hover:underline">Inbox</button>
+           </div>
+           
+           <div class="space-y-4">
+              @for (chat of state.chats().slice(0, 3); track chat.id) {
+                <div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" routerLink="../messages">
+                   <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center font-black text-xs uppercase overflow-hidden border border-white">
+                      @if (chat.image) { <img [src]="chat.image" class="w-full h-full object-cover"> } @else { {{ chat.initials }} }
+                   </div>
+                   <div class="flex-1 min-w-0">
+                      <div class="flex justify-between items-center mb-0.5">
+                         <p class="text-xs font-black text-slate-900 truncate">{{ chat.name }}</p>
+                         <span class="text-[8px] font-bold text-slate-400">{{ chat.time }}</span>
+                      </div>
+                      <p class="text-[10px] text-slate-500 truncate">{{ chat.lastMessage }}</p>
+                   </div>
+                </div>
+              }
+              @if (state.chats().length === 0) {
+                <div class="py-10 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+                   <mat-icon class="text-slate-200 !text-2xl !w-auto !h-auto mb-2">forum</mat-icon>
+                   <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">No active chats</p>
+                </div>
+              }
+           </div>
         </mat-card>
 
-        <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 group hover:!border-teal-600 transition-all cursor-pointer" routerLink="../verification">
-          <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-all">
-              <mat-icon>file_upload</mat-icon>
+        <div class="grid grid-cols-1 gap-4">
+          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 group hover:!border-blue-600 transition-all cursor-pointer" routerLink="../profile">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
+                <mat-icon>person</mat-icon>
+              </div>
+              <div>
+                <h3 class="text-lg font-black text-slate-900">Manage Profile</h3>
+                <p class="text-xs text-slate-500 font-medium">Bio, skills, and rates.</p>
+              </div>
             </div>
-            <div>
-              <h3 class="text-lg font-black text-slate-900">Verification</h3>
-              <p class="text-xs text-slate-500 font-medium">Upload ID & certificates.</p>
+          </mat-card>
+
+          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 group hover:!border-teal-600 transition-all cursor-pointer" routerLink="../verification">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-all">
+                <mat-icon>file_upload</mat-icon>
+              </div>
+              <div>
+                <h3 class="text-lg font-black text-slate-900">Verification</h3>
+                <p class="text-xs text-slate-500 font-medium">Upload ID & certificates.</p>
+              </div>
             </div>
-          </div>
-        </mat-card>
+          </mat-card>
+        </div>
       </div>
     </div>
   `,

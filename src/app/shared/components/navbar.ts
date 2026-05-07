@@ -1,6 +1,6 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
@@ -25,26 +25,31 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
             <mat-icon>corporate_fare</mat-icon>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">Kazi Konnect</span>
+          <span class="text-2xl font-black tracking-tighter text-[#0f172a] hidden sm:block">Kazi Konnect</span>
         </div>
         
-        <nav class="hidden md:flex items-center gap-8">
-          <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
-             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-            Find Work
-          </a>
+        <!-- Desktop Nav -->
+        <nav class="hidden lg:flex items-center gap-8">
+          @if (auth.userRole() === 'Worker') {
+            <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
+               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+              Find Work
+            </a>
+          }
           <a routerLink="/client/marketplace" routerLinkActive="active-link" 
              class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
             Hire Talent
           </a>
-          <a routerLink="/enterprise" routerLinkActive="active-link" 
-             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-            Enterprise
-          </a>
-          <a routerLink="/solutions" routerLinkActive="active-link" 
-             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-            Solutions
-          </a>
+          @if (router.url === '/' && !auth.isAuthenticated()) {
+            <a routerLink="/enterprise" routerLinkActive="active-link" 
+               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+              Enterprise
+            </a>
+            <a routerLink="/solutions" routerLinkActive="active-link" 
+               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+              Solutions
+            </a>
+          }
           <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
              routerLinkActive="active-link"
              class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
@@ -71,8 +76,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
       <div class="flex items-center gap-2 sm:gap-3 md:gap-6 shrink-0">
         @if (auth.isAuthenticated()) {
-          <div class="flex items-center gap-4">
-             <div class="hidden lg:flex flex-col items-end mr-2">
+          <div class="flex items-center gap-2 sm:gap-4">
+             <div class="hidden xl:flex flex-col items-end mr-2">
                 <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">{{ auth.userRole() }}</span>
                 <span class="text-xs font-bold text-slate-900">{{ auth.currentUser()?.name }}</span>
              </div>
@@ -125,7 +130,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                </div>
              </mat-menu>
 
-            <button (click)="auth.logout()" class="text-slate-600 hover:text-rose-600 transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">
+            <button (click)="auth.logout()" class="hidden sm:block text-slate-600 hover:text-rose-600 transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">
               Log Out
             </button>
             <button [routerLink]="auth.userRole() === 'Admin' ? '/admin' : (auth.userRole() === 'Worker' ? '/worker/dashboard' : '/client/marketplace')" 
@@ -134,13 +139,56 @@ import { PlatformStateService } from '../../core/services/platform-state.service
             </button>
           </div>
         } @else {
-          <div class="flex items-center gap-4">
-            <button routerLink="/login" class="text-slate-600 font-black text-xs uppercase tracking-widest px-4 py-2 hover:text-[#041627] transition-colors cursor-pointer">Log In</button>
-            <button routerLink="/register" class="bg-[#0f172a] text-white px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 cursor-pointer">Sign Up</button>
+          <div class="flex items-center gap-2 sm:gap-4">
+            <button routerLink="/login" class="text-slate-600 font-black text-[10px] uppercase tracking-widest px-4 py-2 hover:text-[#041627] transition-colors cursor-pointer">Log In</button>
+            <button routerLink="/register" class="bg-[#0f172a] text-white px-6 sm:px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 cursor-pointer">Sign Up</button>
           </div>
         }
+
+        <!-- Mobile Menu Toggle -->
+        <button (click)="toggleMobileMenu()" class="lg:hidden p-2 text-slate-600 hover:text-slate-900 transition-colors">
+          <mat-icon>{{ isMobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
+        </button>
       </div>
     </header>
+
+    <!-- Mobile Menu Overlay -->
+    @if (isMobileMenuOpen()) {
+      <div class="fixed inset-0 top-20 z-40 lg:hidden animate-in slide-in-from-top duration-300">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="toggleMobileMenu()"></div>
+        <nav class="relative bg-white border-t border-slate-100 flex flex-col p-6 gap-4 shadow-2xl">
+          @if (auth.userRole() === 'Worker') {
+            <a routerLink="/worker/dashboard" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Find Work</a>
+          }
+          <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Hire Talent</a>
+          
+          @if (router.url === '/' && !auth.isAuthenticated()) {
+            <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Enterprise</a>
+            <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Solutions</a>
+          }
+
+          <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
+             (click)="toggleMobileMenu()"
+             class="text-lg font-black text-slate-900 py-3 border-b border-slate-50 flex justify-between items-center">
+            Messages
+            @if (state.unreadMessagesCount() > 0) {
+              <span class="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">{{ state.unreadMessagesCount() }}</span>
+            }
+          </a>
+
+          @if (auth.userRole() === 'Client') {
+            <a routerLink="/client/bookings" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">My Bookings</a>
+          }
+          @if (auth.userRole() === 'Worker') {
+            <a routerLink="/worker/history" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">My Jobs</a>
+          }
+
+          @if (auth.isAuthenticated()) {
+            <button (click)="auth.logout(); toggleMobileMenu()" class="text-lg font-black text-rose-600 py-3 text-left">Log Out</button>
+          }
+        </nav>
+      </div>
+    }
   `,
   styles: [`
     .active-link { color: #0f172a !important; border-bottom-color: #0f172a !important; }
@@ -150,4 +198,11 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 export class NavbarComponent {
   auth = inject(AuthService);
   state = inject(PlatformStateService);
+  router = inject(Router);
+  
+  isMobileMenuOpen = signal(false);
+
+  toggleMobileMenu() {
+    this.isMobileMenuOpen.update(v => !v);
+  }
 }

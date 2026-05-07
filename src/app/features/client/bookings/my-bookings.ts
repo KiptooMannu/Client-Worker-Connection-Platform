@@ -92,12 +92,27 @@ import { NotificationService } from '../../../core/services/notification.service
 
           <!-- Status Column -->
           <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Status</th>
+            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Status & Action</th>
             <td mat-cell *matCellDef="let booking" data-label="Status" class="text-right">
-              <span class="inline-block px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" 
-                    [ngClass]="getStatusClasses(booking.status)">
-                {{ booking.status }}
-              </span>
+              <div class="flex flex-col items-end gap-2">
+                <span class="inline-block px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" 
+                      [ngClass]="getStatusClasses(booking.status)">
+                  {{ booking.status }}
+                </span>
+                
+                <div class="flex gap-1">
+                  @if (booking.status === 'Pending') {
+                    <button (click)="state.updateJobStatus(booking.id, 'CANCELLED')" class="text-rose-600 text-[8px] font-black uppercase tracking-widest hover:underline">
+                      Cancel Request
+                    </button>
+                  }
+                  @if (booking.status === 'Completed') {
+                    <button class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20">
+                      Rate Service
+                    </button>
+                  }
+                </div>
+              </div>
             </td>
           </ng-container>
 

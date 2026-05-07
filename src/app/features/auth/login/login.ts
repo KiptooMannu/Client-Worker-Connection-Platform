@@ -36,7 +36,7 @@ import { AuthService } from '../../../core/services/auth.service';
                 <mat-icon class="absolute left-4 text-slate-400 !text-lg pointer-events-none">mail</mat-icon>
                 <input type="email" [(ngModel)]="email" name="email" required
                        class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
-                       placeholder="e.g. admin@pro.com">
+                       placeholder="e.g. abc@gmail.com">
               </div>
             </div>
 
@@ -81,7 +81,7 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class LoginPage {
   private auth = inject(AuthService);
-  
+
   email = '';
   password = '';
   showPassword = false;

@@ -1,9 +1,9 @@
-import { Injectable, signal, computed, effect, inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, signal, computed, effect, inject, PLATFORM_ID, NgZone, ApplicationRef } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AuthService, User } from './auth.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, throwError } from 'rxjs';
+import { Observable, throwError, filter, take } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { NotificationService } from './notification.service';
 
@@ -22,19 +22,21 @@ export interface Certification {
 
 export interface WorkerProfile {
   id: string;
+  userId?: string;
   name: string;
   initials: string;
   email: string;
   category: string;
-  status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft' | 'Suspended';
+  status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft' | 'Suspended' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT';
   image?: string;
+  phoneNumber?: string;
   rate: number;
   rating: number;
   reviews: number;
   skills: string[];
   bio: string;
   rejectionReason?: string;
-  uploadedDocuments?: { name: string; file?: File; type: string; status: 'uploaded' | 'validating' | 'approved' | 'rejected'; error?: string }[];
+  uploadedDocuments?: { id?: string; name: string; file?: File; type: string; status: 'uploaded' | 'validating' | 'approved' | 'rejected'; error?: string }[];
   isAvailable: boolean;
   location: string;
   preferredLocations: string[];
@@ -101,11 +103,12 @@ export interface Booking {
   date: string;
   earnings: number;
   rating?: number;
-  status: 'Pending' | 'Approved' | 'Completed' | 'Processing';
+  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Rejected' | 'Cancelled' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED';
 }
 
 export interface ClientProfile {
   id: string;
+  userId?: string;
   name: string;
   email: string;
   status: 'Active' | 'Suspended';
@@ -124,8 +127,63 @@ export class PlatformStateService {
   notifications = signal<Notification[]>([]);
   activityLogs = signal<ActivityLog[]>([]);
   bookings = signal<Booking[]>([]);
+  allBookings = signal<Booking[]>([]); // For Admin Oversight
+
+  fetchAllJobs() {
+    this.http.get<any[]>(`${this.apiUrl}/jobs/all`).subscribe({
+      next: (data) => {
+        const mapped = data.map(this.mapBooking.bind(this));
+        this.allBookings.set(mapped);
+      },
+      error: (err) => console.error('Error fetching all jobs', err)
+    });
+  }
+
+  updateJobStatus(jobId: string, status: string) {
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    this.http.put(`${this.apiUrl}/jobs/${jobId}/status?status=${status}`, {}).subscribe({
+      next: () => {
+        this.notification.success(`Job status updated to ${status}`);
+        // Refresh local bookings
+        if (user.role === 'Worker') {
+           this.fetchWorkerProfile(user.id);
+        } else if (user.role === 'Client') {
+           this.fetchClientJobs(user.id);
+        } else if (user.role === 'Admin') {
+           this.fetchAllJobs();
+        }
+      },
+      error: (err) => {
+        console.error('Error updating job status', err);
+        this.notification.error('Failed to update job status');
+      }
+    });
+  }
+
+  private mapBooking(b: any): Booking {
+    return {
+      id: b.id,
+      clientId: b.clientId,
+      workerId: b.workerId,
+      workerName: b.workerName,
+      workerInitials: (b.workerName || 'U').split(' ').map((n: any) => n[0]).join('').toUpperCase(),
+      clientName: b.clientName,
+      clientInitials: (b.clientName || 'U').split(' ').map((n: any) => n[0]).join('').toUpperCase(),
+      service: b.service || b.description || 'General Service',
+      date: new Date(b.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
+      status: b.status.charAt(0) + b.status.slice(1).toLowerCase() as any,
+      earnings: b.totalCost || 0,
+      rating: b.rating
+    };
+  }
 
   chats = signal<Chat[]>([]);
+  availableSkills = signal<string[]>([]);
+  availableLocations = signal<string[]>([]);
+  isLoadingWorkers = signal(false);
+  private appRef = inject(ApplicationRef);
 
   currentWorker = signal<WorkerProfile>({
     id: '',
@@ -152,14 +210,50 @@ export class PlatformStateService {
   private auth = inject(AuthService);
   private http = inject(HttpClient);
   private notification = inject(NotificationService);
+  private ngZone = inject(NgZone);
   private platformId = inject(PLATFORM_ID);
   private apiUrl = environment.apiUrl;
   private pollingInterval: any;
+
+  clearState() {
+    this.notifications.set([]);
+    this.chats.set([]);
+    this.activityLogs.set([]);
+    this.bookings.set([]);
+    this.currentClient.set(null);
+    this.currentWorker.set({
+      id: '',
+      name: '',
+      initials: '',
+      email: '',
+      category: '',
+      status: 'Draft',
+      rate: 0,
+      rating: 0,
+      reviews: 0,
+      isAvailable: false,
+      skills: [],
+      bio: '',
+      location: '',
+      preferredLocations: [],
+      workHistory: [],
+      certifications: [],
+      availabilityDetails: { weekdays: true, weekends: false, evenings: false }
+    });
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.removeItem('pro_state');
+    }
+  }
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       this.loadState();
       this.fetchMarketplaceWorkers();
+      this.fetchMarketplaceMetadata();
     }
 
     // Automatic State Persistence
@@ -177,6 +271,7 @@ export class PlatformStateService {
         if (user.role === 'Worker') {
           this.fetchWorkerProfile(user.id);
         } else if (user.role === 'Admin') {
+          this.fetchAdminWorkers();
           this.fetchPendingWorkers();
           this.fetchAdminUsers();
           this.fetchAdminClients();
@@ -187,27 +282,33 @@ export class PlatformStateService {
         }
         this.fetchNotifications(user.id);
         this.fetchChats(user.id);
+        // Use ApplicationRef to wait for stability before starting polling
+        this.appRef.isStable.pipe(
+          filter(stable => stable),
+          take(1)
+        ).subscribe(() => {
+          this.ngZone.runOutsideAngular(() => {
+            if (this.pollingInterval) clearInterval(this.pollingInterval);
+            this.pollingInterval = setInterval(() => {
+              const u = this.auth.currentUser();
+              if (u) {
+                this.ngZone.run(() => {
+                  this.fetchNotifications(u.id);
+                  this.fetchChats(u.id);
 
-        // Start polling for real-time feel (every 15 seconds)
-        if (this.pollingInterval) clearInterval(this.pollingInterval);
-        this.pollingInterval = setInterval(() => {
-          const u = this.auth.currentUser();
-          if (u) {
-            this.fetchNotifications(u.id);
-            this.fetchChats(u.id);
-            
-            if (u.role === 'Admin') {
-              this.fetchAdminActivityLogs();
-              this.fetchPendingWorkers();
-              this.fetchAdminUsers();
-            }
-          }
-        }, 15000); // 15s polling for active sessions
+                  if (u.role === 'Admin') {
+                    this.fetchAdminActivityLogs();
+                    this.fetchPendingWorkers();
+                    this.fetchAdminUsers();
+                  }
+                });
+              }
+            }, 30000); 
+          });
+        });
       } else {
-        if (this.pollingInterval) {
-          clearInterval(this.pollingInterval);
-          this.pollingInterval = null;
-        }
+        // Clear state on logout
+        this.clearState();
       }
     });
   }
@@ -219,7 +320,13 @@ export class PlatformStateService {
         this.currentWorker.set(mapped);
         this.fetchWorkerJobs(mapped.id);
       },
-      error: (err) => console.error('Error fetching worker profile', err)
+      error: (err) => {
+        console.error('Error fetching worker profile', err);
+        if (err.status === 404) {
+          this.notification.error('Session invalid: Profile not found. Logging out...');
+          this.auth.logout();
+        }
+      }
     });
   }
 
@@ -277,8 +384,12 @@ export class PlatformStateService {
     return this.http.post(`${this.apiUrl}/workers/${workerProfileId}/profile-picture`, formData);
   }
 
+  deleteProfilePicture(workerProfileId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/workers/${workerProfileId}/profile-picture`);
+  }
+
   deleteDocument(documentId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/documents/${documentId}`);
+    return this.http.delete(`${this.apiUrl}/documents/${documentId}`, { responseType: 'text' });
   }
 
   private fetchClientProfile(userId: string) {
@@ -287,7 +398,13 @@ export class PlatformStateService {
         const mapped = this.mapClientProfile(data);
         this.currentClient.set(mapped);
       },
-      error: (err) => console.error('Error fetching client profile', err)
+      error: (err) => {
+        console.error('Error fetching client profile', err);
+        if (err.status === 404) {
+          this.notification.error('Session invalid: Profile not found. Logging out...');
+          this.auth.logout();
+        }
+      }
     });
   }
 
@@ -301,6 +418,7 @@ export class PlatformStateService {
             const existing = currentClients.find(c => c.email === u.email);
             return {
               id: u.id,
+              userId: u.id,
               name: u.fullName || u.username,
               email: u.email,
               status: u.active === false ? 'Suspended' : (existing?.status || 'Active'),
@@ -430,6 +548,7 @@ export class PlatformStateService {
   public mapClientProfile(data: any): ClientProfile {
     return {
       id: data.id,
+      userId: data.userId,
       name: data.fullName,
       email: data.email,
       status: 'Active',
@@ -442,9 +561,11 @@ export class PlatformStateService {
     const fullName = data.fullName || '';
     return {
       id: data.id,
+      userId: data.userId,
       name: fullName,
       initials: fullName ? fullName.split(' ').filter((n: string) => n).map((n: string) => n[0]).join('').toUpperCase() : '??',
       email: data.email,
+      phoneNumber: data.phoneNumber || '',
       category: data.category || 'General Laborer',
       status: this.mapStatus(data.status),
       image: data.profilePictureUrl,
@@ -535,7 +656,8 @@ export class PlatformStateService {
   workerNotifications = computed(() => {
     const user = this.auth.currentUser();
     if (!user) return [];
-    return this.notifications().filter(n => n.userId === user.id);
+    // Robust string comparison for UUIDs
+    return this.notifications().filter(n => n.userId?.toString() === user.id?.toString());
   });
   unreadNotificationsCount = computed(() => this.workerNotifications().filter(n => !n.isRead).length);
 
@@ -549,8 +671,9 @@ export class PlatformStateService {
     let score = 0;
 
     // Core Identity (40%)
-    if (w.name) score += 10;
-    if (w.email) score += 10;
+    if (w.name) score += 5;
+    if (w.email) score += 5;
+    if (w.phoneNumber) score += 10;
     if (w.category) score += 10;
     if (w.location) score += 10;
 
@@ -562,58 +685,81 @@ export class PlatformStateService {
 
     // Verification Documents (20%)
     const docs = w.uploadedDocuments || [];
-    const hasID = docs.some(d => d.type.toLowerCase().includes('identification'));
-    if (hasID) score += 20;
+    const hasIDFront = docs.some(d => d.type === 'ID-Front');
+    const hasIDBack = docs.some(d => d.type === 'ID-Back');
+    
+    if (hasIDFront) score += 10;
+    if (hasIDBack) score += 10;
 
     return Math.min(score, 100);
   });
 
-  fetchPendingWorkers() {
-    this.http.get<any[]>(`${this.apiUrl}/admin/workers/pending`).subscribe({
+  fetchAdminWorkers() {
+    this.http.get<any[]>(`${this.apiUrl}/admin/workers`).subscribe({
       next: (data) => {
         const mapped = data.map(w => this.mapWorkerProfile(w));
         this.workers.set(mapped);
       },
-      error: (err) => console.error('Error fetching pending workers', err)
+      error: (err) => console.error('Error fetching admin workers', err)
     });
   }
 
-  approveWorker(id: string) {
-    const admin = this.auth.currentUser();
-    if (!admin || admin.role !== 'Admin') return;
+  fetchPendingWorkers() {
+    this.isLoadingWorkers.set(true);
+    this.http.get<any[]>(`${this.apiUrl}/admin/workers/pending`).subscribe({
+      next: (data) => {
+        const mapped = data.map(w => this.mapWorkerProfile(w));
+        this.workers.update(prev => {
+          const others = prev.filter(p => p.status !== 'Pending' && p.status !== 'Priority' && p.status !== 'PENDING');
+          return [...others, ...mapped];
+        });
+        this.isLoadingWorkers.set(false);
+      },
+      error: (err) => {
+        console.error('Error fetching pending workers', err);
+        this.isLoadingWorkers.set(false);
+      }
+    });
+  }
 
-    this.http.put<any>(`${this.apiUrl}/admin/workers/${id}/approve?adminId=${admin.id}`, {}).subscribe({
-      next: (res) => {
+  approveWorker(id: string): Observable<any> {
+    const admin = this.auth.currentUser();
+    if (!admin || admin.role !== 'Admin') return throwError(() => new Error('Unauthorized'));
+
+    return this.http.put<any>(`${this.apiUrl}/admin/workers/${id}/approve?adminId=${admin.id}`, {}).pipe(
+      tap((res) => {
         this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Verified' } : w));
         this.fetchAdminActivityLogs();
         this.fetchPendingWorkers();
         this.notification.success(res.message || 'Worker approved successfully.');
-      },
-      error: (err) => {
+      }),
+      catchError((err) => {
         const errorMsg = err.error?.message || err.error || 'Failed to approve worker.';
         this.notification.error(errorMsg);
         console.error('Error approving worker', err);
-      }
-    });
+        return throwError(() => err);
+      })
+    );
   }
 
-  rejectWorker(id: string, reason: string = '') {
+  rejectWorker(id: string, reason: string = ''): Observable<any> {
     const admin = this.auth.currentUser();
-    if (!admin || admin.role !== 'Admin') return;
+    if (!admin || admin.role !== 'Admin') return throwError(() => new Error('Unauthorized'));
 
-    this.http.put<any>(`${this.apiUrl}/admin/workers/${id}/reject?adminId=${admin.id}&reason=${encodeURIComponent(reason)}`, {}).subscribe({
-      next: (res) => {
+    return this.http.put<any>(`${this.apiUrl}/admin/workers/${id}/reject?adminId=${admin.id}&reason=${encodeURIComponent(reason)}`, {}).pipe(
+      tap((res) => {
         this.workers.update(prev => prev.map(w => w.id === id ? { ...w, status: 'Rejected', rejectionReason: reason } : w));
         this.fetchAdminActivityLogs();
         this.fetchPendingWorkers();
         this.notification.info(res.message || 'Worker rejected.');
-      },
-      error: (err) => {
+      }),
+      catchError((err) => {
         const errorMsg = err.error?.message || err.error || 'Failed to reject worker.';
         this.notification.error(errorMsg);
         console.error('Error rejecting worker', err);
-      }
-    });
+        return throwError(() => err);
+      })
+    );
   }
 
   resubmitWorker(id: string) {
@@ -663,6 +809,17 @@ export class PlatformStateService {
     const worker = this.workers().find(w => w.id === workerId);
     const user = this.auth.currentUser();
     if (!worker || !user || user.role !== 'Client') return;
+
+    // Prevention of double hiring (Match backend Enum values)
+    const alreadyRequested = this.bookings().some(b =>
+      b.workerId === worker.id && (b.status === 'PENDING' || b.status === 'ACCEPTED')
+    );
+
+    if (alreadyRequested) {
+      this.notification.info(`You already have an active request with ${worker.name}.`);
+      return;
+    }
+
     const payload = {
       description: `Hire request for ${worker.category} service`
     };
@@ -713,11 +870,13 @@ export class PlatformStateService {
     const chat = this.chats().find(c => c.id === chatId);
     if (!chat) return;
 
-    const backendPayload = {
+    const payload = {
+      senderId: user.id,
+      receiverId: chat.workerId,
       content: text
     };
 
-    this.http.post(`${this.apiUrl}/messages?senderId=${user.id}&receiverId=${chat.workerId}`, backendPayload).subscribe({
+    this.http.post(`${this.apiUrl}/messages`, payload).subscribe({
       next: (data: any) => {
         const time = new Date(data.sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         const newMsg: ChatMessage = { id: data.id, text: data.content, time, sent: true };
@@ -738,18 +897,20 @@ export class PlatformStateService {
   fetchChats(userId: string) {
     this.http.get<any[]>(`${this.apiUrl}/messages/user/${userId}/recent`).subscribe({
       next: (data) => {
+        console.log(`[PlatformState] Received ${data.length} chats for user ${userId}`);
         const currentChats = this.chats();
         const mapped = data.map(m => {
-          const isSender = m.senderId === userId;
+          const currentUserId = userId.toString();
+          const isSender = m.senderId?.toString() === currentUserId;
           const otherId = isSender ? m.receiverId : m.senderId;
           const otherName = isSender ? m.receiverName : m.senderName || 'Unknown';
-          
+
           // Preserve active state and existing messages if already loaded
-          const existing = currentChats.find(c => c.id === otherId);
-          
+          const existing = currentChats.find(c => c.id?.toString() === otherId?.toString());
+
           // Calculate unread status from the last message
-          const isUnread = !m.isRead && m.receiverId === userId;
-          
+          const isUnread = !m.isRead && m.receiverId?.toString() === currentUserId;
+
           return {
             id: otherId,
             workerId: otherId,
@@ -766,6 +927,20 @@ export class PlatformStateService {
         this.chats.set(mapped);
       },
       error: (err) => console.error('Error fetching chats', err)
+    });
+  }
+
+  markConversationAsRead(otherId: string) {
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    this.http.put(`${this.apiUrl}/messages/conversation/read?senderId=${otherId}&receiverId=${user.id}`, {}, { responseType: 'text' }).subscribe({
+      next: () => {
+        this.chats.update(chats => chats.map(c => 
+          c.id === otherId ? { ...c, unread: 0 } : c
+        ));
+      },
+      error: (err) => console.error('Error marking conversation as read', err)
     });
   }
 
@@ -862,10 +1037,21 @@ export class PlatformStateService {
       workerInitials: workerName.split(' ').map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'WK',
       service: 'Service Request',
       date: new Date(job.createdAt).toLocaleDateString(),
-      earnings: 0,
+      earnings: job.totalCost || 0,
       status: job.status === 'ACCEPTED' ? 'Approved' :
         job.status === 'REJECTED' ? 'Processing' :
-        job.status === 'COMPLETED' ? 'Completed' : 'Pending'
+          job.status === 'COMPLETED' ? 'Completed' : 'Pending'
     };
+  }
+
+  fetchMarketplaceMetadata() {
+    this.http.get<any[]>(`${this.apiUrl}/marketplace/skills`).subscribe({
+      next: (skills) => this.availableSkills.set(skills.map(s => s.name)),
+      error: (err) => console.error('Error fetching skills', err)
+    });
+    this.http.get<String[]>(`${this.apiUrl}/marketplace/locations`).subscribe({
+      next: (locs) => this.availableLocations.set(locs as string[]),
+      error: (err) => console.error('Error fetching locations', err)
+    });
   }
 }

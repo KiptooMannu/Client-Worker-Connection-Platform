@@ -7,8 +7,8 @@ import { NavbarComponent } from '../../shared/components/navbar';
   selector: 'app-client-layout',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterOutlet, 
+    CommonModule,
+    RouterOutlet,
     NavbarComponent
   ],
   template: `
@@ -38,4 +38,4 @@ import { NavbarComponent } from '../../shared/components/navbar';
   `,
   styles: [`:host { display: block; }`]
 })
-export class ClientLayout {}
+export class ClientLayout { }

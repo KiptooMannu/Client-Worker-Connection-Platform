@@ -134,16 +134,23 @@ import { AuthService } from '../../../core/services/auth.service';
                  </div>
 
                  <div class="flex flex-col gap-2 pt-1">
-                   <button (click)="promoteUser(selectedUser())" 
-                           [disabled]="selectedUser().status === 'Verified' || selectedUser().status === 'Active'"
-                           class="w-full py-3 rounded-xl bg-slate-900 text-white font-black text-[9px] uppercase tracking-widest shadow-lg hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 transition-all">
-                     {{ selectedUser().status === 'Verified' ? 'Verified Expert' : 'Promote Account' }}
-                   </button>
-                   <button (click)="suspendUser(selectedUser())" 
-                           [disabled]="selectedUser().status === 'Suspended'"
-                           class="w-full py-3 rounded-xl bg-white text-rose-600 border border-rose-100 font-black text-[9px] uppercase tracking-widest hover:bg-rose-50 transition-all">
-                     Suspend Access
-                   </button>
+                    <button (click)="promoteUser(selectedUser())" 
+                            [disabled]="selectedUser().status === 'Verified' || selectedUser().status === 'Active' || isProcessing()"
+                            class="w-full py-3 rounded-xl bg-slate-900 text-white font-black text-[9px] uppercase tracking-widest shadow-lg hover:bg-slate-800 disabled:bg-slate-100 disabled:text-slate-400 transition-all cursor-pointer disabled:cursor-not-allowed">
+                      {{ isProcessing() ? 'Processing...' : (selectedUser().status === 'Verified' ? 'Verified Expert' : 'Promote Account') }}
+                    </button>
+                    <button (click)="suspendUser(selectedUser())" 
+                            [disabled]="selectedUser().status === 'Suspended' || isProcessing()"
+                            class="w-full py-3 rounded-xl bg-white text-rose-600 border border-rose-100 font-black text-[9px] uppercase tracking-widest hover:bg-rose-50 transition-all cursor-pointer disabled:cursor-not-allowed">
+                      {{ isProcessing() ? 'Suspending...' : 'Suspend Access' }}
+                    </button>
+                    @if (selectedUser().status === 'Suspended') {
+                      <button (click)="activateUser(selectedUser())" 
+                              [disabled]="isProcessing()"
+                              class="w-full py-3 rounded-xl bg-emerald-600 text-white font-black text-[9px] uppercase tracking-widest shadow-lg hover:bg-emerald-500 transition-all cursor-pointer">
+                        {{ isProcessing() ? 'Activating...' : 'Activate Access' }}
+                      </button>
+                    }
                  </div>
                </div>
             </div>
@@ -304,6 +311,12 @@ import { AuthService } from '../../../core/services/auth.service';
                       <mat-icon class="text-rose-600">block</mat-icon>
                       <span class="font-bold text-xs uppercase">Suspend Access</span>
                     </button>
+                    @if (user.status === 'Suspended') {
+                      <button mat-menu-item (click)="activateUser(user)" class="!text-emerald-600">
+                        <mat-icon class="text-emerald-600">check_circle</mat-icon>
+                        <span class="font-bold text-xs uppercase">Activate Access</span>
+                      </button>
+                    }
                   </mat-menu>
                 </div>
               </td>
@@ -361,6 +374,8 @@ export class AdminUserManagementPage implements OnInit {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
   private auth = inject(AuthService);
+  
+  isProcessing = signal(false);
 
   displayedColumns: string[] = ['identity', 'role', 'status', 'progress', 'actions'];
   selectedRole = signal<string>('all');
@@ -508,7 +523,7 @@ export class AdminUserManagementPage implements OnInit {
   editUser(user: any) {
     const fullName = window.prompt('Enter new full name', user.name || user.identity);
     if (!fullName || !fullName.trim()) return;
-    this.state.updateUserName(user.id, fullName.trim()).subscribe({
+    this.state.updateUserName(user.userId || user.id, fullName.trim()).subscribe({
       next: () => {
         this.notification.success(`Updated ${user.identity}.`);
         this.state.fetchAdminUsers();
@@ -519,14 +534,44 @@ export class AdminUserManagementPage implements OnInit {
   }
 
   suspendUser(user: any) {
-    this.state.suspendUser(user.id).subscribe({
+    if (this.isProcessing()) return;
+    
+    this.isProcessing.set(true);
+    const originalStatus = user.status;
+    user.status = 'Suspended';
+    
+    this.state.suspendUser(user.userId || user.id).subscribe({
       next: () => {
+        this.isProcessing.set(false);
         this.notification.success(`${user.identity} suspended.`);
         this.state.workers.update(prev => prev.map(w => w.id === user.id ? { ...w, status: 'Suspended' as any } : w));
         this.state.clients.update(prev => prev.map(c => c.id === user.id ? { ...c, status: 'Suspended' as any } : c));
         this.state.fetchAdminUsers();
       },
-      error: () => this.notification.error('Failed to suspend user.')
+      error: () => {
+        this.isProcessing.set(false);
+        user.status = originalStatus;
+        this.notification.error('Failed to suspend user.');
+      }
+    });
+  }
+
+  activateUser(user: any) {
+    if (this.isProcessing()) return;
+    this.isProcessing.set(true);
+    this.state.activateUser(user.userId || user.id).subscribe({
+      next: () => {
+        this.isProcessing.set(false);
+        this.notification.success(`${user.identity} activated.`);
+        this.state.fetchAdminUsers();
+        if (this.selectedUser()?.id === user.id) {
+          this.selectedUser.update(u => u ? { ...u, status: 'Active' } : null);
+        }
+      },
+      error: () => {
+        this.isProcessing.set(false);
+        this.notification.error('Failed to activate user.');
+      }
     });
   }
 

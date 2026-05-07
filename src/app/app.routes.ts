@@ -55,7 +55,7 @@ export const routes: Routes = [
       },
       { 
         path: 'messages', 
-        loadComponent: () => import('./features/client/messages/messages').then(m => m.ClientMessagesPage) 
+        loadComponent: () => import('./shared/components/messages').then(m => m.SharedMessagesComponent) 
       }
     ]
   },
@@ -81,6 +81,10 @@ export const routes: Routes = [
       { 
         path: 'bookings', 
         loadComponent: () => import('./features/client/bookings/my-bookings').then(m => m.ClientBookingsPage) 
+      },
+      { 
+        path: 'messages', 
+        loadComponent: () => import('./shared/components/messages').then(m => m.SharedMessagesComponent) 
       }
     ]
   },
@@ -109,7 +113,7 @@ export const routes: Routes = [
       },
       { 
         path: 'messages', 
-        loadComponent: () => import('./features/client/messages/messages').then(m => m.ClientMessagesPage) 
+        loadComponent: () => import('./shared/components/messages').then(m => m.SharedMessagesComponent) 
       }
     ]
   }

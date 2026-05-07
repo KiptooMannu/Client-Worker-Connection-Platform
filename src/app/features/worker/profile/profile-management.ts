@@ -83,7 +83,13 @@ import { AuthService } from '../../../core/services/auth.service';
                 <div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
                    <mat-icon class="!text-white">photo_camera</mat-icon>
                 </div>
-                @if (worker().image) { <img class="w-32 h-32 rounded-full border-4 border-slate-50 shadow-xl object-cover" [src]="worker().image"> }
+                @if (worker().image) { 
+                  <img class="w-32 h-32 rounded-full border-4 border-slate-50 shadow-xl object-cover" [src]="worker().image">
+                  <button (click)="$event.stopPropagation(); removeProfilePicture()" 
+                          class="absolute -top-1 -right-1 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-colors z-20">
+                    <mat-icon class="!text-sm">close</mat-icon>
+                  </button>
+                }
                 @else { <div class="w-32 h-32 rounded-full border-4 border-slate-50 shadow-xl bg-blue-50 flex items-center justify-center text-4xl font-black text-blue-700">{{ worker().initials }}</div> }
               </div>
               <h3 class="text-xl font-black text-slate-900">{{ worker().name }}</h3>
@@ -108,6 +114,27 @@ import { AuthService } from '../../../core/services/auth.service';
                 }
               </div>
             </mat-card-content>
+          </mat-card>
+
+          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
+             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Verification Checklist</h4>
+             <div class="space-y-4">
+               @for (req of requirements(); track req.label) {
+                 <div class="flex items-center gap-3">
+                   <mat-icon [class]="req.done ? 'text-teal-600' : 'text-slate-200'" class="!text-lg">
+                     {{ req.done ? 'check_circle' : 'radio_button_unchecked' }}
+                   </mat-icon>
+                   <span class="text-xs font-bold" [class]="req.done ? 'text-slate-900' : 'text-slate-400'">{{ req.label }}</span>
+                 </div>
+               }
+             </div>
+             
+             @if (completionPercentage() < 100) {
+                <div class="mt-8 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
+                  <p class="text-[9px] font-black text-indigo-800 uppercase tracking-widest mb-1">Onboarding Guide</p>
+                  <p class="text-[10px] text-indigo-700 font-medium">Follow the "Next Step" buttons to complete your professional setup sequentially.</p>
+                </div>
+              }
           </mat-card>
 
           <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
@@ -153,10 +180,17 @@ import { AuthService } from '../../../core/services/auth.service';
               <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
                 <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Professional Identity</h4>
                 <div class="space-y-4">
-                  <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Full Name</mat-label>
-                    <input matInput [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" name="name" placeholder="Enter your full name">
-                  </mat-form-field>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <mat-form-field appearance="outline">
+                      <mat-label>Full Name</mat-label>
+                      <input matInput [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" name="name" placeholder="Enter your full name">
+                    </mat-form-field>
+                    <mat-form-field appearance="outline">
+                      <mat-label>Phone Number (Mandatory)</mat-label>
+                      <input matInput [ngModel]="form.phoneNumber()" (ngModelChange)="form.phoneNumber.set($event)" name="phoneNumber" placeholder="e.g. +254 700 000000">
+                      <mat-icon matPrefix class="mr-2 text-slate-400">phone</mat-icon>
+                    </mat-form-field>
+                  </div>
 
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <mat-form-field appearance="outline">
@@ -195,6 +229,12 @@ import { AuthService } from '../../../core/services/auth.service';
                       <mat-label>Preferred Job Locations (Comma separated)</mat-label>
                       <input matInput [ngModel]="form.preferredLocations()" (ngModelChange)="form.preferredLocations.set($event)" name="preferredLocations" placeholder="e.g. Westlands, Kilimani">
                     </mat-form-field>
+                  </div>
+                  
+                  <div class="pt-6 flex justify-end">
+                    <button mat-flat-button color="primary" (click)="nextTab()" class="!px-10 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest shadow-lg">
+                      Next: Experience <mat-icon class="ml-2">arrow_forward</mat-icon>
+                    </button>
                   </div>
                 </div>
               </mat-card>
@@ -241,6 +281,12 @@ import { AuthService } from '../../../core/services/auth.service';
                     <div class="text-center py-8 text-slate-400 text-sm">No experience added yet. Click "Add Experience" to start.</div>
                   }
                 </div>
+                
+                <div class="pt-6 flex justify-end">
+                  <button mat-flat-button color="primary" (click)="nextTab()" class="!px-10 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest shadow-lg">
+                    Next: Certifications <mat-icon class="ml-2">arrow_forward</mat-icon>
+                  </button>
+                </div>
               </mat-card>
             }
 
@@ -276,6 +322,12 @@ import { AuthService } from '../../../core/services/auth.service';
                     <div class="text-center py-8 text-slate-400 text-sm">No certifications added yet. Click "Add Certification" to start.</div>
                   }
                 </div>
+                
+                <div class="pt-6 flex justify-end">
+                  <button mat-flat-button color="primary" (click)="nextTab()" class="!px-10 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest shadow-lg">
+                    Next: Availability <mat-icon class="ml-2">arrow_forward</mat-icon>
+                  </button>
+                </div>
               </mat-card>
             }
 
@@ -305,6 +357,12 @@ import { AuthService } from '../../../core/services/auth.service';
                     </div>
                     <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().evenings" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), evenings: $event})" name="evenings"></mat-slide-toggle>
                   </div>
+                </div>
+
+                <div class="pt-8 flex justify-end">
+                  <button mat-flat-button color="primary" (click)="goToDocuments()" class="!px-10 !py-4 !rounded-2xl !font-black !text-xs !uppercase !tracking-widest shadow-xl bg-slate-900 text-white">
+                    Final Step: Verification <mat-icon class="ml-2">verified_user</mat-icon>
+                  </button>
                 </div>
               </mat-card>
             }
@@ -378,9 +436,23 @@ export class WorkerProfilePage {
   isSaving = signal(false);
   worker = this.state.currentWorker;
 
+  requirements = computed(() => {
+    const w = this.worker();
+    return [
+      { label: 'Basic Info & Name', done: !!w.name },
+      { label: 'Primary Category', done: !!w.category },
+      { label: 'Professional Bio', done: !!w.bio && w.bio.length > 20 },
+      { label: 'Work History', done: w.workHistory && w.workHistory.length > 0 },
+      { label: 'Skills Added', done: w.skills && w.skills.length > 0 },
+      { label: 'ID Front Uploaded', done: (w.uploadedDocuments || []).some((d: any) => d.type === 'ID-Front') },
+      { label: 'ID Back Uploaded', done: (w.uploadedDocuments || []).some((d: any) => d.type === 'ID-Back') }
+    ];
+  });
+
   // Local reactive form state
   form = {
     name: signal(''),
+    phoneNumber: signal(''),
     category: signal(''),
     rate: signal(0),
     bio: signal(''),
@@ -398,6 +470,7 @@ export class WorkerProfilePage {
       const w = this.state.currentWorker();
       if (w && w.id) {
         this.form.name.set(w.name || '');
+        this.form.phoneNumber.set(w.phoneNumber || '');
         this.form.category.set(w.category || '');
         this.form.rate.set(w.rate || 0);
         this.form.bio.set(w.bio || '');
@@ -408,6 +481,20 @@ export class WorkerProfilePage {
         this.form.certifications.set(JSON.parse(JSON.stringify(w.certifications || [])));
         this.form.availabilityDetails.set({ ...(w.availabilityDetails || { weekdays: true, weekends: false, evenings: false }) });
         this.form.image.set(w.image);
+      }
+    });
+  }
+
+  removeProfilePicture() {
+    this.notification.info('Removing profile picture...');
+    this.state.deleteProfilePicture(this.worker().id).subscribe({
+      next: (response: any) => {
+        const mapped = this.state.mapWorkerProfile(response);
+        this.state.currentWorker.set(mapped);
+        this.notification.success('Profile picture removed!');
+      },
+      error: (err: any) => {
+        this.notification.error('Failed to remove profile picture.');
       }
     });
   }
@@ -448,14 +535,19 @@ export class WorkerProfilePage {
   saveProfile() {
     const updates: Partial<any> = {
       fullName: this.form.name(),
+      phoneNumber: this.form.phoneNumber(),
       category: this.form.category(),
-      hourlyRate: this.form.rate(),
+      hourlyRate: Number(this.form.rate()) || 0,
       bio: this.form.bio(),
-      skills: this.form.skills().split(',').map(s => s.trim()).filter(s => s),
+      skills: (this.form.skills() || '').split(',').map(s => s.trim()).filter(s => s),
       location: this.form.location(),
-      preferredLocations: this.form.preferredLocations().split(',').map(l => l.trim()).filter(l => l),
-      workHistory: this.form.workHistory(),
-      certifications: this.form.certifications(),
+      preferredLocations: (this.form.preferredLocations() || '').split(',').map(l => l.trim()).filter(l => l),
+      workHistory: this.form.workHistory()
+        .filter(w => w.company.trim() && w.role.trim())
+        .map(w => ({ ...w })),
+      certifications: this.form.certifications()
+        .filter(c => c.name.trim() && c.issuer.trim())
+        .map(c => ({ ...c, year: Number(c.year) })),
       availabilityDetails: this.form.availabilityDetails(),
       profilePictureUrl: this.form.image()
     };
@@ -484,9 +576,46 @@ export class WorkerProfilePage {
   }
 
   resubmit() {
+    this.isSaving.set(true);
+    const updates = this.getProfileUpdates();
+    this.state.updateWorkerProfile(this.worker().id, updates).subscribe({
+      next: () => {
+        this.state.resubmitWorker(this.worker().id);
+        this.isSaving.set(false);
+      },
+      error: () => this.isSaving.set(false)
+    });
+  }
+
+  private getProfileUpdates(): any {
+    return {
+      fullName: this.form.name(),
+      phoneNumber: this.form.phoneNumber(),
+      category: this.form.category(),
+      hourlyRate: Number(this.form.rate()) || 0,
+      bio: this.form.bio(),
+      skills: (this.form.skills() || '').split(',').map(s => s.trim()).filter(s => s),
+      location: this.form.location(),
+      preferredLocations: (this.form.preferredLocations() || '').split(',').map(l => l.trim()).filter(l => l),
+      workHistory: this.form.workHistory()
+        .filter(w => w.company.trim() && w.role.trim())
+        .map(w => ({ ...w })),
+      certifications: this.form.certifications()
+        .filter(c => c.name.trim() && c.issuer.trim())
+        .map(c => ({ ...c, year: Number(c.year) })),
+      availabilityDetails: this.form.availabilityDetails(),
+      profilePictureUrl: this.form.image()
+    };
+  }
+
+  nextTab() {
     this.saveProfile();
-    this.state.resubmitWorker(this.state.currentWorker().id);
-    this.notification.success('✓ Profile resubmitted for review.');
+    const current = this.activeTab();
+    const index = this.tabs.findIndex(t => t.id === current);
+    if (index < this.tabs.length - 1) {
+      this.activeTab.set(this.tabs[index + 1].id);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }
 
   goToDocuments() {

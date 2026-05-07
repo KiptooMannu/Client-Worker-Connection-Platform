@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { SharedMessagesComponent } from '../../../shared/components/messages';
 
 @Component({
-  selector: 'app-client-messages',
+  selector: 'app-admin-messages',
   standalone: true,
   imports: [CommonModule, SharedMessagesComponent],
   template: `
@@ -15,4 +15,4 @@ import { SharedMessagesComponent } from '../../../shared/components/messages';
     :host { display: block; }
   `]
 })
-export class ClientMessagesPage {}
+export class AdminMessagesPage {}
