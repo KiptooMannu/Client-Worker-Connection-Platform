@@ -6,7 +6,7 @@ import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Subscription } from 'rxjs';
+import { Subscription, timeout } from 'rxjs';
 import { PlatformStateService } from '../../core/services/platform-state.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -35,6 +35,9 @@ interface UserContact {
           <h1 class="sidebar__title">Messages</h1>
           @if (unreadTotal() > 0) {
             <span class="badge badge--total">{{ unreadTotal() }}</span>
+            <button class="mark-all-btn" (click)="markAllAsRead()" title="Mark all as read">
+              <mat-icon>done_all</mat-icon>
+            </button>
           }
         </div>
 
@@ -75,17 +78,18 @@ interface UserContact {
             <button
               class="contact-item"
               [class.contact-item--active]="selectedUser()?.id === user.id"
+              [class.contact-item--unread]="(user.unread || 0) > 0"
               (click)="selectUser(user)">
               <div class="avatar" [attr.data-initials]="initials(user.username)">
-                @if (user.unread && user.unread > 0) {
-                  <span class="avatar__badge">{{ user.unread }}</span>
-                }
+                <span class="online-dot"></span>
               </div>
               <div class="contact-meta">
                 <span class="contact-name">{{ user.username }}</span>
-                <span class="contact-role">{{ user.role || 'Participant' }}</span>
+                <span class="contact-preview">{{ (user.unread || 0) > 0 ? 'New message' : (user.role || 'Participant') }}</span>
               </div>
-              @if (selectedUser()?.id === user.id) {
+              @if ((user.unread || 0) > 0) {
+                <span class="contact-unread-indicator"></span>
+              } @else if (selectedUser()?.id === user.id) {
                 <span class="contact-active-dot"></span>
               }
             </button>
@@ -231,6 +235,23 @@ interface UserContact {
       border-radius: 99px;
     }
 
+    .mark-all-btn {
+      margin-left: auto;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      display: flex;
+      padding: 4px;
+      border-radius: 6px;
+      transition: all .2s;
+    }
+    .mark-all-btn:hover {
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+    .mark-all-btn mat-icon { font-size: 18px; width: 18px; height: 18px; }
+
     /* ── Search ──────────────────────────────────────────────────── */
     .search-wrap {
       position: relative;
@@ -300,6 +321,19 @@ interface UserContact {
     .contact-item:hover { background: #f1f5f9; }
     .contact-item--active { background: #eef2ff !important; }
 
+    .contact-item--unread {
+      background: rgba(79, 70, 229, 0.03);
+      border-left: 3px solid #4f46e5;
+    }
+    .contact-item--unread .contact-name {
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .contact-item--unread .contact-preview {
+      font-weight: 600;
+      color: #334155;
+    }
+
     .contact-meta {
       flex: 1;
       display: flex;
@@ -307,20 +341,29 @@ interface UserContact {
       min-width: 0;
     }
     .contact-name {
-      font-size: 13.5px;
-      font-weight: 700;
-      color: #0f172a;
+      font-size: 14px;
+      font-weight: 500;
+      color: #475569;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .contact-role {
-      font-size: 10px;
-      font-weight: 700;
+    .contact-preview {
+      font-size: 12px;
+      font-weight: 400;
       color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: .6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       margin-top: 2px;
+    }
+    .contact-unread-indicator {
+      width: 10px;
+      height: 10px;
+      background: #4f46e5;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 4px rgba(79,70,229,.1);
     }
     .contact-active-dot {
       width: 8px;
@@ -650,20 +693,28 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   });
 
   filteredUsers = computed<UserContact[]>(() => {
-    const q = this.searchQuery().toLowerCase().trim();
-    const recent = this.recentUsers();
+    const q = this.searchQuery().trim();
     const all = this.allUsers();
+    const recent = this.recentUsers();
 
     if (!q) {
-      if (this.currentUserRole() === 'Admin') return all;
-      return recent.length > 0 ? recent : all.slice(0, 10);
+      // DEFAULT: Only show active conversations (Email Inbox style)
+      return recent;
     }
 
-    if (this.searchResults().length > 0) return this.searchResults();
-    return all.filter(u =>
-      u.username?.toLowerCase().includes(q) ||
-      u.email?.toLowerCase().includes(q)
-    );
+    // SEARCH ACTIVE: Search across the entire directory (Fallbacks included)
+    const directory = all.length > 0 ? all : [
+      ...this.state.workers().map(w => ({ id: w.id, username: w.name, email: w.email, role: 'Worker' })),
+      ...this.state.clients().map(c => ({ id: c.id, username: c.name, email: c.email, role: 'Client' }))
+    ];
+
+    const qLower = q.toLowerCase();
+    return directory.filter(u => {
+      const name = (u.username || u.fullName || u.name || '').toLowerCase();
+      const email = (u.email || '').toLowerCase();
+      const role = (u.role || '').toLowerCase();
+      return name.includes(qLower) || email.includes(qLower) || role.includes(qLower);
+    });
   });
 
   currentMessages = computed(() => {
@@ -921,17 +972,18 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
         },
         error: (err: HttpErrorResponse) => {
           const duration = Date.now() - startTime;
-          console.error(`[Search] Server search failed after ${duration}ms`, err);
+          console.error(`[Search] Server search failed or timed out after ${duration}ms`, err);
           this.isSearching.set(false);
+          // Fallback to local results if server fails
+          this.searchResults.set(localResults);
         }
       });
       return;
     }
 
     this.searchSubscription = this.http.get<any>(
-      `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`,
-      { timeout: 10000 }
-    ).subscribe({
+      `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`
+    ).pipe(timeout(10000)).subscribe({
       next: (res: any) => {
         const duration = Date.now() - startTime;
         console.log(`[Search] Server search completed in ${duration}ms`);
@@ -946,14 +998,14 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
         );
         this.isSearching.set(false);
       },
-      error: (err: HttpErrorResponse) => {
+      error: (err: any) => {
         const duration = Date.now() - startTime;
-        console.error(`[Search] Server search failed after ${duration}ms`, err);
+        console.error(`[Search] Server search failed or timed out after ${duration}ms`, err);
         this.isSearching.set(false);
         this.searchResults.set([]);
 
-        if (err.status === 0) {
-          this.notification.error('Network error - please check your connection');
+        if (err.status === 0 || err.name === 'TimeoutError') {
+          this.notification.error('Network error or timeout - please check your connection');
         } else if (err.status === 504) {
           this.notification.error('Search is taking too long - please try again');
         } else {
@@ -999,6 +1051,15 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
         }
       }
     });
+  }
+
+  markAllAsRead() {
+    this.state.chats().forEach(chat => {
+      if ((chat.unread || 0) > 0) {
+        this.state.markConversationAsRead(chat.id);
+      }
+    });
+    this.notification.success('All messages marked as read');
   }
 
   onKeydown(event: KeyboardEvent) {

@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { AuthService, User } from './auth.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, throwError, filter, take } from 'rxjs';
+import { Observable, throwError, filter, take, timeout } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { NotificationService } from './notification.service';
 
@@ -684,7 +684,9 @@ export class PlatformStateService {
       currentWorker: this.currentWorker(),
       currentClient: this.currentClient(),
       chats: this.chats(),
-      allUsers: this.allUsers()
+      allUsers: this.allUsers(),
+      allBookings: this.allBookings(),
+      clients: this.clients()
     };
     localStorage.setItem('kazi_konnect_state', JSON.stringify(data));
   }
@@ -706,7 +708,9 @@ export class PlatformStateService {
         this.currentClient.set(data.currentClient || null);
         this.chats.set(data.chats || []);
         this.allUsers.set(data.allUsers || []);
-        console.log('[PlatformState] State restored from localStorage (including user directory)');
+        this.allBookings.set(data.allBookings || []);
+        this.clients.set(data.clients || []);
+        console.log('[PlatformState] State restored from localStorage (full admin context)');
       } catch (e) {
         console.error('Error parsing cached state', e);
       }
@@ -972,14 +976,21 @@ export class PlatformStateService {
             return [newChat, ...chats];
           }
         });
+      }),
+      timeout(10000),
+      catchError((err: any) => {
+        if (err.name === 'TimeoutError') {
+          console.error('[PlatformState] sendMessageToUser timed out');
+        }
+        return throwError(() => err);
       })
     );
   }
 
   fetchChats(userId: string) {
     console.log('[PlatformState] Fetching chats for userId:', userId);
-
-    this.http.get<any>(`${this.apiUrl}/messages/user/${userId}/recent`).subscribe({
+  
+    this.http.get<any>(`${this.apiUrl}/messages/user/${userId}/recent`).pipe(timeout(10000)).subscribe({
       next: (res) => {
         const data = res.content || res || [];
         console.log(`[PlatformState] Received ${data.length} chats for user ${userId}`);
@@ -1068,6 +1079,7 @@ export class PlatformStateService {
     const page = this.currentMessagePage();
 
     return this.http.get<any>(`${this.apiUrl}/messages/conversation?user1Id=${user.id}&user2Id=${otherId}&page=${page}&size=50`).pipe(
+      timeout(10000),
       tap((response) => {
         const data = response.content || response;
         const messages: ChatMessage[] = (data || []).map((m: any) => ({

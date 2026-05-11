@@ -75,17 +75,18 @@ interface UserContact {
             <button
               class="contact-item"
               [class.contact-item--active]="selectedUser()?.id === user.id"
+              [class.contact-item--unread]="(user.unread || 0) > 0"
               (click)="selectUser(user)">
               <div class="avatar" [attr.data-initials]="initials(user.username)">
-                @if (user.unread && user.unread > 0) {
-                  <span class="avatar__badge">{{ user.unread }}</span>
-                }
+                <span class="online-dot"></span>
               </div>
               <div class="contact-meta">
                 <span class="contact-name">{{ user.username }}</span>
-                <span class="contact-role">{{ user.role || 'Participant' }}</span>
+                <span class="contact-preview">{{ (user.unread || 0) > 0 ? 'New message' : (user.role || 'Participant') }}</span>
               </div>
-              @if (selectedUser()?.id === user.id) {
+              @if ((user.unread || 0) > 0) {
+                <span class="contact-unread-indicator"></span>
+              } @else if (selectedUser()?.id === user.id) {
                 <span class="contact-active-dot"></span>
               }
             </button>
@@ -300,6 +301,15 @@ interface UserContact {
     .contact-item:hover { background: #f1f5f9; }
     .contact-item--active { background: #eef2ff !important; }
 
+    .contact-item--unread .contact-name {
+      font-weight: 800;
+      color: #0f172a;
+    }
+    .contact-item--unread .contact-preview {
+      font-weight: 600;
+      color: #334155;
+    }
+ 
     .contact-meta {
       flex: 1;
       display: flex;
@@ -307,20 +317,29 @@ interface UserContact {
       min-width: 0;
     }
     .contact-name {
-      font-size: 13.5px;
-      font-weight: 700;
-      color: #0f172a;
+      font-size: 14px;
+      font-weight: 500;
+      color: #475569;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .contact-role {
-      font-size: 10px;
-      font-weight: 700;
+    .contact-preview {
+      font-size: 12px;
+      font-weight: 400;
       color: #94a3b8;
-      text-transform: uppercase;
-      letter-spacing: .6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       margin-top: 2px;
+    }
+    .contact-unread-indicator {
+      width: 10px;
+      height: 10px;
+      background: #4f46e5;
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 4px rgba(79,70,229,.1);
     }
     .contact-active-dot {
       width: 8px;
@@ -655,15 +674,22 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     const all = this.allUsers();
 
     if (!q) {
-      if (this.currentUserRole() === 'Admin') return all;
-      return recent.length > 0 ? recent : all.slice(0, 10);
+      // DEFAULT: Only show active conversations (Email Inbox style)
+      return recent;
     }
 
-    if (this.searchResults().length > 0) return this.searchResults();
-    return all.filter(u =>
-      u.username?.toLowerCase().includes(q) ||
-      u.email?.toLowerCase().includes(q)
-    );
+    // SEARCH ACTIVE: Search across the entire directory (Fallbacks included)
+    const directory = all.length > 0 ? all : [
+      ...this.state.workers().map(w => ({ id: w.id, username: w.name, email: w.email, role: 'Worker' })),
+      ...this.state.clients().map(c => ({ id: c.id, username: c.name, email: c.email, role: 'Client' }))
+    ];
+
+    const qLower = q.toLowerCase();
+    return directory.filter(u => {
+      const name = (u.username || u.fullName || u.name || '').toLowerCase();
+      const email = (u.email || '').toLowerCase();
+      return name.includes(qLower) || email.includes(qLower);
+    });
   });
 
   currentMessages = computed(() => {
