@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -402,13 +403,16 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 })
 export class AdminVerificationPage implements OnInit {
   state = inject(PlatformStateService);
+  private platformId = inject(PLATFORM_ID);
   isProcessing = signal(false);
   displayedColumns: string[] = ['select', 'applicant', 'category', 'status', 'actions'];
   currentPage = 1;
   readonly pageSize = 8;
 
   ngOnInit() {
-    this.state.fetchPendingWorkers();
+    if (isPlatformBrowser(this.platformId)) {
+      this.state.fetchPendingWorkers();
+    }
   }
   reviewingId: string | null = null;
   detailedReview: any = null;

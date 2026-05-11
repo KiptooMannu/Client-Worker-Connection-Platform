@@ -37,7 +37,17 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       const savedUser = localStorage.getItem('pro_user');
       if (savedUser) {
-        this.userSignal.set(JSON.parse(savedUser));
+        try {
+          const user = JSON.parse(savedUser);
+          // Restore token from separate storage if not in user object
+          if (!user.token) {
+            user.token = localStorage.getItem('auth_token');
+          }
+          this.userSignal.set(user);
+          console.log('[AuthService] User restored from localStorage with role:', user.role);
+        } catch (e) {
+          console.error('[AuthService] Failed to parse saved user:', e);
+        }
       }
 
       const storedUsers = localStorage.getItem('kazi_konnect_users') || localStorage.getItem('nestfind_users');
@@ -60,13 +70,17 @@ export class AuthService {
         
         this.userSignal.set(user);
         if (isPlatformBrowser(this.platformId)) {
+          // Store token separately for interceptor access
+          localStorage.setItem('auth_token', response.accessToken);
           localStorage.setItem('pro_user', JSON.stringify(user));
+          console.log('[AuthService] User logged in with role:', user.role, 'Token stored');
         }
         
         this.notification.success('Welcome back, ' + user.name + '!');
         this.redirectByRole(user.role);
       }),
       catchError(error => {
+        console.error('[AuthService] Login error:', error);
         this.notification.error('Login failed. Please check your credentials.');
         return throwError(() => error);
       })
@@ -106,6 +120,8 @@ export class AuthService {
     this.userSignal.set(null);
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('pro_user');
+      localStorage.removeItem('auth_token');
+      console.log('[AuthService] User logged out');
     }
     this.notification.success('You have been logged out successfully.');
     this.router.navigate(['/']);

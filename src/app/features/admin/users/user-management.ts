@@ -1,4 +1,5 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -374,6 +375,7 @@ export class AdminUserManagementPage implements OnInit {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
   private auth = inject(AuthService);
+  private platformId = inject(PLATFORM_ID);
   
   isProcessing = signal(false);
 
@@ -463,8 +465,10 @@ export class AdminUserManagementPage implements OnInit {
   }
 
   ngOnInit() {
-    this.state.fetchAdminUsers();
-    this.state.fetchAdminClients();
+    if (isPlatformBrowser(this.platformId)) {
+      this.state.fetchAdminUsers();
+      this.state.fetchAdminClients();
+    }
   }
 
   setRole(value: string) {

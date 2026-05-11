@@ -247,9 +247,7 @@ export class AdminOverviewPage {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
 
-  constructor() {
-    this.state.fetchAllJobs();
-  }
+  constructor() {}
 
   get stats() {
     const totalUsers = this.state.clients().length + this.state.workers().length;

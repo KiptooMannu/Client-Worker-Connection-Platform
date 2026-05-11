@@ -81,10 +81,6 @@ export const routes: Routes = [
       { 
         path: 'bookings', 
         loadComponent: () => import('./features/client/bookings/my-bookings').then(m => m.ClientBookingsPage) 
-      },
-      { 
-        path: 'messages', 
-        loadComponent: () => import('./shared/components/messages').then(m => m.SharedMessagesComponent) 
       }
     ]
   },

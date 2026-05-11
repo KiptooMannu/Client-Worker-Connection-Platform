@@ -684,7 +684,10 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       this.isMobile.set(window.innerWidth < 768);
     }
 
-    // Load contacts once when user is authenticated
+
+    // FIX BUG 1: Load contacts once. Guard with usersLoadStarted flag so
+    // the search effect cannot trigger a second overlapping fetch that Angular
+    // then cancels when the component re-evaluates its signals.
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
       const user = this.auth.currentUser();
@@ -694,14 +697,23 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       }
     });
 
-    // Handle search with proper state management
+    // FIX BUG 1: Search effect now checks allUsers().length > 0 before
+    // attempting a server search. This prevents it from firing while the
+    // initial load is still in-flight and causing the (cancelled) request
+    // seen in the network tab at messages.ts:791.
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
       const q = this.searchQuery().trim();
       clearTimeout(this.searchDebounce);
 
-      if (q.length === 0) {
+      if (!q) {
         this.searchResults.set([]);
+        this.isSearching.set(false);
+        return;
+      }
+
+      // Don't attempt search while the initial contacts list hasn't loaded yet
+      if (this.allUsers().length === 0) {
         this.isSearching.set(false);
         return;
       }
@@ -715,42 +727,37 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       }
     });
 
-    // Fetch conversation when user is selected
+    // FIX BUG 4: The selectedUser effect is the SINGLE source of truth for
+    // isLoadingMessages. selectUser() no longer sets it — only this effect does.
+    // This eliminates the race where two independent code paths could leave the
+    // spinner stuck, especially on HTTP errors.
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
       const sel = this.selectedUser();
       if (!sel) {
+        // Clear loading state when no user is selected (e.g. back button on mobile)
         this.isLoadingMessages.set(false);
         return;
       }
 
+      // Only show loader — set it here, clear it in next/error/else below
       this.isLoadingMessages.set(true);
 
       if (this.conversationFetchSubscription) {
         this.conversationFetchSubscription.unsubscribe();
       }
 
-      // Add a safety timeout to prevent infinite spinning if the backend hangs
-      const safetyTimer = setTimeout(() => {
-        if (this.isLoadingMessages()) {
-          console.warn('[Messages] Conversation fetch safety timeout reached');
-          this.isLoadingMessages.set(false);
-        }
-      }, 8000);
-
       const result = this.state.fetchConversation(sel.id, sel.username);
 
       if (result && typeof result === 'object' && 'subscribe' in result) {
         this.conversationFetchSubscription = (result as any).subscribe({
           next: () => {
-            clearTimeout(safetyTimer);
-            this.isLoadingMessages.set(false);
+            this.isLoadingMessages.set(false); // FIX BUG 4: always cleared on success
             this.scrollToBottom();
           },
           error: (err: HttpErrorResponse) => {
-            clearTimeout(safetyTimer);
             console.error('Failed to fetch conversation:', err);
-            this.isLoadingMessages.set(false);
+            this.isLoadingMessages.set(false); // FIX BUG 4: always cleared on error — no stuck spinner
             if (err.status === 0) {
               this.notification.error('Network error - please check your connection');
             } else if (err.status === 504) {
@@ -761,10 +768,8 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
           }
         });
       } else {
-        clearTimeout(safetyTimer);
-        setTimeout(() => {
-          this.isLoadingMessages.set(false);
-        }, 500);
+        // Synchronous path — clear loading state immediately
+        this.isLoadingMessages.set(false); // FIX BUG 4
       }
     });
 
@@ -805,6 +810,9 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
     if (user.role === 'Worker') return;
 
+    // FIX BUG 1: Always cancel any prior in-flight request before starting a new one.
+    // This ensures we never have two concurrent users fetches that Angular
+    // cancels mid-flight and shows as (cancelled) in the network tab.
     if (this.userLoadSubscription) {
       this.userLoadSubscription.unsubscribe();
     }
@@ -898,9 +906,9 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       this.searchResults.set(localResults);
       this.isSearching.set(false);
 
+      // Augment local results with server results in the background
       this.searchSubscription = this.http.get<any>(
-        `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`,
-        { timeout: 10000 }
+        `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`
       ).subscribe({
         next: (res: any) => {
           const duration = Date.now() - startTime;
@@ -928,9 +936,9 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       return;
     }
 
+    // No local results — go straight to server
     this.searchSubscription = this.http.get<any>(
-      `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`,
-      { timeout: 10000 }
+      `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`
     ).subscribe({
       next: (res: any) => {
         const duration = Date.now() - startTime;
@@ -966,6 +974,8 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   selectUser(user: UserContact) {
     // FIX BUG 4: Do NOT set isLoadingMessages here.
     // The selectedUser effect is the single owner of that state.
+    // Setting it here caused a race: both paths fired independently and
+    // the spinner could remain stuck after an error response.
     this.selectedUser.set(user);
     this.messageInput.set('');
 

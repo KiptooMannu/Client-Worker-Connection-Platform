@@ -1,4 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -168,6 +169,7 @@ import { NotificationService } from '../../../core/services/notification.service
 export class AdminActivityPage implements OnInit {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
+  private platformId = inject(PLATFORM_ID);
   displayedColumns: string[] = ['type', 'description', 'user', 'time', 'severity'];
   rejectedOnly = false;
   showAll = false;
@@ -175,7 +177,9 @@ export class AdminActivityPage implements OnInit {
   readonly pageSize = 10;
 
   ngOnInit() {
-    this.state.fetchAdminActivityLogs();
+    if (isPlatformBrowser(this.platformId)) {
+      this.state.fetchAdminActivityLogs();
+    }
   }
   
   refresh() {
