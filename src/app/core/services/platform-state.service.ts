@@ -64,7 +64,11 @@ export interface ChatMessage {
   text: string;
   time: string;
   sent: boolean;
-  attachment?: { name: string; size: string };
+  attachment?: {
+    name: string;
+    url: string;
+    size: string;
+  };
 }
 
 export interface Chat {
@@ -935,50 +939,82 @@ export class PlatformStateService {
     ));
   }
 
-  sendMessageToUser(receiverId: string, text: string): Observable<any> {
+  sendMessageToUser(receiverId: string, text: string, attachmentUrl?: string): Observable<any> {
     const user = this.auth.currentUser();
     if (!user) return throwError(() => new Error('Not authenticated'));
+
+    // ── OPTIMISTIC UPDATE ──────────────────────────────────────────
+    const tempId = 'temp-' + Date.now();
+    const sentAt = new Date().toISOString();
+    const time = new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const rawTime = new Date(sentAt).getTime();
+
+    const optimisticMsg: ChatMessage = {
+      id: tempId,
+      text: text,
+      time,
+      sent: true,
+      attachment: attachmentUrl ? { name: 'File', url: attachmentUrl, size: '...' } : undefined
+    };
+
+    this.chats.update(chats => {
+      const chat = chats.find(c => c.id === receiverId);
+      if (chat) {
+        return chats.map(c =>
+          c.id === receiverId
+            ? { ...c, lastMessage: text || 'File', time, rawTime, messages: [...c.messages, optimisticMsg] }
+            : c
+        );
+      } else {
+        const newChat: Chat = {
+          id: receiverId,
+          workerId: receiverId,
+          name: '...', // Will be updated by server
+          initials: '??',
+          lastMessage: text || 'File',
+          time: 'Just now',
+          rawTime,
+          active: true,
+          online: true,
+          messages: [optimisticMsg]
+        };
+        return [newChat, ...chats];
+      }
+    });
 
     const payload = {
       senderId: user.id,
       receiverId: receiverId,
-      content: text
+      content: text,
+      attachmentUrl: attachmentUrl
     };
 
     return this.http.post<any>(`${this.apiUrl}/messages`, payload).pipe(
       tap(data => {
-        const sentAt = data.sentAt || new Date().toISOString();
-        const time = new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const rawTime = new Date(sentAt).getTime(); // FIX BUG 2: capture numeric timestamp
-        const newMsg: ChatMessage = { id: data.id, text: data.content, time, sent: true };
-
+        // Update the temporary message with the real one from server
         this.chats.update(chats => {
-          const chat = chats.find(c => c.id === receiverId);
-          if (chat) {
-            return chats.map(c =>
-              c.id === receiverId
-                ? { ...c, lastMessage: text, time, rawTime, messages: [...c.messages, newMsg] }
-                : c
-            );
-          } else {
-            const newChat: Chat = {
-              id: receiverId,
-              workerId: receiverId,
-              name: data.receiverName || 'User',
-              initials: (data.receiverName || 'U').split(' ').map((n: any) => n[0]).join('').toUpperCase(),
-              lastMessage: text,
-              time: 'Just now',
-              rawTime, // FIX BUG 2
-              active: true,
-              online: true,
-              messages: [newMsg]
-            };
-            return [newChat, ...chats];
-          }
+          return chats.map(c => {
+            if (c.id === receiverId) {
+              const updatedMessages = c.messages.map(m =>
+                m.id === tempId ? { ...m, id: data.id, text: data.content, attachment: data.attachmentUrl ? { name: 'File', url: data.attachmentUrl, size: '...' } : undefined } : m
+              );
+              return { ...c, messages: updatedMessages };
+            }
+            return c;
+          });
         });
       }),
       timeout(10000),
       catchError((err: any) => {
+        // Rollback optimistic update on error
+        this.chats.update(chats => {
+          return chats.map(c => {
+            if (c.id === receiverId) {
+              return { ...c, messages: c.messages.filter(m => m.id !== tempId) };
+            }
+            return c;
+          });
+        });
         if (err.name === 'TimeoutError') {
           console.error('[PlatformState] sendMessageToUser timed out');
         }
@@ -987,9 +1023,17 @@ export class PlatformStateService {
     );
   }
 
+  uploadMessageAttachment(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    // Use existing Cloudinary endpoint or similar if available
+    // For now, let's assume a generic media upload exists or we add it
+    return this.http.post<any>(`${this.apiUrl}/media/upload`, formData);
+  }
+
   fetchChats(userId: string) {
     console.log('[PlatformState] Fetching chats for userId:', userId);
-  
+
     this.http.get<any>(`${this.apiUrl}/messages/user/${userId}/recent`).pipe(timeout(10000)).subscribe({
       next: (res) => {
         const data = res.content || res || [];
@@ -1231,5 +1275,66 @@ export class PlatformStateService {
       next: (locs) => this.availableLocations.set(locs as string[]),
       error: (err: HttpErrorResponse) => console.error('Error fetching locations', err)
     });
+  }
+
+  addRealTimeMessage(data: any) {
+    const currentUserId = this.auth.currentUser()?.id;
+    if (!currentUserId) return;
+
+    const isSender = data.senderId?.toString() === currentUserId.toString();
+    const otherId = isSender ? data.receiverId : data.senderId;
+    const otherName = isSender ? data.receiverName : data.senderName || 'Unknown';
+
+    const sentAt = data.sentAt || new Date().toISOString();
+    const time = new Date(sentAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const rawTime = new Date(sentAt).getTime();
+
+    const newMsg: ChatMessage = {
+      id: data.id,
+      text: data.content,
+      time,
+      sent: isSender,
+      attachment: data.attachmentUrl ? { name: 'File', url: data.attachmentUrl, size: '...' } : undefined
+    };
+
+    this.chats.update(chats => {
+      const existing = chats.find(c => c.id === otherId);
+      if (existing) {
+        // If chat is active, we don't increment unread
+        const isUnread = !isSender && !existing.active;
+
+        const updated = chats.map(c =>
+          c.id === otherId ? {
+            ...c,
+            lastMessage: data.content || 'File',
+            time,
+            rawTime,
+            unread: isUnread ? (c.unread || 0) + 1 : c.unread,
+            messages: [...(c.messages || []), newMsg]
+          } : c
+        );
+        return updated.sort((a, b) => (b.rawTime ?? 0) - (a.rawTime ?? 0));
+      } else {
+        // New conversation
+        const newChat: Chat = {
+          id: otherId,
+          workerId: otherId,
+          name: otherName,
+          initials: otherName.split(' ').map((n: any) => n[0]).join('').toUpperCase(),
+          lastMessage: data.content || 'File',
+          time,
+          rawTime,
+          active: false,
+          online: true,
+          unread: isSender ? 0 : 1,
+          messages: [newMsg]
+        };
+        return [newChat, ...chats];
+      }
+    });
+
+    if (!isSender) {
+      this.notification.info(`New message from ${otherName}`);
+    }
   }
 }

@@ -1,4 +1,5 @@
 import { Injectable, signal, computed, inject, PLATFORM_ID } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
@@ -23,6 +24,7 @@ export class AuthService {
   private userSignal = signal<User | null>(null);
 
   currentUser = computed(() => this.userSignal());
+  user$ = toObservable(this.currentUser);
   isAuthenticated = computed(() => !!this.userSignal());
   userRole = computed(() => this.userSignal()?.role || null);
 

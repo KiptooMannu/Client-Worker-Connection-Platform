@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../core/services/auth.service';
 import { PlatformStateService } from '../../core/services/platform-state.service';
+import { WebSocketService } from '../../core/services/websocket.service';
 
 @Component({
   selector: 'app-navbar',
@@ -198,6 +199,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 export class NavbarComponent {
   auth = inject(AuthService);
   state = inject(PlatformStateService);
+  ws = inject(WebSocketService); // Initialize WebSocket connection
   router = inject(Router);
   
   isMobileMenuOpen = signal(false);

@@ -1,13 +1,14 @@
 import {
   Component, inject, computed, signal, effect,
-  OnDestroy, AfterViewInit, ViewChild, ElementRef, ChangeDetectionStrategy, PLATFORM_ID
+  OnDestroy, AfterViewInit, ViewChild, ElementRef, ChangeDetectionStrategy, PLATFORM_ID, SecurityContext
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Subscription, timeout } from 'rxjs';
-import { PlatformStateService } from '../../core/services/platform-state.service';
+import { PlatformStateService, ChatMessage } from '../../core/services/platform-state.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { AuthService } from '../../core/services/auth.service';
 import { environment } from '../../../environments/environment';
@@ -126,8 +127,26 @@ interface UserContact {
               <span class="chat-header__name">{{ selectedUser()!.username }}</span>
               <span class="chat-header__sub">{{ selectedUser()!.email }}</span>
             </div>
+            <div class="chat-header__actions">
+              <button class="header-action-btn" (click)="toggleMessageSearch()" [class.active]="isSearchingMessages()">
+                <mat-icon>search</mat-icon>
+              </button>
+            </div>
             <span class="role-pill">{{ selectedUser()!.role }}</span>
           </header>
+
+          @if (isSearchingMessages()) {
+            <div class="message-search-bar animate-in slide-in-from-top-2">
+              <mat-icon>manage_search</mat-icon>
+              <input 
+                type="text" 
+                placeholder="Search in conversation..." 
+                [value]="messageSearchQuery()"
+                (input)="messageSearchQuery.set($any($event.target).value)"
+                #msgSearchInput>
+              <button (click)="toggleMessageSearch()"><mat-icon>close</mat-icon></button>
+            </div>
+          }
 
           <!-- Messages scroll area -->
           <div class="messages-area" #messagesContainer>
@@ -143,10 +162,19 @@ interface UserContact {
                 <p>No messages yet — say hello!</p>
               </div>
             } @else {
-              @for (msg of currentMessages(); track msg.id) {
+              @for (msg of displayedMessages(); track msg.id) {
                 <div class="msg-row" [class.msg-row--sent]="msg.sent">
                   <div class="bubble" [class.bubble--sent]="msg.sent" [class.bubble--recv]="!msg.sent">
-                    <p class="bubble__text">{{ msg.text }}</p>
+                    @if (msg.attachment) {
+                      <div class="bubble__attachment">
+                        <mat-icon>insert_drive_file</mat-icon>
+                        <span class="attachment-name">Attachment</span>
+                        <a [href]="$any(msg.attachment).url" target="_blank" class="attachment-download">
+                          <mat-icon>download</mat-icon>
+                        </a>
+                      </div>
+                    }
+                    <p class="bubble__text" [innerHTML]="highlightText(msg.text)"></p>
                     <span class="bubble__time">{{ msg.time }}</span>
                   </div>
                 </div>
@@ -157,16 +185,31 @@ interface UserContact {
 
           <!-- Input bar -->
           <footer class="input-bar">
-            <textarea
-              class="input-bar__field"
-              rows="1"
-              placeholder="Type a message…"
-              [value]="messageInput()"
-              (input)="messageInput.set($any($event.target).value)"
-              (keydown)="onKeydown($event)"></textarea>
+            <input type="file" #fileInput (change)="onFileSelected($event)" style="display: none">
+            <button class="attach-btn" (click)="fileInput.click()" [disabled]="sendingMessage()">
+              <mat-icon>add_circle_outline</mat-icon>
+            </button>
+            
+            <div class="input-container">
+              @if (pendingFile()) {
+                <div class="pending-file">
+                  <mat-icon>description</mat-icon>
+                  <span>{{ pendingFile()!.name }}</span>
+                  <button (click)="pendingFile.set(null)"><mat-icon>close</mat-icon></button>
+                </div>
+              }
+              <textarea
+                class="input-bar__field"
+                rows="1"
+                placeholder="Type a message…"
+                [value]="messageInput()"
+                (input)="messageInput.set($any($event.target).value)"
+                (keydown)="onKeydown($event)"></textarea>
+            </div>
+
             <button
               class="send-btn"
-              [disabled]="messageInput().trim().length === 0 || sendingMessage()"
+              [disabled]="(messageInput().trim().length === 0 && !pendingFile()) || sendingMessage()"
               (click)="sendMessage()">
               @if (sendingMessage()) {
                 <span class="spinner spinner--white"></span>
@@ -625,6 +668,102 @@ interface UserContact {
     .send-btn:disabled { background: #e2e8f0; cursor: not-allowed; }
     .send-btn mat-icon { font-size: 20px; }
 
+    /* ── Message Search Bar ───────────────────────────────────────── */
+    .message-search-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      background: #f8fafc;
+      border-bottom: 1px solid #eef2ff;
+      border-top: 1px solid #eef2ff;
+    }
+    .message-search-bar mat-icon { font-size: 18px; color: #94a3b8; }
+    .message-search-bar input {
+      flex: 1;
+      border: none;
+      background: none;
+      font-size: 13px;
+      color: #0f172a;
+      outline: none;
+    }
+    .message-search-bar button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      display: flex;
+      padding: 0;
+    }
+
+    .header-action-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      display: flex;
+      padding: 8px;
+      border-radius: 8px;
+      transition: all .2s;
+    }
+    .header-action-btn:hover { background: #f1f5f9; color: #4f46e5; }
+    .header-action-btn.active { background: #eef2ff; color: #4f46e5; }
+
+    /* ── Attachments ─────────────────────────────────────────────── */
+    .bubble__attachment {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .bubble--recv .bubble__attachment {
+      background: #fff;
+      border-color: #e2e8f0;
+    }
+    .attachment-name { font-size: 12px; font-weight: 600; flex: 1; }
+    .attachment-download { color: inherit; display: flex; opacity: .8; transition: opacity .2s; }
+    .attachment-download:hover { opacity: 1; }
+    .attachment-download mat-icon { font-size: 16px; }
+
+    .attach-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      display: flex;
+      padding: 8px;
+      border-radius: 50%;
+      transition: all .2s;
+    }
+    .attach-btn:hover { color: #4f46e5; background: #eef2ff; }
+
+    .input-container { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .pending-file {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 10px;
+      background: #eef2ff;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #4f46e5;
+      font-weight: 600;
+      width: fit-content;
+    }
+    .pending-file button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #4f46e5;
+      display: flex;
+      padding: 0;
+    }
+    .pending-file mat-icon { font-size: 14px; width: 14px; height: 14px; }
+
     /* ── Spinner ─────────────────────────────────────────────────── */
     .spinner {
       width: 18px;
@@ -650,11 +789,13 @@ interface UserContact {
 export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
   @ViewChild('messagesContainer') private messagesContainerRef!: ElementRef<HTMLElement>;
+  @ViewChild('msgSearchInput') private msgSearchInputRef!: ElementRef<HTMLInputElement>;
 
   private http = inject(HttpClient);
   private state = inject(PlatformStateService);
   private notification = inject(NotificationService);
   private auth = inject(AuthService);
+  private sanitizer = inject(DomSanitizer);
   private apiUrl = environment.apiUrl;
   private platformId = inject(PLATFORM_ID);
 
@@ -668,6 +809,13 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   isSearching = signal(false);
   allUsers = this.state.allUsers; // Use shared signal from state service
   isMobile = signal(false);
+
+  // Message Search
+  isSearchingMessages = signal(false);
+  messageSearchQuery = signal('');
+
+  // Attachments
+  pendingFile = signal<File | null>(null);
 
   // FIX BUG 1: track whether the initial user load has been started
   // to prevent the search effect from triggering a duplicate/cancelled request
@@ -717,10 +865,18 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     });
   });
 
-  currentMessages = computed(() => {
+  currentMessages = computed<ChatMessage[]>(() => {
     const sel = this.selectedUser();
     if (!sel) return [];
     return this.state.chats().find(c => c.id === sel.id)?.messages ?? [];
+  });
+
+  displayedMessages = computed<ChatMessage[]>(() => {
+    const msgs = this.currentMessages();
+    const q = this.messageSearchQuery().trim().toLowerCase();
+    if (!q || !this.isSearchingMessages()) return msgs;
+
+    return msgs.filter(m => m.text.toLowerCase().includes(q));
   });
 
   // ── Subscriptions ────────────────────────────────────────────────
@@ -1028,29 +1184,78 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
   sendMessage() {
     const content = this.messageInput().trim();
+    const file = this.pendingFile();
     const sel = this.selectedUser();
-    if (!content || !sel || this.sendingMessage()) return;
+    if ((!content && !file) || !sel || this.sendingMessage()) return;
 
     this.sendingMessage.set(true);
 
-    this.state.sendMessageToUser(sel.id, content).subscribe({
+    if (file) {
+      this.state.uploadMessageAttachment(file).subscribe({
+        next: (res) => {
+          this.finishSendMessage(sel.id, content, res.url);
+          this.pendingFile.set(null);
+        },
+        error: (err) => {
+          console.error('File upload failed', err);
+          this.notification.error('Failed to upload file');
+          this.sendingMessage.set(false);
+        }
+      });
+    } else {
+      this.finishSendMessage(sel.id, content);
+    }
+  }
+
+  private finishSendMessage(receiverId: string, content: string, attachmentUrl?: string) {
+    this.state.sendMessageToUser(receiverId, content, attachmentUrl).subscribe({
       next: () => {
         this.messageInput.set('');
         this.sendingMessage.set(false);
         this.scrollToBottom();
       },
-      error: (err: HttpErrorResponse) => {
+      error: (err: any) => {
         console.error('Failed to send message:', err);
         this.sendingMessage.set(false);
-        if (err.status === 0) {
+        if (err.status === 0 || err.name === 'TimeoutError') {
           this.notification.error('Network error - message not sent');
-        } else if (err.status === 504) {
-          this.notification.error('Server timeout - message may not have been sent');
         } else {
           this.notification.error('Failed to send message');
         }
       }
     });
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        this.notification.error('File too large (max 10MB)');
+        return;
+      }
+      this.pendingFile.set(file);
+    }
+  }
+
+  toggleMessageSearch() {
+    this.isSearchingMessages.update(v => !v);
+    if (this.isSearchingMessages()) {
+      setTimeout(() => this.msgSearchInputRef?.nativeElement?.focus(), 100);
+    } else {
+      this.messageSearchQuery.set('');
+    }
+  }
+
+  highlightText(text: string): string {
+    const q = this.messageSearchQuery().trim();
+    if (!q || !this.isSearchingMessages()) {
+      return this.sanitizer.sanitize(SecurityContext.HTML, text) || '';
+    }
+    
+    const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQ})`, 'gi');
+    const highlighted = text.replace(regex, '<mark class="bg-amber-200 rounded px-1">$1</mark>');
+    return this.sanitizer.sanitize(SecurityContext.HTML, highlighted) || '';
   }
 
   markAllAsRead() {
