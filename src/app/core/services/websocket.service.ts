@@ -50,6 +50,12 @@ export class WebSocketService {
         this.handleIncomingMessage(data);
       });
 
+      // Subscribe to typing indicators
+      this.stompClient?.subscribe(`/user/${userId}/queue/typing`, (message: IMessage) => {
+        const data = JSON.parse(message.body);
+        this.state.setRemoteTyping(data.senderId, data.typing);
+      });
+
       // Subscribe to global notifications
       this.stompClient?.subscribe('/topic/notifications', (message: IMessage) => {
         const data = JSON.parse(message.body);

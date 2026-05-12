@@ -182,19 +182,34 @@ interface UserContact {
                   }
                   <div class="bubble" [class.bubble--sent]="msg.sent" [class.bubble--recv]="!msg.sent">
                     @if (msg.attachment) {
-                      <div class="bubble__attachment">
-                        <mat-icon>insert_drive_file</mat-icon>
-                        <span class="attachment-name">Attachment</span>
-                        <a [href]="$any(msg.attachment).url" target="_blank" class="attachment-download">
-                          <mat-icon>download</mat-icon>
-                        </a>
-                      </div>
+                      @if (isImage($any(msg.attachment).url)) {
+                        <div class="bubble__image-preview">
+                          <img [src]="$any(msg.attachment).url" alt="Attachment" (click)="openFullImage($any(msg.attachment).url)">
+                        </div>
+                      } @else {
+                        <div class="bubble__attachment">
+                          <mat-icon>insert_drive_file</mat-icon>
+                          <span class="attachment-name">Attachment</span>
+                          <a [href]="$any(msg.attachment).url" target="_blank" class="attachment-download">
+                            <mat-icon>download</mat-icon>
+                          </a>
+                        </div>
+                      }
                     }
                     <p class="bubble__text" [innerHTML]="highlightText(msg.text)"></p>
                     <span class="bubble__time">{{ msg.time }}</span>
                   </div>
                 </div>
               }
+            }
+            
+            @if (isPartnerTyping()) {
+              <div class="typing-indicator animate-in fade-in zoom-in-95">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <span>typing...</span>
+              </div>
             }
 
           </div>
@@ -643,6 +658,21 @@ interface UserContact {
       color: #0f172a;
       border-bottom-left-radius: 4px;
     }
+    .bubble__image-preview {
+      margin-bottom: 8px;
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      max-width: 260px;
+    }
+    .bubble__image-preview img {
+      width: 100%;
+      height: auto;
+      display: block;
+      transition: transform .2s;
+    }
+    .bubble__image-preview:hover img { transform: scale(1.02); }
+
     .bubble__text {
       font-size: 13.5px;
       line-height: 1.5;
@@ -680,6 +710,36 @@ interface UserContact {
       letter-spacing: .5px;
       z-index: 1;
       border: 1px solid #f1f5f9;
+    }
+
+    .typing-indicator {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      background: #f8fafc;
+      border-radius: 12px;
+      width: fit-content;
+      margin-bottom: 8px;
+    }
+    .typing-dot {
+      width: 4px;
+      height: 4px;
+      background: #94a3b8;
+      border-radius: 50%;
+      animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+    .typing-dot:nth-child(2) { animation-delay: .2s; }
+    .typing-dot:nth-child(3) { animation-delay: .4s; }
+    .typing-indicator span {
+      font-size: 10px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-left: 4px;
+    }
+    @keyframes typingAnimation {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
     }
 
     /* ── Input bar ───────────────────────────────────────────────── */
@@ -888,6 +948,10 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   currentUserId = computed(() => this.auth.currentUser()?.id || '');
   currentUserRole = computed(() => this.auth.currentUser()?.role || '');
   unreadTotal = computed(() => this.state.unreadMessagesCount());
+  isPartnerTyping = computed(() => {
+    const sel = this.selectedUser();
+    return sel ? !!this.state.typingUsers()[sel.id] : false;
+  });
 
   recentUsers = computed<UserContact[]>(() => {
     const allU = this.allUsers();
@@ -1389,10 +1453,28 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       this.sendMessage();
+      // Clear typing status immediately on send
+      const sel = this.selectedUser();
+      if (sel) this.state.sendTypingStatus(sel.id, false);
+    } else {
+      // Send typing status
+      const sel = this.selectedUser();
+      if (sel) this.state.sendTypingStatus(sel.id, true);
+      // Optional: Add a debounce/timeout to stop typing after 3 seconds of inactivity
     }
     const el = event.target as HTMLTextAreaElement;
     el.style.height = 'auto';
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+
+  isImage(url: string): boolean {
+    if (!url) return false;
+    const lower = url.toLowerCase();
+    return lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.gif') || lower.endsWith('.webp') || url.includes('cloudinary');
+  }
+
+  openFullImage(url: string) {
+    window.open(url, '_blank');
   }
 
   initials(name: string): string {

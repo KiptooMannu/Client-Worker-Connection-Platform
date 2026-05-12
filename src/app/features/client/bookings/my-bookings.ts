@@ -7,6 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { FormsModule } from '@angular/forms';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -16,6 +17,7 @@ import { NotificationService } from '../../../core/services/notification.service
   imports: [
     CommonModule, 
     RouterLink,
+    FormsModule,
     MatCardModule, 
     MatButtonModule, 
     MatIconModule, 
@@ -60,7 +62,7 @@ import { NotificationService } from '../../../core/services/notification.service
       <!-- Bookings Table -->
       <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !overflow-hidden">
         <mat-card-header class="!p-8 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-row !justify-between !items-center">
-          <mat-card-title class="!text-[10px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Active & Past Projects</mat-card-title>
+          <mat-card-title class="!text-[10px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Project Lifecycle Management</mat-card-title>
         </mat-card-header>
         
         <table mat-table [dataSource]="state.bookings()" class="w-full">
@@ -69,7 +71,9 @@ import { NotificationService } from '../../../core/services/notification.service
             <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Professional</th>
             <td mat-cell *matCellDef="let booking" data-label="Professional">
               <div class="flex items-center gap-4 py-6">
-                <div class="h-10 w-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-700 font-black text-[11px] uppercase border border-indigo-100 shadow-sm">{{ booking.workerInitials }}</div>
+                <div class="h-10 w-10 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-700 font-black text-[11px] uppercase border border-indigo-100 shadow-sm overflow-hidden">
+                   @if (booking.workerImage) { <img [src]="booking.workerImage" class="w-full h-full object-cover"> } @else { {{ booking.workerInitials }} }
+                </div>
                 <div>
                   <p class="text-sm font-black text-slate-900 leading-tight">{{ booking.workerName }}</p>
                   <p class="text-[10px] text-slate-400 font-black uppercase mt-1">{{ booking.service }}</p>
@@ -80,36 +84,60 @@ import { NotificationService } from '../../../core/services/notification.service
 
           <!-- Date Column -->
           <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Date</th>
-            <td mat-cell *matCellDef="let booking" data-label="Date" class="text-sm font-bold text-slate-500">{{ booking.date }}</td>
+            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Timeline</th>
+            <td mat-cell *matCellDef="let booking" data-label="Date">
+               <p class="text-sm font-bold text-slate-900">{{ booking.date }}</p>
+               <p class="text-[9px] text-slate-400 font-black uppercase mt-0.5 tracking-tighter">Requested</p>
+            </td>
           </ng-container>
 
           <!-- Cost Column -->
           <ng-container matColumnDef="cost">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Cost</th>
-            <td mat-cell *matCellDef="let booking" data-label="Cost" class="text-sm font-black text-slate-900">$\{{ booking.earnings }}</td>
+            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Escrow / Cost</th>
+            <td mat-cell *matCellDef="let booking" data-label="Cost">
+               <div class="flex flex-col">
+                  <span class="text-sm font-black text-slate-900">$\{{ booking.earnings }}</span>
+                  <span class="text-[8px] font-black uppercase tracking-widest" [ngClass]="booking.status === 'Completed' ? 'text-teal-600' : 'text-amber-500'">
+                     {{ booking.status === 'Completed' ? 'Released' : 'Pending Escrow' }}
+                  </span>
+               </div>
+            </td>
           </ng-container>
 
           <!-- Status Column -->
           <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Status & Action</th>
+            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Lifecycle Status</th>
             <td mat-cell *matCellDef="let booking" data-label="Status" class="text-right">
-              <div class="flex flex-col items-end gap-2">
-                <span class="inline-block px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" 
+              <div class="flex flex-col items-end gap-3">
+                <span class="inline-block px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest shadow-sm border border-black/5" 
                       [ngClass]="getStatusClasses(booking.status)">
                   {{ booking.status }}
                 </span>
                 
-                <div class="flex gap-1">
-                  @if (booking.status === 'Pending') {
-                    <button (click)="state.updateJobStatus(booking.id, 'CANCELLED')" class="text-rose-600 text-[8px] font-black uppercase tracking-widest hover:underline">
-                      Cancel Request
-                    </button>
-                  }
-                  @if (booking.status === 'Completed') {
-                    <button class="bg-indigo-600 text-white px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest shadow-lg shadow-indigo-600/20">
-                      Rate Service
-                    </button>
+                <div class="flex gap-2">
+                  @if (state.updatingJobIds().has(booking.id)) {
+                    <div class="px-4 py-1.5"><mat-icon class="animate-spin text-teal-600 !text-sm !w-auto !h-auto">sync</mat-icon></div>
+                  } @else {
+                    @if (booking.status === 'Pending') {
+                      <button (click)="state.updateJobStatus(booking.id, 'CANCELLED')" class="text-rose-600 text-[9px] font-black uppercase tracking-widest hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors border border-rose-100">
+                        Cancel
+                      </button>
+                    }
+                    @if (booking.status === 'Accepted' || booking.status === 'Approved' || booking.status === 'Revision') {
+                      <div class="flex gap-2">
+                        <button (click)="state.updateJobStatus(booking.id, 'COMPLETED')" class="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-teal-600/20 hover:scale-105 transition-all">
+                          Confirm & Finish
+                        </button>
+                        <button (click)="state.updateJobStatus(booking.id, 'REVISION')" class="text-amber-600 text-[9px] font-black uppercase tracking-widest hover:bg-amber-50 px-3 py-1.5 rounded-lg transition-colors border border-amber-100">
+                          Request Revision
+                        </button>
+                      </div>
+                    }
+                    @if (booking.status === 'Completed' && !booking.hasReview) {
+                      <button (click)="openReviewModal(booking)" class="bg-[#0f172a] text-white px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg hover:bg-indigo-600 transition-all">
+                        Leave Review
+                      </button>
+                    }
                   }
                 </div>
               </div>
@@ -121,25 +149,61 @@ import { NotificationService } from '../../../core/services/notification.service
         </table>
 
         @if (state.bookings().length === 0) {
-            <div class="p-20 text-center bg-slate-50">
-                <mat-icon class="!text-6xl !w-auto !h-auto text-slate-200 mb-6">work_history</mat-icon>
-                <h3 class="text-2xl font-black text-slate-900 mb-2">No Hires Yet</h3>
-                <p class="text-slate-500 font-medium">Browse the marketplace to find and connect with top-tier professionals.</p>
-                <button mat-flat-button color="primary" class="mt-8 !rounded-xl !px-8 !py-4 !font-black !text-[10px] !uppercase !tracking-widest" routerLink="/client/marketplace">Explore Marketplace</button>
+            <div class="p-24 text-center bg-white">
+                <mat-icon class="!text-6xl !w-auto !h-auto text-slate-100 mb-6" style="font-variation-settings: 'FILL' 1;">work_history</mat-icon>
+                <h3 class="text-2xl font-black text-slate-900 mb-2">No active projects</h3>
+                <p class="text-slate-500 font-medium max-w-sm mx-auto">Start building your team by exploring our verified marketplace of skilled professionals.</p>
+                <button mat-flat-button class="mt-8 !bg-indigo-600 !text-white !rounded-2xl !px-10 !py-6 !font-black !text-[11px] !uppercase !tracking-widest !shadow-2xl !shadow-indigo-600/30" routerLink="/client/marketplace">Explore Marketplace</button>
             </div>
         }
       </mat-card>
+
+      <!-- Review Modal -->
+      @if (reviewBooking) {
+         <div class="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="reviewBooking = null"></div>
+            <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 animate-in zoom-in-95 duration-300">
+               <h3 class="text-2xl font-black text-slate-900 tracking-tighter mb-2">How was the service?</h3>
+               <p class="text-sm text-slate-500 font-medium mb-8">Your feedback helps {{ reviewBooking.workerName }} and other clients.</p>
+               
+               <!-- Star Rating -->
+               <div class="flex justify-center gap-2 mb-8">
+                  @for (star of [1,2,3,4,5]; track star) {
+                     <button (click)="reviewRating = star" class="transition-all hover:scale-110 active:scale-95">
+                        <mat-icon class="!text-4xl !w-auto !h-auto" 
+                                 [ngClass]="reviewRating >= star ? 'text-amber-400 fill-star' : 'text-slate-200'">
+                           star
+                        </mat-icon>
+                     </button>
+                  }
+               </div>
+
+               <div class="space-y-4">
+                  <textarea [(ngModel)]="reviewComment" 
+                            name="reviewComment"
+                            class="w-full h-32 bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-medium placeholder:text-slate-300 focus:ring-2 focus:ring-indigo-600 focus:border-transparent transition-all outline-none"
+                            placeholder="Write your experience here..."></textarea>
+                  
+                  <button (click)="submitReview()" 
+                          [disabled]="!reviewRating"
+                          class="w-full bg-[#0f172a] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:opacity-90 disabled:opacity-30 disabled:cursor-not-allowed transition-all">
+                     Submit Feedback
+                  </button>
+               </div>
+            </div>
+         </div>
+      }
     </div>
   `,
   styles: [`
     :host { display: block; }
+    .fill-star { font-variation-settings: 'FILL' 1; }
     
     @media (max-width: 768px) {
       .text-5xl { font-size: 2.5rem !important; }
-      .p-8, .p-20 { padding: 1.5rem !important; }
+      .p-8, .p-24, .p-10 { padding: 1.5rem !important; }
       .grid-cols-3 { grid-template-columns: 1fr !important; }
       
-      /* Mobile Table Handling */
       .mat-mdc-table { display: block; }
       .mat-mdc-header-row { display: none; }
       .mat-mdc-row {
@@ -171,6 +235,28 @@ export class ClientBookingsPage {
   private notification = inject(NotificationService);
   displayedColumns: string[] = ['worker', 'date', 'cost', 'status'];
 
+  // Review State
+  reviewBooking: any = null;
+  reviewRating: number = 0;
+  reviewComment: string = '';
+
+  openReviewModal(booking: any) {
+    this.reviewBooking = booking;
+    this.reviewRating = 0;
+    this.reviewComment = '';
+  }
+
+  submitReview() {
+    if (!this.reviewBooking || !this.reviewRating) return;
+    this.state.submitReview(
+      this.reviewBooking.workerId,
+      this.reviewBooking.id,
+      this.reviewRating,
+      this.reviewComment
+    );
+    this.reviewBooking = null;
+  }
+
   showHistory() {
     const rows = this.state.bookings().map(b =>
       `${b.clientName},${b.workerName},${b.status},${b.date},${b.earnings}`
@@ -186,21 +272,28 @@ export class ClientBookingsPage {
     this.notification.success('Booking history exported.');
   }
 
-  get activeCount() { return this.state.bookings().filter(b => b.status === 'Approved' || b.status === 'Processing').length; }
-  get pendingCount() { return this.state.bookings().filter(b => b.status === 'Pending').length; }
+  get activeCount() { return this.state.bookings().filter(b => b.status === 'Approved' || b.status === 'Accepted' || b.status === 'Processing').length; }
+  get pendingCount() { return this.state.bookings().filter(b => b.status === 'Pending' || b.status === 'PENDING').length; }
   get totalSpent() { 
     return this.state.bookings()
-      .filter(b => b.status === 'Approved' || b.status === 'Completed')
+      .filter(b => b.status === 'Approved' || b.status === 'Completed' || b.status === 'Accepted')
       .reduce((sum, b) => sum + b.earnings, 0); 
   }
 
   getStatusClasses(status: string) {
     switch (status) {
-      case 'Approved': return 'bg-teal-50 text-teal-700';
-      case 'Pending': return 'bg-blue-50 text-blue-700';
-      case 'Processing': return 'bg-amber-50 text-amber-700';
-      case 'Completed': return 'bg-slate-100 text-slate-600';
-      default: return 'bg-slate-50 text-slate-500';
+      case 'Approved':
+      case 'Accepted': return 'bg-teal-50 text-teal-700 border-teal-100';
+      case 'Pending': 
+      case 'PENDING': return 'bg-blue-50 text-blue-700 border-blue-100';
+      case 'Processing': 
+      case 'IN_PROGRESS': return 'bg-amber-50 text-amber-700 border-amber-100';
+      case 'Completed': return 'bg-slate-50 text-slate-500 border-slate-200';
+      case 'Cancelled':
+      case 'CANCELLED': return 'bg-rose-50 text-rose-500 border-rose-100';
+      case 'Revision':
+      case 'REVISION': return 'bg-amber-50 text-amber-600 border-amber-100 animate-pulse';
+      default: return 'bg-slate-50 text-slate-400 border-slate-100';
     }
   }
 }

@@ -145,18 +145,22 @@ import { inject, computed, signal } from '@angular/core';
                 </span>
                 
                 <div class="flex gap-1">
-                  @if (job.status === 'Pending') {
-                    <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" class="bg-indigo-600 text-white p-1 rounded hover:bg-indigo-700 transition-colors" title="Accept Request">
-                      <mat-icon class="!text-xs !w-auto !h-auto">check</mat-icon>
-                    </button>
-                    <button (click)="state.updateJobStatus(job.id, 'REJECTED')" class="bg-rose-600 text-white p-1 rounded hover:bg-rose-700 transition-colors" title="Decline Request">
-                      <mat-icon class="!text-xs !w-auto !h-auto">close</mat-icon>
-                    </button>
-                  }
-                  @if (job.status === 'Approved' || job.status === 'Accepted') {
-                    <button (click)="state.updateJobStatus(job.id, 'COMPLETED')" class="bg-emerald-600 text-white px-2 py-1 rounded hover:bg-emerald-700 transition-colors text-[8px] font-black uppercase tracking-widest" title="Mark as Finished">
-                      Complete Job
-                    </button>
+                  @if (state.updatingJobIds().has(job.id)) {
+                    <div class="px-3 py-1.5"><mat-icon class="animate-spin text-blue-600 !text-xs !w-auto !h-auto">sync</mat-icon></div>
+                  } @else {
+                    @if (job.status === 'Pending') {
+                      <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" class="bg-indigo-600 text-white p-1 rounded hover:bg-indigo-700 transition-colors" title="Accept Request">
+                        <mat-icon class="!text-xs !w-auto !h-auto">check</mat-icon>
+                      </button>
+                      <button (click)="state.updateJobStatus(job.id, 'REJECTED')" class="bg-rose-600 text-white p-1 rounded hover:bg-rose-700 transition-colors" title="Decline Request">
+                        <mat-icon class="!text-xs !w-auto !h-auto">close</mat-icon>
+                      </button>
+                    }
+                    @if (job.status === 'Approved' || job.status === 'Accepted') {
+                      <button (click)="state.updateJobStatus(job.id, 'COMPLETED')" class="bg-emerald-600 text-white px-2 py-1 rounded hover:bg-emerald-700 transition-colors text-[8px] font-black uppercase tracking-widest" title="Mark as Finished">
+                        Complete Job
+                      </button>
+                    }
                   }
                 </div>
               </div>
@@ -167,26 +171,28 @@ import { inject, computed, signal } from '@angular/core';
           <tr mat-row *matRowDef="let job; columns: displayedColumns;" class="hover:bg-slate-50 transition-colors"></tr>
         </table>
 
-        <div class="p-8 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-          <button mat-button color="primary" (click)="prevPage()" [disabled]="currentPage() === 1" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1 disabled:!opacity-40">
-            <mat-icon class="!text-sm">chevron_left</mat-icon> Previous
-          </button>
-          <div class="flex gap-2">
-            @for (p of pageNumbers(); track p) {
-              <button
-                mat-stroked-button
-                color="primary"
-                (click)="goToPage(p)"
-                [ngClass]="p === currentPage() ? '!bg-slate-900 !text-white !border-slate-900' : ''"
-                class="!min-w-[40px] !w-10 !h-10 !p-0 !rounded-xl !font-black !border-slate-200">
-                {{ p }}
-              </button>
-            }
+        @if (jobs().length > 4) {
+          <div class="p-8 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+            <button mat-button color="primary" (click)="prevPage()" [disabled]="currentPage() === 1" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1 disabled:!opacity-40">
+              <mat-icon class="!text-sm">chevron_left</mat-icon> Previous
+            </button>
+            <div class="flex gap-2">
+              @for (p of pageNumbers(); track p) {
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  (click)="goToPage(p)"
+                  [ngClass]="p === currentPage() ? '!bg-slate-900 !text-white !border-slate-900' : ''"
+                  class="!min-w-[40px] !w-10 !h-10 !p-0 !rounded-xl !font-black !border-slate-200">
+                  {{ p }}
+                </button>
+              }
+            </div>
+            <button mat-button color="primary" (click)="nextPage()" [disabled]="currentPage() >= totalPages()" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1 disabled:!opacity-40">
+              Next <mat-icon class="!text-sm">chevron_right</mat-icon>
+            </button>
           </div>
-          <button mat-button color="primary" (click)="nextPage()" [disabled]="currentPage() >= totalPages()" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1 disabled:!opacity-40">
-            Next <mat-icon class="!text-sm">chevron_right</mat-icon>
-          </button>
-        </div>
+        }
       </mat-card>
     </div>
   `,
@@ -253,8 +259,8 @@ export class WorkerHistoryPage {
         date: b.date,
         earnings: `$${b.earnings.toFixed(2)}`,
         rating: b.rating,
-        statusBg: b.status === 'Approved' ? 'bg-teal-50' : 'bg-blue-50',
-        statusColor: b.status === 'Approved' ? 'text-teal-700' : 'text-blue-700'
+        statusBg: b.status === 'Approved' ? 'bg-teal-50' : (b.status === 'Revision' ? 'bg-amber-50' : 'bg-blue-50'),
+        statusColor: b.status === 'Approved' ? 'text-teal-700' : (b.status === 'Revision' ? 'text-amber-700' : 'text-blue-700')
       }));
   });
 

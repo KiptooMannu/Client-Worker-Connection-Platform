@@ -111,7 +111,8 @@ export interface Booking {
   date: string;
   earnings: number;
   rating?: number;
-  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Rejected' | 'Cancelled' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED';
+  hasReview?: boolean;
+  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Revision' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED' | 'REVISION';
 }
 
 export interface ClientProfile {
@@ -152,43 +153,69 @@ export class PlatformStateService {
   availableSkills = signal<string[]>([]);
   availableLocations = signal<string[]>([]);
   isLoadingWorkers = signal(false);
+  updatingJobIds = signal<Set<string>>(new Set());
 
   updateJobStatus(jobId: string, status: string) {
     const user = this.auth.currentUser();
     if (!user) return;
 
+    // Set loading state
+    this.updatingJobIds.update(set => {
+      const next = new Set(set);
+      next.add(jobId);
+      return next;
+    });
+
     this.http.put(`${this.apiUrl}/jobs/${jobId}/status?status=${status}`, {}).subscribe({
       next: () => {
         this.notification.success(`Job status updated to ${status}`);
+        
+        // Refresh appropriate data
         if (user.role === 'Worker') {
-          this.fetchWorkerProfile(user.id);
+          this.fetchWorkerJobs(this.currentWorker().id);
         } else if (user.role === 'Client') {
           this.fetchClientJobs(user.id);
         } else if (user.role === 'Admin') {
           this.fetchAllJobs();
         }
+
+        // Clear loading state
+        this.updatingJobIds.update(set => {
+          const next = new Set(set);
+          next.delete(jobId);
+          return next;
+        });
       },
       error: (err: HttpErrorResponse) => {
         console.error('Error updating job status', err);
         this.notification.error('Failed to update job status');
+        
+        // Clear loading state on error
+        this.updatingJobIds.update(set => {
+          const next = new Set(set);
+          next.delete(jobId);
+          return next;
+        });
       }
     });
   }
 
   private mapBooking(b: any): Booking {
+    const status = b.status || 'PENDING';
     return {
       id: b.id,
       clientId: b.clientId,
       workerId: b.workerId,
       workerName: b.workerName,
-      workerInitials: (b.workerName || 'U').split(' ').map((n: any) => n[0]).join('').toUpperCase(),
+      workerInitials: (b.workerName || 'U').split(' ').filter((n: string) => n).map((n: any) => n[0]).join('').toUpperCase(),
       clientName: b.clientName,
-      clientInitials: (b.clientName || 'U').split(' ').map((n: any) => n[0]).join('').toUpperCase(),
+      clientInitials: (b.clientName || 'U').split(' ').filter((n: string) => n).map((n: any) => n[0]).join('').toUpperCase(),
       service: b.service || b.description || 'General Service',
-      date: new Date(b.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }),
-      status: b.status.charAt(0) + b.status.slice(1).toLowerCase() as any,
+      date: b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A',
+      status: (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as any,
       earnings: b.totalCost || 0,
-      rating: b.rating
+      rating: b.rating,
+      hasReview: b.rating !== undefined && b.rating !== null
     };
   }
 
@@ -226,6 +253,9 @@ export class PlatformStateService {
   private platformId = inject(PLATFORM_ID);
   private apiUrl = environment.apiUrl;
   private pollingInterval: any;
+
+  // Typing indicators
+  typingUsers = signal<Record<string, boolean>>({});
 
   clearState() {
     this.notifications.set([]);
@@ -298,6 +328,13 @@ export class PlatformStateService {
                     // FIX BUG 3: Always fetch notifications and chats for ALL dashboards.
                     this.fetchNotifications(u.id);
                     this.fetchChats(u.id);
+                    
+                    // Periodically refresh jobs to ensure reviews/status changes reflect
+                    if (u.role === 'Worker' && this.currentWorker().id) {
+                      this.fetchWorkerJobs(this.currentWorker().id);
+                    } else if (u.role === 'Client') {
+                      this.fetchClientJobs(u.id);
+                    }
                   }
 
                   if (u && u.role === 'Admin') {
@@ -328,6 +365,8 @@ export class PlatformStateService {
     } else if (role === 'Client') {
       this.fetchClientProfile(userId);
       this.fetchClientJobs(userId);
+      this.fetchMarketplaceWorkers(); // Load initial workers
+      this.fetchMarketplaceMetadata(); // Load skills and locations
     }
     // Load common data for all roles
     this.fetchNotifications(userId);
@@ -1034,20 +1073,27 @@ export class PlatformStateService {
       timeout(30000),
       catchError((err: any) => {
         // Rollback optimistic update on error
-        this.chats.update(chats => {
-          return chats.map(c => {
-            if (c.id === receiverId) {
-              return { ...c, messages: c.messages.filter(m => m.id !== tempId) };
-            }
-            return c;
-          });
-        });
+        this.chats.update(chats => 
+          chats.map(c => 
+            c.id === receiverId ? { ...c, messages: c.messages.filter(m => m.id !== tempId) } : c
+          )
+        );
         if (err.name === 'TimeoutError') {
           console.error('[PlatformState] sendMessageToUser timed out');
         }
         return throwError(() => err);
       })
     );
+  }
+
+  setRemoteTyping(senderId: string, typing: boolean) {
+    this.typingUsers.update(users => ({ ...users, [senderId]: typing }));
+  }
+
+  sendTypingStatus(receiverId: string, typing: boolean): void {
+    this.http.post(`${this.apiUrl}/messages/typing?receiverId=${receiverId}&typing=${typing}`, {}).subscribe({
+      error: (err) => console.error('Failed to send typing status', err)
+    });
   }
 
   uploadMessageAttachment(file: File): Observable<any> {
@@ -1287,31 +1333,61 @@ export class PlatformStateService {
   private mapJobToBooking(job: any): Booking {
     const clientName = job.clientName || 'Client';
     const workerName = job.workerName || 'Worker';
+    const status = job.status || 'PENDING';
+    
     return {
       id: job.id,
       clientId: job.clientId,
       clientName,
-      clientInitials: clientName.split(' ').map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'CL',
+      clientInitials: clientName.split(' ').filter((n: string) => n).map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'CL',
       workerId: job.workerId,
       workerName,
-      workerInitials: workerName.split(' ').map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'WK',
-      service: 'Service Request',
-      date: new Date(job.createdAt).toLocaleDateString(),
+      workerInitials: workerName.split(' ').filter((n: string) => n).map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'WK',
+      service: job.description || 'Service Request',
+      date: job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A',
       earnings: job.totalCost || 0,
-      status: job.status === 'ACCEPTED' ? 'Approved' :
-        job.status === 'REJECTED' ? 'Processing' :
-          job.status === 'COMPLETED' ? 'Completed' : 'Pending'
+      status: (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as any,
+      rating: job.rating,
+      hasReview: job.rating !== undefined && job.rating !== null
     };
   }
 
   fetchMarketplaceMetadata() {
     this.http.get<any[]>(`${this.apiUrl}/marketplace/skills`).subscribe({
-      next: (skills) => this.availableSkills.set(skills.map(s => s.name)),
+      next: (skills) => {
+        console.log('[PlatformState] Fetched skills:', skills.length);
+        this.availableSkills.set(skills.map(s => s.name || s));
+      },
       error: (err: HttpErrorResponse) => console.error('Error fetching skills', err)
     });
-    this.http.get<String[]>(`${this.apiUrl}/marketplace/locations`).subscribe({
-      next: (locs) => this.availableLocations.set(locs as string[]),
+    this.http.get<any[]>(`${this.apiUrl}/marketplace/locations`).subscribe({
+      next: (locs) => {
+        console.log('[PlatformState] Fetched locations:', locs.length);
+        this.availableLocations.set(locs as string[]);
+      },
       error: (err: HttpErrorResponse) => console.error('Error fetching locations', err)
+    });
+  }
+
+  submitReview(workerId: string, bookingId: string, rating: number, comment: string) {
+    const user = this.auth.currentUser();
+    if (!user || user.role !== 'Client') return;
+
+    const payload = {
+      rating,
+      comment
+    };
+
+    this.http.post(`${this.apiUrl}/reviews?clientId=${user.id}&workerProfileId=${workerId}&jobId=${bookingId}`, payload).subscribe({
+      next: () => {
+        this.notification.success('Thank you for your review!');
+        // Update job status to ensure it's marked as reviewed
+        this.fetchClientJobs(user.id);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error submitting review', err);
+        this.notification.error('Failed to submit review.');
+      }
     });
   }
 
