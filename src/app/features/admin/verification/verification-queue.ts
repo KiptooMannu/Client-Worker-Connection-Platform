@@ -51,8 +51,13 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{{ selectedIds.size }} Selected</span>
               <div class="h-6 w-[1px] bg-slate-100"></div>
               <div class="flex gap-2">
-                <button (click)="openBulkReject()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-all border border-red-100">Reject</button>
-                <button (click)="bulkApprove()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-indigo-600 text-white hover:bg-indigo-700 transition-all">Approve</button>
+                <button (click)="openBulkReject()" [disabled]="isProcessing()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-all border border-red-100 disabled:opacity-50 disabled:cursor-not-allowed">Reject</button>
+                <button (click)="bulkApprove()" [disabled]="isProcessing()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-indigo-600 text-white hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  @if (isProcessing()) {
+                    <span class="inline-block w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  }
+                  Approve
+                </button>
               </div>
             </div>
           }
@@ -136,16 +141,21 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <td mat-cell *matCellDef="let user" class="text-right !px-6 !border-b !border-slate-50">
                 @if (reviewingId === user.id && !detailedReview) {
                   <div class="flex items-center justify-end gap-2 animate-in slide-in-from-right-4">
-                    <button (click)="openDetailedReview(user)" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center transition-all" title="View Details">
+                    <button (click)="openDetailedReview(user)" class="w-8 h-8 rounded-lg hover:bg-slate-100 text-slate-400 flex items-center justify-center transition-all cursor-pointer" title="View Details">
                       <mat-icon class="!text-lg">visibility</mat-icon>
                     </button>
-                    <button (click)="openReject(user)" class="w-8 h-8 rounded-lg hover:bg-rose-50 text-rose-600 flex items-center justify-center transition-all border border-transparent hover:border-rose-100" title="Reject">
+                    <button (click)="openReject(user)" [disabled]="isProcessing()" class="w-8 h-8 rounded-lg hover:bg-rose-50 text-rose-600 flex items-center justify-center transition-all border border-transparent hover:border-rose-100 disabled:opacity-50 disabled:cursor-not-allowed" title="Reject">
                       <mat-icon class="!text-lg">block</mat-icon>
                     </button>
-                    <button (click)="approve(user)" class="px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
-                      Approve
+                    <button (click)="approve(user)" [disabled]="isProcessing()" class="px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                      @if (isProcessing()) {
+                        <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                        Processing...
+                      } @else {
+                        Approve
+                      }
                     </button>
-                    <button (click)="reviewingId = null" class="text-slate-300 hover:text-slate-500 ml-1"><mat-icon class="!text-lg">close</mat-icon></button>
+                    <button (click)="reviewingId = null" [disabled]="isProcessing()" class="text-slate-300 hover:text-slate-500 ml-1 disabled:opacity-50" [attr.aria-label]="'Close'"><mat-icon class="!text-lg">close</mat-icon></button>
                   </div>
                 } @else if (reviewingId === user.id && detailedReview) {
                   <button (click)="detailedReview = null" class="text-slate-400 hover:text-slate-600"><mat-icon class="!text-lg">close</mat-icon></button>
@@ -364,10 +374,15 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <div class="flex flex-col gap-3">
                 <button (click)="confirmReject()" 
                         [disabled]="!rejectionReason || isProcessing()" 
-                        class="w-full py-4 rounded-2xl bg-rose-600 text-white text-xs font-bold uppercase tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700 disabled:opacity-50 disabled:shadow-none transition-all cursor-pointer disabled:cursor-not-allowed">
-                  {{ isProcessing() ? 'Rejecting...' : 'Confirm Rejection' }}
+                        class="w-full py-4 rounded-2xl bg-rose-600 text-white text-xs font-bold uppercase tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700 disabled:opacity-50 disabled:shadow-none transition-all cursor-pointer disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  @if (isProcessing()) {
+                    <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    Rejecting...
+                  } @else {
+                    Confirm Rejection
+                  }
                 </button>
-                <button (click)="cancelReject()" class="w-full py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all">
+                <button (click)="cancelReject()" [disabled]="isProcessing()" class="w-full py-4 rounded-2xl text-xs font-bold uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                   Go Back
                 </button>
               </div>
@@ -499,21 +514,21 @@ export class AdminVerificationPage implements OnInit {
     if (this.isProcessing()) return;
     this.isProcessing.set(true);
     
-    // Optimistic Removal
-    const originalWorkers = this.state.workers();
-    this.state.workers.update(prev => prev.filter(w => w.id !== user.id));
-
     this.state.approveWorker(user.id).subscribe({
       next: () => {
-        this.isProcessing.set(false);
-        this.reviewingId = null;
-        this.detailedReview = null;
-        // Delay re-fetch to let backend state settle
-        setTimeout(() => this.state.fetchPendingWorkers(), 1000);
+        // Keep processing state for 500ms to show spinner
+        setTimeout(() => {
+          this.isProcessing.set(false);
+          this.reviewingId = null;
+          this.detailedReview = null;
+          // Delay re-fetch to let backend state settle
+          setTimeout(() => this.state.fetchPendingWorkers(), 300);
+        }, 500);
       },
-      error: () => {
+      error: (err) => {
         this.isProcessing.set(false);
-        this.state.workers.set(originalWorkers); // Rollback
+        console.error('Error approving worker:', err);
+        // Show error notification via notification service
       }
     });
   }
@@ -529,37 +544,44 @@ export class AdminVerificationPage implements OnInit {
   }
 
   confirmReject() {
-    if (this.isProcessing()) return;
+    if (this.isProcessing() || !this.rejectionReason.trim()) return;
     this.isProcessing.set(true);
 
-    const originalWorkers = this.state.workers();
-
     if (this.bulkRejecting) {
-      // Optimistic
-      const idsToReject = Array.from(this.selectedIds);
-      this.state.workers.update(prev => prev.filter(w => !this.selectedIds.has(w.id)));
-
-      this.selectedIds.forEach(id => this.state.rejectWorker(id, this.rejectionReason).subscribe());
-      this.selectedIds.clear();
-      this.isProcessing.set(false);
-      this.cancelReject();
+      // Process each rejection
+      this.selectedIds.forEach(id => {
+        this.state.rejectWorker(id, this.rejectionReason).subscribe({
+          next: () => {
+            // Keep processing state until all are done or timeout
+          },
+          error: (err) => {
+            console.error('Error rejecting worker:', err);
+          }
+        });
+      });
+      
+      // After a reasonable timeout, close the dialog and refresh
+      setTimeout(() => {
+        this.isProcessing.set(false);
+        this.cancelReject();
+        this.selectedIds.clear();
+        setTimeout(() => this.state.fetchPendingWorkers(), 300);
+      }, 800);
     } else if (this.rejectingUser) {
-      // Optimistic
-      const targetId = this.rejectingUser.id;
-      this.state.workers.update(prev => prev.filter(w => w.id !== targetId));
-
-      this.state.rejectWorker(targetId, this.rejectionReason).subscribe({
+      this.state.rejectWorker(this.rejectingUser.id, this.rejectionReason).subscribe({
         next: () => {
-          this.isProcessing.set(false);
-          this.cancelReject();
-          this.reviewingId = null;
-          this.detailedReview = null;
-          // Delay re-fetch
-          setTimeout(() => this.state.fetchPendingWorkers(), 1000);
+          setTimeout(() => {
+            this.isProcessing.set(false);
+            this.cancelReject();
+            this.reviewingId = null;
+            this.detailedReview = null;
+            setTimeout(() => this.state.fetchPendingWorkers(), 300);
+          }, 500);
         },
-        error: () => {
+        error: (err) => {
           this.isProcessing.set(false);
-          this.state.workers.set(originalWorkers);
+          console.error('Error rejecting worker:', err);
+          // Show error notification
         }
       });
     }

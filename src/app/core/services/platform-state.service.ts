@@ -77,6 +77,8 @@ export interface Chat {
   name: string;
   image?: string;
   initials: string;
+  email?: string; // User's email address
+  role?: string; // User's role (Worker, Client, Admin, etc.)
   lastMessage: string;
   time: string;
   rawTime?: number; // FIX BUG 2: store numeric timestamp for correct chronological sorting
@@ -268,59 +270,66 @@ export class PlatformStateService {
       this.saveState();
     });
 
+    // FIX NG0506: Defer data loading until after hydration is complete
+    // Instead of waiting for appRef.isStable (which creates a circular dependency),
+    // use a simple deferred load that doesn't block stability detection
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
 
       const user = this.auth.currentUser();
-      if (user) {
-        this.appRef.isStable.pipe(
-          filter(stable => stable),
-          take(1)
-        ).subscribe(() => {
-          setTimeout(() => {
-            if (user.role === 'Worker') {
-              this.fetchWorkerProfile(user.id);
-            } else if (user.role === 'Admin') {
-              this.fetchAdminWorkers();
-              this.fetchPendingWorkers();
-              this.fetchAdminUsers();
-              this.fetchAdminClients();
-              this.fetchAdminActivityLogs();
-              this.fetchAllJobs();
-            } else if (user.role === 'Client') {
-              this.fetchClientProfile(user.id);
-              this.fetchClientJobs(user.id);
-            }
-            this.fetchNotifications(user.id);
-            this.fetchChats(user.id);
+      if (user && user.role) {
+        // Defer initialization to allow hydration to complete first
+        // Using multiple setTimeout(0) calls ensures this runs after current event loop
+        setTimeout(() => {
+          // Start background data fetching without blocking stability
+          this.initializeUserData(user.id, user.role);
+          
+          // Start polling for real-time updates after initial load
+          this.ngZone.runOutsideAngular(() => {
+            if (this.pollingInterval) clearInterval(this.pollingInterval);
+            this.pollingInterval = setInterval(() => {
+              const u = this.auth.currentUser();
+              if (u && u.role) {
+                this.ngZone.run(() => {
+                  // FIX BUG 3: Always fetch notifications and chats for ALL dashboards.
+                  this.fetchNotifications(u.id);
+                  this.fetchChats(u.id);
 
-            this.ngZone.runOutsideAngular(() => {
-              if (this.pollingInterval) clearInterval(this.pollingInterval);
-              this.pollingInterval = setInterval(() => {
-                const u = this.auth.currentUser();
-                if (u) {
-                  this.ngZone.run(() => {
-                    // FIX BUG 3: Always fetch notifications and chats for ALL dashboards.
-                    // Removed the isMessagingActive() gate that was blocking Admin/Client updates.
-                    this.fetchNotifications(u.id);
-                    this.fetchChats(u.id);
-
-                    if (u.role === 'Admin') {
-                      this.fetchAdminActivityLogs();
-                      this.fetchPendingWorkers();
-                      this.fetchAdminUsers();
-                      this.fetchAllJobs();
-                    }
-                  });
-                }
-              }, 10000);
-            });
-          }, 0);
-        });
+                  if (u.role === 'Admin') {
+                    this.fetchAdminActivityLogs();
+                    this.fetchPendingWorkers();
+                    this.fetchAdminUsers();
+                    this.fetchAllJobs();
+                  }
+                });
+              }
+            }, 10000);
+          });
+        }, 100);
       } else {
         this.clearState();
       }
     });
+  }
+
+  private initializeUserData(userId: string, role: string) {
+    // Load role-specific data without blocking hydration
+    if (role === 'Worker') {
+      this.fetchWorkerProfile(userId);
+    } else if (role === 'Admin') {
+      this.fetchAdminWorkers();
+      this.fetchPendingWorkers();
+      this.fetchAdminUsers();
+      this.fetchAdminClients();
+      this.fetchAdminActivityLogs();
+      this.fetchAllJobs();
+    } else if (role === 'Client') {
+      this.fetchClientProfile(userId);
+      this.fetchClientJobs(userId);
+    }
+    // Load common data for all roles
+    this.fetchNotifications(userId);
+    this.fetchChats(userId);
   }
 
   public fetchWorkerProfile(userId: string) {
@@ -966,10 +975,16 @@ export class PlatformStateService {
             : c
         );
       } else {
+        // Try to get user details from allUsers to populate email and role
+        const allUsersSnapshot = this.allUsers();
+        const userDetails = allUsersSnapshot.find(u => u.id === receiverId);
+        
         const newChat: Chat = {
           id: receiverId,
           workerId: receiverId,
           name: '...', // Will be updated by server
+          email: userDetails?.email || '',
+          role: userDetails?.role || '',
           initials: '??',
           lastMessage: text || 'File',
           time: 'Just now',
@@ -992,13 +1007,20 @@ export class PlatformStateService {
     return this.http.post<any>(`${this.apiUrl}/messages`, payload).pipe(
       tap(data => {
         // Update the temporary message with the real one from server
+        // Also update chat name, email, role if server provides them
         this.chats.update(chats => {
           return chats.map(c => {
             if (c.id === receiverId) {
               const updatedMessages = c.messages.map(m =>
                 m.id === tempId ? { ...m, id: data.id, text: data.content, attachment: data.attachmentUrl ? { name: 'File', url: data.attachmentUrl, size: '...' } : undefined } : m
               );
-              return { ...c, messages: updatedMessages };
+              return {
+                ...c,
+                messages: updatedMessages,
+                name: c.name === '...' ? (data.receiverName || c.name) : c.name,
+                email: !c.email && data.receiverEmail ? data.receiverEmail : c.email,
+                role: !c.role && data.receiverRole ? data.receiverRole : c.role
+              };
             }
             return c;
           });
@@ -1044,6 +1066,8 @@ export class PlatformStateService {
           const isSender = m.senderId?.toString() === currentUserId;
           const otherId = isSender ? m.receiverId : m.senderId;
           const otherName = isSender ? m.receiverName : m.senderName || 'Unknown';
+          const otherEmail = isSender ? m.receiverEmail : m.senderEmail || '';
+          const otherRole = isSender ? m.receiverRole : m.senderRole || '';
           const isUnread = !m.isRead && m.receiverId?.toString() === currentUserId;
 
           // FIX BUG 2: store rawTime for correct chronological sorting
@@ -1053,6 +1077,8 @@ export class PlatformStateService {
             id: otherId,
             workerId: otherId,
             name: otherName,
+            email: otherEmail,
+            role: otherRole,
             initials: otherName.split(' ').map((n: any) => n[0]).join('').toUpperCase(),
             lastMessage: m.content,
             time: this.formatNotificationTime(m.sentAt),

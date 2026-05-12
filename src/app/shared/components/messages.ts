@@ -829,12 +829,15 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   recentUsers = computed<UserContact[]>(() => {
     const allU = this.allUsers();
     return this.state.chats().map(chat => {
+      // Use email/role from chat if available, otherwise look up in allUsers
       const found = allU.find(u => u.id === chat.id);
+      const email = chat.email || found?.email || '';
+      const role = chat.role || found?.role || '';
       return {
         id: chat.id,
         username: chat.name,
-        email: found?.email || '',
-        role: found?.role || '',
+        email: email,
+        role: role,
         unread: chat.unread || 0
       };
     });
@@ -892,12 +895,14 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     }
 
     // Load contacts once when user is authenticated
+    // FIX NG0506: Defer loading to avoid blocking hydration
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
       const user = this.auth.currentUser();
       if (user && !this.usersLoadStarted) {
         this.usersLoadStarted = true;
-        this.loadUsers();
+        // Defer user loading to after hydration completes
+        setTimeout(() => this.loadUsers(), 200);
       }
     });
 
@@ -938,12 +943,13 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       }
 
       // Add a safety timeout to prevent infinite spinning if the backend hangs
+      // FIX NG0506: Increased from 8s to 15s to allow hydration to complete
       const safetyTimer = setTimeout(() => {
         if (this.isLoadingMessages()) {
           console.warn('[Messages] Conversation fetch safety timeout reached');
           this.isLoadingMessages.set(false);
         }
-      }, 8000);
+      }, 15000);
 
       const result = this.state.fetchConversation(sel.id, sel.username);
 
@@ -1017,7 +1023,10 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     }
 
     if (user.role === 'Admin') {
-      this.userLoadSubscription = this.http.get<any>(`${this.apiUrl}/admin/users`).subscribe({
+      // FIX NG0506: Add timeout to prevent hanging during hydration
+      this.userLoadSubscription = this.http.get<any>(`${this.apiUrl}/admin/users`).pipe(
+        timeout(12000)  // Increased timeout to 12s
+      ).subscribe({
         next: (res: any) => {
           const data: any[] = res.content || res || [];
           const mapped = data
@@ -1053,8 +1062,11 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       return;
     }
 
+    // FIX NG0506: Add timeout to prevent hanging during hydration
     this.userLoadSubscription = this.http.get<any>(
       `${this.apiUrl}/messages/contacts?page=0&size=50`
+    ).pipe(
+      timeout(12000)  // Increased timeout to 12s
     ).subscribe({
       next: (res: any) => {
         const list: any[] = res.content ?? res;
