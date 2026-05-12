@@ -63,6 +63,7 @@ export interface ChatMessage {
   id: string;
   text: string;
   time: string;
+  rawDate?: number;
   sent: boolean;
   attachment?: {
     name: string;
@@ -1160,6 +1161,7 @@ export class PlatformStateService {
           id: m.id,
           text: m.content || m.text || '',
           time: this.parseMessageDate(m.sentAt),
+          rawDate: m.sentAt ? (Array.isArray(m.sentAt) ? new Date(m.sentAt[0], m.sentAt[1]-1, m.sentAt[2], m.sentAt[3], m.sentAt[4]).getTime() : new Date(m.sentAt).getTime()) : Date.now(),
           sent: m.senderId?.toString() === user.id?.toString()
         })).reverse(); // Reverse so newest are at the end (bottom of chat)
 
@@ -1329,6 +1331,7 @@ export class PlatformStateService {
       id: data.id,
       text: data.content,
       time,
+      rawDate: rawTime,
       sent: isSender,
       attachment: data.attachmentUrl ? { name: 'File', url: data.attachmentUrl, size: '...' } : undefined
     };

@@ -42,25 +42,24 @@ interface UserContact {
             </button>
           }
         </div>
-
-        @if (currentUserRole() !== 'Worker') {
-          <div class="search-wrap">
-            <span class="search-icon">
-              <mat-icon>search</mat-icon>
-            </span>
-            <input
-              class="search-input"
-              type="text"
-              placeholder="Search people…"
-              [value]="searchQuery()"
-              (input)="searchQuery.set($any($event.target).value)" />
-            @if (searchQuery()) {
-              <button class="search-clear" (click)="searchQuery.set('')">
-                <mat-icon>close</mat-icon>
-              </button>
-            }
-          </div>
-        }
+        
+        <!-- Search bar - Restricted to Admins for global search, Clients/Workers can filter existing chats -->
+        <div class="search-wrap">
+          <span class="search-icon">
+            <mat-icon>search</mat-icon>
+          </span>
+          <input
+            class="search-input"
+            type="text"
+            [placeholder]="currentUserRole() === 'Admin' ? 'Search people...' : 'Search your messages...'"
+            [value]="searchQuery()"
+            (input)="searchQuery.set($any($event.target).value)" />
+          @if (searchQuery()) {
+            <button class="search-clear" (click)="searchQuery.set('')">
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+        </div>
 
         <div class="contact-list">
 
@@ -163,7 +162,14 @@ interface UserContact {
                 <p>No messages yet — say hello!</p>
               </div>
             } @else {
-              @for (msg of displayedMessages(); track msg.id) {
+              @for (msg of displayedMessages(); track msg.id; let i = $index) {
+                
+                @if (shouldShowDateHeader(msg, displayedMessages()[i-1])) {
+                  <div class="date-header">
+                    <span>{{ getDateLabel(msg.rawDate) }}</span>
+                  </div>
+                }
+
                 <div class="msg-row" [class.msg-row--sent]="msg.sent">
                   @if (!msg.sent) {
                     <div class="msg-avatar">
@@ -643,13 +649,37 @@ interface UserContact {
       margin: 0;
     }
     .bubble__time {
-      display: block;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: .4px;
-      text-transform: uppercase;
-      margin-top: 4px;
       opacity: .6;
+    }
+
+    .date-header {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+      position: relative;
+    }
+    .date-header::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: #f1f5f9;
+      z-index: 0;
+    }
+    .date-header span {
+      position: relative;
+      background: #fff;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      z-index: 1;
+      border: 1px solid #f1f5f9;
     }
 
     /* ── Input bar ───────────────────────────────────────────────── */
@@ -887,13 +917,25 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       return recent;
     }
 
-    // SEARCH ACTIVE: Search across the entire directory (Fallbacks included)
+    // SEARCH ACTIVE: Only Admins can search the global directory.
+    // Clients and Workers can only filter their existing recent chats.
+    const qLower = q.toLowerCase();
+    const filteredRecent = recent.filter(u => {
+      const name = (u.username || '').toLowerCase();
+      const email = (u.email || '').toLowerCase();
+      return name.includes(qLower) || email.includes(qLower);
+    });
+
+    if (this.currentUserRole() !== 'Admin') {
+      return filteredRecent;
+    }
+
+    // Admins: search across the entire directory (Fallbacks included)
     const directory = all.length > 0 ? all : [
       ...this.state.workers().map(w => ({ id: w.id, username: w.name, email: w.email, role: 'Worker' })),
       ...this.state.clients().map(c => ({ id: c.id, username: c.name, email: c.email, role: 'Client' }))
     ];
 
-    const qLower = q.toLowerCase();
     return directory.filter(u => {
       const name = (u.username || u.fullName || u.name || '').toLowerCase();
       const email = (u.email || '').toLowerCase();
@@ -1070,7 +1112,7 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     const user = this.auth.currentUser();
     if (!user) return;
 
-    if (user.role === 'Worker') return;
+    // if (user.role === 'Worker') return; // REMOVED: Workers need to load their contacts too!
 
     if (this.userLoadSubscription) {
       this.userLoadSubscription.unsubscribe();
@@ -1139,7 +1181,8 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
               ...u,
               role: u.role
                 ? u.role.charAt(0) + u.role.slice(1).toLowerCase()
-                : 'Participant'
+                : 'Participant',
+              image: u.image || u.profileImage
             }))
         );
         this.isSearching.set(false);
@@ -1360,6 +1403,27 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       .map(n => n[0])
       .join('')
       .toUpperCase();
+  }
+
+  shouldShowDateHeader(msg: ChatMessage, prevMsg?: ChatMessage): boolean {
+    if (!prevMsg) return true;
+    const d1 = new Date(msg.rawDate || 0);
+    const d2 = new Date(prevMsg.rawDate || 0);
+    return d1.toDateString() !== d2.toDateString();
+  }
+
+  getDateLabel(timestamp?: number): string {
+    if (!timestamp) return 'Today';
+    const date = new Date(timestamp);
+    const now = new Date();
+    
+    if (date.toDateString() === now.toDateString()) return 'Today';
+    
+    const yesterday = new Date();
+    yesterday.setDate(now.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+    
+    return date.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
   }
 
   private scrollToBottom() {
