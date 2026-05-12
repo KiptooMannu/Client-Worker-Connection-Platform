@@ -281,31 +281,32 @@ export class PlatformStateService {
         // Defer initialization to allow hydration to complete first
         // Using multiple setTimeout(0) calls ensures this runs after current event loop
         setTimeout(() => {
-          // Start background data fetching without blocking stability
-          this.initializeUserData(user.id, user.role);
+          const u = this.auth.currentUser();
+          if (u && u.id && u.role) {
+            // Start background data fetching without blocking stability
+            this.initializeUserData(u.id, u.role);
+          }
           
           // Start polling for real-time updates after initial load
           this.ngZone.runOutsideAngular(() => {
             if (this.pollingInterval) clearInterval(this.pollingInterval);
             this.pollingInterval = setInterval(() => {
               const u = this.auth.currentUser();
-              if (u && u.role) {
                 this.ngZone.run(() => {
-                  // FIX BUG 3: Always fetch notifications and chats for ALL dashboards.
-                  this.fetchNotifications(u.id);
-                  this.fetchChats(u.id);
+                  if (u && u.id) {
+                    // FIX BUG 3: Always fetch notifications and chats for ALL dashboards.
+                    this.fetchNotifications(u.id);
+                    this.fetchChats(u.id);
+                  }
 
-                  if (u.role === 'Admin') {
-                    this.fetchAdminActivityLogs();
-                    this.fetchPendingWorkers();
-                    this.fetchAdminUsers();
-                    this.fetchAllJobs();
+                  if (u && u.role === 'Admin') {
+                    // Stop background polling for heavy admin data to prevent network congestion.
+                    // These will still be fetched once on initialization and when pages are visited.
                   }
                 });
-              }
-            }, 10000);
+            }, 60000); // Increased interval to 60s to significantly reduce server load
           });
-        }, 100);
+        }, 500);
       } else {
         this.clearState();
       }
@@ -318,11 +319,11 @@ export class PlatformStateService {
       this.fetchWorkerProfile(userId);
     } else if (role === 'Admin') {
       this.fetchAdminWorkers();
-      this.fetchPendingWorkers();
-      this.fetchAdminUsers();
-      this.fetchAdminClients();
-      this.fetchAdminActivityLogs();
-      this.fetchAllJobs();
+      setTimeout(() => this.fetchPendingWorkers(), 500);
+      setTimeout(() => this.fetchAdminUsers(), 1000);
+      setTimeout(() => this.fetchAdminClients(), 1500);
+      setTimeout(() => this.fetchAdminActivityLogs(), 2000);
+      setTimeout(() => this.fetchAllJobs(), 2500);
     } else if (role === 'Client') {
       this.fetchClientProfile(userId);
       this.fetchClientJobs(userId);
@@ -559,7 +560,7 @@ export class PlatformStateService {
   fetchNotifications(userId: string) {
     console.log('[PlatformState] Fetching notifications for userId:', userId);
 
-    this.http.get<any>(`${this.apiUrl}/notifications/user/${userId}`).subscribe({
+    this.http.get<any>(`${this.apiUrl}/notifications/user/${userId}`).pipe(timeout(30000)).subscribe({
       next: (res) => {
         const data = res.content || res || [];
         console.log('[PlatformState] Received notifications:', data.length);
@@ -719,7 +720,10 @@ export class PlatformStateService {
         this.activityLogs.set(data.activityLogs || []);
         this.bookings.set(data.bookings || []);
         this.currentClient.set(data.currentClient || null);
-        this.chats.set(data.chats || []);
+        const validChats = (data.chats || []).filter((c: any) => 
+          c.id && c.id.length > 10 && c.id.includes('-') // Basic UUID check
+        );
+        this.chats.set(validChats);
         this.allUsers.set(data.allUsers || []);
         this.allBookings.set(data.allBookings || []);
         this.clients.set(data.clients || []);
@@ -1026,7 +1030,7 @@ export class PlatformStateService {
           });
         });
       }),
-      timeout(10000),
+      timeout(30000),
       catchError((err: any) => {
         // Rollback optimistic update on error
         this.chats.update(chats => {
@@ -1056,7 +1060,7 @@ export class PlatformStateService {
   fetchChats(userId: string) {
     console.log('[PlatformState] Fetching chats for userId:', userId);
 
-    this.http.get<any>(`${this.apiUrl}/messages/user/${userId}/recent`).pipe(timeout(10000)).subscribe({
+    this.http.get<any>(`${this.apiUrl}/messages/user/${userId}/recent`).pipe(timeout(30000)).subscribe({
       next: (res) => {
         const data = res.content || res || [];
         console.log(`[PlatformState] Received ${data.length} chats for user ${userId}`);
@@ -1149,7 +1153,7 @@ export class PlatformStateService {
     const page = this.currentMessagePage();
 
     return this.http.get<any>(`${this.apiUrl}/messages/conversation?user1Id=${user.id}&user2Id=${otherId}&page=${page}&size=50`).pipe(
-      timeout(10000),
+      timeout(30000),
       tap((response) => {
         const data = response.content || response;
         const messages: ChatMessage[] = (data || []).map((m: any) => ({
@@ -1157,7 +1161,7 @@ export class PlatformStateService {
           text: m.content || m.text || '',
           time: this.parseMessageDate(m.sentAt),
           sent: m.senderId?.toString() === user.id?.toString()
-        }));
+        })).reverse(); // Reverse so newest are at the end (bottom of chat)
 
         this.chats.update(chats => {
           const existing = chats.find(c => c.id === otherId || c.workerId === otherId);
@@ -1197,8 +1201,9 @@ export class PlatformStateService {
   private parseMessageDate(dateSource: any): string {
     if (!dateSource) return 'Just now';
     try {
+      let date: Date;
       if (Array.isArray(dateSource)) {
-        const d = new Date(
+        date = new Date(
           dateSource[0],
           dateSource[1] - 1,
           dateSource[2],
@@ -1206,12 +1211,21 @@ export class PlatformStateService {
           dateSource[4],
           dateSource[5] || 0
         );
-        return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      } else {
+        date = new Date(dateSource);
       }
 
-      const date = new Date(dateSource);
       if (isNaN(date.getTime())) return 'Just now';
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const now = new Date();
+      const isToday = date.getDate() === now.getDate() &&
+                      date.getMonth() === now.getMonth() &&
+                      date.getFullYear() === now.getFullYear();
+
+      const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (isToday) return timeStr;
+
+      return `${date.toLocaleDateString([], { month: 'short', day: 'numeric' })} · ${timeStr}`;
     } catch {
       return 'Just now';
     }
@@ -1228,14 +1242,14 @@ export class PlatformStateService {
     }
 
     const newChat: Chat = {
-      id: Math.random().toString(),
+      id: worker.userId || worker.id, // FIX: Use real userId or id instead of Math.random()
       workerId: worker.id,
       name: worker.name,
       initials: worker.initials,
       image: worker.image,
       lastMessage: 'Chat started',
       time: 'Just now',
-      rawTime: Date.now(), // FIX BUG 2
+      rawTime: Date.now(),
       active: true,
       online: true,
       messages: []
@@ -1251,10 +1265,6 @@ export class PlatformStateService {
     this.chats.update(chats =>
       chats.map(c => ({ ...c, active: c.id === chatId, unread: c.id === chatId ? 0 : c.unread }))
     );
-    const chat = this.chats().find(c => c.id === chatId);
-    if (chat && chat.messages.length === 0) {
-      this.fetchConversation(chat.workerId, chat.name).subscribe();
-    }
   }
 
   fetchClientJobs(clientUserId: string) {

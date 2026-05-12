@@ -19,6 +19,7 @@ interface UserContact {
   email: string;
   role: string;
   unread?: number;
+  image?: string;
 }
 
 @Component({
@@ -164,6 +165,15 @@ interface UserContact {
             } @else {
               @for (msg of displayedMessages(); track msg.id) {
                 <div class="msg-row" [class.msg-row--sent]="msg.sent">
+                  @if (!msg.sent) {
+                    <div class="msg-avatar">
+                      @if (selectedUser()?.image) {
+                        <img [src]="selectedUser()?.image" alt="User">
+                      } @else {
+                        {{ initials(selectedUser()?.username || 'U') }}
+                      }
+                    </div>
+                  }
                   <div class="bubble" [class.bubble--sent]="msg.sent" [class.bubble--recv]="!msg.sent">
                     @if (msg.attachment) {
                       <div class="bubble__attachment">
@@ -584,8 +594,31 @@ interface UserContact {
     .msg-row {
       display: flex;
       margin-bottom: 6px;
+      align-items: flex-end;
     }
     .msg-row--sent { justify-content: flex-end; }
+
+    .msg-avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: #f1f5f9;
+      color: #64748b;
+      font-size: 10px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      flex-shrink: 0;
+      overflow: hidden;
+      margin-bottom: 4px;
+    }
+    .msg-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
 
     .bubble {
       max-width: 68%;
@@ -838,7 +871,8 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
         username: chat.name,
         email: email,
         role: role,
-        unread: chat.unread || 0
+        unread: chat.unread || 0,
+        image: chat.image || found?.image
       };
     });
   });
@@ -990,6 +1024,26 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       }
     });
 
+    // SYNC: Auto-select chat if PlatformState has an active one
+    effect(() => {
+      if (!isPlatformBrowser(this.platformId)) return;
+      const chats = this.state.chats();
+      const active = chats.find(c => c.active);
+      if (active) {
+        const current = this.selectedUser();
+        if (!current || current.id !== active.id) {
+          this.selectedUser.set({
+            id: active.id,
+            username: active.name,
+            email: active.email || '',
+            role: active.role || '',
+            unread: 0,
+            image: active.image
+          });
+        }
+      }
+    });
+
     this.state.isMessagingActive.set(true);
   }
 
@@ -1023,9 +1077,16 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     }
 
     if (user.role === 'Admin') {
+      // Use cached users if available to prevent redundant heavy requests
+      if (this.state.allUsers().length > 0) {
+        console.log('[Messages] Using cached admin users:', this.state.allUsers().length);
+        this.isSearching.set(false);
+        return;
+      }
+
       // FIX NG0506: Add timeout to prevent hanging during hydration
       this.userLoadSubscription = this.http.get<any>(`${this.apiUrl}/admin/users`).pipe(
-        timeout(12000)  // Increased timeout to 12s
+        timeout(30000)  // Increased timeout to 30s
       ).subscribe({
         next: (res: any) => {
           const data: any[] = res.content || res || [];
@@ -1038,15 +1099,16 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
               role: u.role
                 ? u.role.charAt(0) + u.role.slice(1).toLowerCase()
                 : 'User',
-              unread: 0
+              unread: 0,
+              image: u.profileImage || u.image
             }));
-          
+
           this.state.allUsers.set(mapped);
           this.isSearching.set(false);
         },
         error: (err: HttpErrorResponse) => {
           console.error('Failed to load users:', err);
-          this.usersLoadStarted = false; // allow retry on next auth event
+          this.usersLoadStarted = false;
           this.isSearching.set(false);
           if (err.status === 401) {
             this.auth.logout();
@@ -1062,11 +1124,11 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       return;
     }
 
-    // FIX NG0506: Add timeout to prevent hanging during hydration
+
     this.userLoadSubscription = this.http.get<any>(
       `${this.apiUrl}/messages/contacts?page=0&size=50`
     ).pipe(
-      timeout(12000)  // Increased timeout to 12s
+      timeout(30000)
     ).subscribe({
       next: (res: any) => {
         const list: any[] = res.content ?? res;
@@ -1119,7 +1181,7 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
       this.searchSubscription = this.http.get<any>(
         `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`,
-        { timeout: 10000 }
+        { timeout: 20000 }
       ).subscribe({
         next: (res: any) => {
           const duration = Date.now() - startTime;
@@ -1151,7 +1213,7 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
     this.searchSubscription = this.http.get<any>(
       `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`
-    ).pipe(timeout(10000)).subscribe({
+    ).pipe(timeout(20000)).subscribe({
       next: (res: any) => {
         const duration = Date.now() - startTime;
         console.log(`[Search] Server search completed in ${duration}ms`);
@@ -1184,10 +1246,11 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   }
 
   selectUser(user: UserContact) {
-    // FIX BUG 4: Do NOT set isLoadingMessages here.
-    // The selectedUser effect is the single owner of that state.
     this.selectedUser.set(user);
     this.messageInput.set('');
+
+    // Update state service so it knows which chat is active
+    this.state.setActiveChat(user.id);
 
     if ((user.unread ?? 0) > 0) {
       this.state.markConversationAsRead(user.id);
@@ -1263,7 +1326,7 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     if (!q || !this.isSearchingMessages()) {
       return this.sanitizer.sanitize(SecurityContext.HTML, text) || '';
     }
-    
+
     const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const regex = new RegExp(`(${escapedQ})`, 'gi');
     const highlighted = text.replace(regex, '<mark class="bg-amber-200 rounded px-1">$1</mark>');
