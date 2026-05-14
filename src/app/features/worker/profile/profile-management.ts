@@ -116,7 +116,7 @@ import { AuthService } from '../../../core/services/auth.service';
             </mat-card-content>
           </mat-card>
 
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
+          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-6">
              <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Verification Checklist</h4>
              <div class="space-y-4">
                @for (req of requirements(); track req.label) {
@@ -137,8 +137,8 @@ import { AuthService } from '../../../core/services/auth.service';
               }
           </mat-card>
 
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-8">
-             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Service Availability</h4>
+          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-6">
+             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Service Availability</h4>
              <div class="space-y-6">
                 <div class="flex items-center justify-between">
                   <span class="text-sm font-bold text-slate-700">Market Visibility</span>
@@ -177,7 +177,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="min-h-[500px] transition-all duration-300">
             <!-- Identity Tab -->
             @if (activeTab() === 'identity') {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
                 <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Professional Identity</h4>
                 <div class="space-y-4">
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -242,7 +242,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
             <!-- Work History Tab -->
             @if (activeTab() === 'experience') {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
                 <div class="flex justify-between items-center mb-6">
                   <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Work History & Experience</h4>
                   <button mat-button color="primary" (click)="addWorkHistory()" class="!font-black !text-[10px] !uppercase !tracking-widest">
@@ -292,7 +292,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
             <!-- Certifications Tab -->
             @if (activeTab() === 'certifications') {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
                 <div class="flex justify-between items-center mb-6">
                   <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Professional Certifications</h4>
                   <button mat-button color="primary" (click)="addCertification()" class="!font-black !text-[10px] !uppercase !tracking-widest">
@@ -333,7 +333,7 @@ import { AuthService } from '../../../core/services/auth.service';
 
             <!-- Availability Tab -->
             @if (activeTab() === 'availability') {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
                 <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Detailed Availability</h4>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div class="flex items-center justify-between flex-wrap gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 availability-card">

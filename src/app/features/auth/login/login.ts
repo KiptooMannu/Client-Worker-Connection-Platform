@@ -11,67 +11,108 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatButtonModule],
   template: `
-    <div class="min-h-screen bg-[#f7f9fb] flex flex-col">
-      <!-- Simple Header -->
-      <header class="h-20 flex items-center px-12 border-b border-slate-100 bg-white shadow-sm">
-        <div class="flex items-center gap-3 cursor-pointer" routerLink="/">
-          <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg">
-            <mat-icon>corporate_fare</mat-icon>
+    <div class="bg-white text-on-surface font-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-white">
+      <!-- TopAppBar -->
+      <nav class="fixed top-0 w-full z-50 bg-white border-b border-slate-100">
+        <div class="h-[64px] max-w-[1280px] mx-auto flex items-center justify-between px-6">
+          <!-- Logo -->
+          <div class="flex items-center gap-3 cursor-pointer" routerLink="/">
+            <span class="material-symbols-outlined text-primary text-3xl">hub</span>
+            <span class="font-headline-md text-xl font-extrabold text-primary tracking-tighter">Kazi Konnect</span>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">Kazi Konnect</span>
+
+          <!-- Mid Links -->
+          <div class="hidden md:flex gap-8 items-center absolute left-1/2 -translate-x-1/2">
+            <a routerLink="/solutions" class="font-label-sm text-[11px] font-bold text-secondary hover:text-primary transition-colors cursor-pointer uppercase tracking-wider">Solutions</a>
+            <a routerLink="/" class="font-label-sm text-[11px] font-bold text-secondary hover:text-primary transition-colors cursor-pointer uppercase tracking-wider">Resources</a>
+            <a routerLink="/enterprise" class="font-label-sm text-[11px] font-bold text-secondary hover:text-primary transition-colors cursor-pointer uppercase tracking-wider">Enterprise</a>
+          </div>
+
+          <!-- Action -->
+          <div class="flex items-center">
+            <button routerLink="/register" class="font-label-sm text-[11px] font-black text-primary uppercase tracking-[0.1em] hover:underline transition-all">Join Now</button>
+          </div>
         </div>
-      </header>
+      </nav>
 
-      <main class="flex-grow flex items-center justify-center p-6">
-        <div class="w-full max-w-md bg-white rounded-[2.5rem] p-10 shadow-[0_8px_48px_rgba(4,22,39,0.08)] border border-slate-100">
-          <div class="text-center mb-10">
-            <h1 class="text-3xl font-black text-[#0f172a] tracking-tight mb-2">Welcome Back</h1>
-            <p class="text-slate-400 font-medium text-sm">Access your secure professional dashboard.</p>
+      <!-- Main Content Canvas -->
+      <main class="flex-grow flex items-center justify-center px-4 pt-24 pb-8">
+        <div class="w-full max-w-[420px]">
+          <!-- Login Card -->
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-10 shadow-[0_20px_60px_rgba(46,49,146,0.05)] text-center">
+            <!-- Brand Header -->
+            <div class="mb-8 flex flex-col items-center">
+              <div class="w-14 h-14 bg-primary-container rounded-full flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-white text-2xl material-fill">hub</span>
+              </div>
+              <h1 class="font-headline-md text-xl md:text-2xl text-on-surface mb-1 leading-tight">Welcome Back</h1>
+              <p class="font-body-md text-sm text-secondary">Access your dashboard</p>
+            </div>
+
+            <!-- Form -->
+            <form (submit)="onSubmit()" class="space-y-4 text-left">
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="email">Email Address</label>
+                <div class="relative group">
+                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors !text-xl">mail</span>
+                  </div>
+                  <input class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                         id="email" name="email" [(ngModel)]="email" placeholder="name@company.com" type="email" required/>
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <div class="flex justify-between items-center px-1">
+                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider" for="password">Password</label>
+                  <a class="font-label-sm text-[11px] font-bold text-primary hover:underline cursor-pointer">Forgot?</a>
+                </div>
+                <div class="relative group">
+                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <span class="material-symbols-outlined text-outline group-focus-within:text-primary transition-colors !text-xl">lock</span>
+                  </div>
+                  <input class="block w-full pl-11 pr-11 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                         id="password" name="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" placeholder="••••••••" required/>
+                  <div class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer" (click)="showPassword = !showPassword">
+                    <span class="material-symbols-outlined text-outline hover:text-secondary transition-colors !text-xl">{{ showPassword ? 'visibility_off' : 'visibility' }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center px-1">
+                <input class="w-3.5 h-3.5 text-primary bg-white border-slate-200 rounded focus:ring-primary focus:ring-offset-0" id="remember" name="remember" type="checkbox"/>
+                <label class="ml-2.5 font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider" for="remember">Stay signed in</label>
+              </div>
+
+              <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98] disabled:opacity-50 mt-2"
+                      type="submit" [disabled]="loading()">
+                {{ loading() ? 'AUTHENTICATING...' : 'SIGN IN' }}
+              </button>
+            </form>
+
+            <div class="mt-8 flex items-center gap-4 py-2">
+              <div class="h-px bg-slate-100 flex-grow"></div>
+              <span class="font-label-sm text-[9px] font-bold text-outline uppercase tracking-widest">OR</span>
+              <div class="h-px bg-slate-100 flex-grow"></div>
+            </div>
+
+            <div class="flex gap-3 mt-4">
+              <button class="flex-1 flex items-center justify-center py-2.5 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors">
+                <img alt="Google Logo" class="w-4 h-4 mr-2" src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png"/>
+                <span class="text-[11px] font-bold text-secondary uppercase tracking-wider">Google</span>
+              </button>
+              <button class="flex-1 flex items-center justify-center py-2.5 border border-slate-200 rounded-full hover:bg-slate-50 transition-colors">
+                <span class="material-symbols-outlined text-secondary mr-2 !text-lg material-fill">business_center</span>
+                <span class="text-[11px] font-bold text-secondary uppercase tracking-wider">SSO</span>
+              </button>
+            </div>
           </div>
 
-          <form (submit)="onSubmit()" class="space-y-6">
-            <div class="space-y-2">
-              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
-              <div class="relative flex items-center">
-                <mat-icon class="absolute left-4 text-slate-400 !text-lg pointer-events-none">mail</mat-icon>
-                <input type="email" [(ngModel)]="email" name="email" required
-                       class="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
-                       placeholder="e.g. abc@gmail.com">
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <label class="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Secure Password</label>
-              <div class="relative flex items-center">
-                <mat-icon class="absolute left-4 text-slate-400 !text-lg pointer-events-none">lock</mat-icon>
-                <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" name="password" required
-                       class="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
-                       placeholder="Enter your password">
-                <button type="button" (click)="showPassword = !showPassword" 
-                        class="absolute right-4 text-slate-400 hover:text-blue-600 transition-colors flex items-center justify-center">
-                  <mat-icon class="!text-lg">{{ showPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-                </button>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
-              <label class="flex items-center gap-2 cursor-pointer text-slate-400 hover:text-blue-600 transition-colors">
-                <input type="checkbox" class="rounded border-slate-200 text-blue-600 focus:ring-blue-600/10">
-                Remember Me
-              </label>
-              <a class="text-blue-600 hover:underline">Forgot Password?</a>
-            </div>
-
-            <button type="submit" [disabled]="loading()"
-                    class="w-full bg-[#0f172a] text-white py-4 rounded-xl font-black text-[11px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 hover:shadow-2xl disabled:opacity-50 cursor-pointer">
-              {{ loading() ? 'Verifying Credentials...' : 'Sign In' }}
-            </button>
-          </form>
-
-          <div class="mt-10 pt-8 border-t border-slate-100 text-center">
-            <p class="text-sm text-slate-400 font-medium">
-              Don't have an account? 
-              <a routerLink="/register" class="text-blue-600 font-black uppercase text-[10px] tracking-widest ml-1 hover:underline cursor-pointer">Create Account</a>
+          <!-- Footer Link -->
+          <div class="mt-8 text-center">
+            <p class="font-body-md text-sm text-secondary">
+              New to Kazi Konnect? 
+              <a routerLink="/register" class="text-primary font-bold ml-1 hover:underline cursor-pointer">Join Now</a>
             </p>
           </div>
         </div>

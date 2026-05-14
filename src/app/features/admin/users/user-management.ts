@@ -172,7 +172,7 @@ import { AuthService } from '../../../core/services/auth.service';
           
           <div class="flex items-center gap-3">
              <!-- Compact Stat Strip -->
-             <div class="hidden lg:flex items-center gap-6 px-6 py-3 bg-white border border-slate-100 rounded-2xl shadow-sm">
+             <div class="hidden lg:flex items-center gap-4 px-4 py-2 bg-white border border-slate-100 rounded-2xl shadow-sm">
                 @for (stat of dynamicStats; track stat.label) {
                   <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 text-slate-400">
@@ -614,13 +614,18 @@ export class AdminUserManagementPage implements OnInit {
   }
 
   inviteUser() {
-    const name = window.prompt('Invite user full name');
+    const fullName = window.prompt('Invite user full name');
     const email = window.prompt('Invite user email');
     const roleInput = (window.prompt('Role: Client or Worker', 'Client') || 'Client').toLowerCase();
-    if (!name || !email) return;
+    if (!fullName || !email) return;
+
+    const parts = fullName.split(' ');
+    const firstName = parts[0];
+    const secondName = parts.slice(1).join(' ') || 'User';
+
     const role = roleInput === 'worker' ? 'Worker' : 'Client';
     const tempPassword = `Temp${Math.floor(Math.random() * 900000 + 100000)}!`;
-    this.auth.register(name, email, role as any, tempPassword).subscribe({
+    this.auth.register(firstName, secondName, email, role as any, tempPassword).subscribe({
       next: () => {
         this.notification.success(`Invitation created. Temporary password: ${tempPassword}`);
         this.state.fetchAdminUsers();

@@ -28,7 +28,7 @@ export class AuthService {
   isAuthenticated = computed(() => !!this.userSignal());
   userRole = computed(() => this.userSignal()?.role || null);
 
-  private users: User[] = []; // No longer needed for logic, but keeping for reference if needed
+  private users: User[] = [];
   private apiUrl = environment.apiUrl + '/auth';
 
   private platformId = inject(PLATFORM_ID);
@@ -41,7 +41,7 @@ export class AuthService {
       if (savedUser) {
         try {
           const user = JSON.parse(savedUser);
-          // Restore token from separate storage if not in user object
+
           if (!user.token) {
             user.token = localStorage.getItem('auth_token');
           }
@@ -69,7 +69,7 @@ export class AuthService {
           name: response.name || response.username || 'User',
           token: response.accessToken
         };
-        
+
         this.userSignal.set(user);
         if (isPlatformBrowser(this.platformId)) {
           // Store token separately for interceptor access
@@ -77,7 +77,7 @@ export class AuthService {
           localStorage.setItem('pro_user', JSON.stringify(user));
           console.log('[AuthService] User logged in with role:', user.role, 'Token stored');
         }
-        
+
         this.notification.success('Welcome back, ' + user.name + '!');
         this.redirectByRole(user.role);
       }),
@@ -89,21 +89,21 @@ export class AuthService {
     );
   }
 
-  register(name: string, email: string, role: UserRole, password: string, username?: string): Observable<any> {
+  register(firstName: string, secondName: string, email: string, role: UserRole, password: string, username?: string): Observable<any> {
     const registrationData = {
-      username: username || email.split('@')[0],
+      username: username || email.split('@')[0] + Math.floor(Math.random() * 1000),
       email: email,
       password: password,
-      name: name,
+      firstName: firstName,
+      secondName: secondName,
       role: role?.toUpperCase()
     };
 
     return this.http.post(`${this.apiUrl}/register`, registrationData, { responseType: 'text' }).pipe(
-      tap(() => {
-        this.notification.success('Account created successfully! Please login.');
-      }),
+      tap(() => this.notification.success('Account created! Please log in.')),
       catchError(error => {
-        this.notification.error('Registration failed. This email may already be in use.');
+        const errorMsg = typeof error.error === 'string' ? error.error : 'Registration failed';
+        this.notification.error(errorMsg);
         return throwError(() => error);
       })
     );

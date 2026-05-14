@@ -25,185 +25,256 @@ import { inject, computed, signal } from '@angular/core';
     FormsModule
   ],
   template: `
-    <div class="space-y-8 animate-in fade-in duration-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-700">
       <!-- Header -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 class="header-title text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">Job History & Analytics</h1>
-          <p class="text-slate-500 text-sm font-medium mt-1">Review your performance and financial growth.</p>
+          <h1 class="text-3xl font-black text-slate-900 tracking-tight mb-1">Job History & Analytics</h1>
+          <p class="text-slate-500 font-medium text-sm max-w-2xl">Track your professional growth and financial performance.</p>
         </div>
-        <div class="flex flex-wrap gap-2">
-          <div class="flex items-center border border-slate-200 rounded-xl px-4 py-2 bg-white focus-within:border-blue-600 focus-within:ring-2 focus-within:ring-blue-600/10 transition-all w-64">
-            <mat-icon class="text-slate-400 mr-2 !text-xs">search</mat-icon>
-            <input class="w-full border-none focus:ring-0 bg-transparent text-xs font-bold" placeholder="Search..." type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($any($event))"/>
+        <div class="flex items-center gap-3">
+          <div class="relative hidden sm:block">
+            <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 !text-lg">search</mat-icon>
+            <input class="pl-10 pr-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all outline-none w-56 shadow-sm" 
+                   placeholder="Search projects..." type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($any($event))"/>
           </div>
-          <button mat-stroked-button (click)="exportHistory()" class="!border-slate-300 !px-4 !py-2 !rounded-xl !font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-2">
-            <mat-icon class="!text-sm">download</mat-icon> Export
+          <button (click)="exportHistory()" class="group px-6 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition-all flex items-center gap-2 shadow-sm">
+            <mat-icon class="!w-4 !h-4">download</mat-icon>
+            Export
           </button>
         </div>
       </div>
 
       <!-- Analytics Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-        <mat-card class="md:col-span-8 !rounded-2xl !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
-          <div class="flex justify-between items-center mb-8">
-            <h3 class="text-xl font-black text-slate-900 tracking-tight">Monthly Earnings</h3>
-            <mat-chip class="!bg-teal-50 !text-teal-700 !border-none !min-h-0 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-              <mat-icon class="!text-xs !w-auto !h-auto mr-1">trending_up</mat-icon> {{ state.bookings().length }} Jobs
-            </mat-chip>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        <div class="lg:col-span-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5">
+          <div class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-3">
+              <div class="w-2 h-8 bg-teal-500 rounded-full"></div>
+              <h3 class="text-xl font-black text-slate-900 tracking-tight">Earnings Momentum</h3>
+            </div>
+            <span class="px-4 py-1.5 bg-teal-50 text-teal-700 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+              <mat-icon class="!text-xs !w-auto !h-auto">trending_up</mat-icon> {{ state.bookings().length }} Total Jobs
+            </span>
           </div>
-          <div class="h-60 flex items-end justify-between gap-4 px-4 border-b border-slate-100 pb-2">
+          <div class="h-48 flex items-end justify-between gap-4 px-4 border-b border-slate-50 pb-4">
             @for (bar of earnings; track $index) {
-              <div class="flex flex-col items-center gap-3 flex-1 group">
-                <div class="w-full bg-slate-100 rounded-t-lg transition-all group-hover:bg-blue-600 group-hover:shadow-lg group-hover:shadow-blue-900/20" 
-                     [style.height]="bar.height + '%'"></div>
-                <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">{{ bar.label }}</span>
-              </div>
-            }
-          </div>
-        </mat-card>
-
-        <mat-card class="md:col-span-4 !rounded-2xl !bg-slate-900 !text-white !shadow-xl !p-6 md:!p-8 flex flex-col justify-between">
-          <div>
-            <h3 class="text-xl font-black mb-1 tracking-tight">Performance</h3>
-            <p class="text-slate-400 text-xs font-medium">Your quality remains in the top 5%.</p>
-          </div>
-          <div class="space-y-6 my-6">
-            @for (m of metrics; track m.label) {
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="p-1.5 bg-white/5 rounded-lg border border-white/10"><mat-icon class="!text-blue-400 !text-sm !w-auto !h-auto">{{ m.icon }}</mat-icon></div>
-                  <span class="text-xs font-bold">{{ m.label }}</span>
+              <div class="flex flex-col items-center gap-4 flex-1 group relative">
+                <div class="w-full bg-slate-50 rounded-2xl transition-all group-hover:bg-indigo-600 group-hover:shadow-2xl group-hover:shadow-indigo-900/20 cursor-pointer overflow-hidden" 
+                     [style.height]="bar.height + '%'">
+                     <div class="w-full h-full bg-gradient-to-t from-black/5 to-transparent"></div>
                 </div>
-                <span class="text-xl font-black text-blue-400 tracking-tighter">{{ m.value }}</span>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-900 transition-colors">{{ bar.label }}</span>
+                <!-- Tooltip on hover -->
+                <div class="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-lg pointer-events-none">
+                  Growth Active
+                </div>
               </div>
             }
           </div>
-          <button mat-flat-button (click)="openAnalytics()" class="!bg-white/5 !text-slate-400 hover:!bg-white/10 !py-3 !rounded-xl !font-black !text-[9px] !uppercase !tracking-widest !border !border-white/10">
-            Analytics
+        </div>
+
+        <div class="lg:col-span-4 bg-indigo-950 rounded-[2rem] text-white shadow-2xl p-5 flex flex-col justify-between relative overflow-hidden group">
+          <div class="relative z-10">
+            <h3 class="text-xl font-black mb-1 tracking-tight">Performance Score</h3>
+            <p class="text-indigo-200 text-xs font-medium">Top 5% category leader.</p>
+          </div>
+          <div class="space-y-4 my-4 relative z-10">
+            @for (m of metrics; track m.label) {
+              <div class="flex items-center justify-between group/metric">
+                <div class="flex items-center gap-3">
+                  <div class="p-2 bg-white/10 rounded-xl border border-white/10 group-hover/metric:bg-white/20 transition-colors">
+                    <mat-icon class="!text-indigo-200 !text-lg !w-auto !h-auto">{{ m.icon }}</mat-icon>
+                  </div>
+                  <span class="text-[9px] font-black uppercase tracking-widest text-indigo-100">{{ m.label }}</span>
+                </div>
+                <span class="text-2xl font-black text-white tracking-tighter">{{ m.value }}</span>
+              </div>
+            }
+          </div>
+          <button mat-flat-button (click)="openAnalytics()" class="relative z-10 !bg-white/5 !text-white hover:!bg-white/10 !py-3 !rounded-xl !font-black !text-[9px] !uppercase !tracking-[0.15em] !border !border-white/10 transition-all">
+            Deep Insights
           </button>
-        </mat-card>
+          <div class="absolute -bottom-10 -right-10 opacity-10 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
+            <mat-icon class="!text-[12rem] !w-auto !h-auto">insights</mat-icon>
+          </div>
+        </div>
       </div>
 
-      <!-- Table Section -->
-      <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !overflow-hidden">
-        <mat-card-header class="!p-6 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-row !justify-between !items-center">
-          <mat-card-title class="!text-[9px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Complete Job Ledger</mat-card-title>
-          <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Showing {{ pagedJobs().length }} of {{ jobs().length }} results</span>
-        </mat-card-header>
+      <!-- Job Ledger Section -->
+      <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden mb-8">
+        <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
+          <div class="flex items-center gap-2">
+            <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+            <h2 class="text-[11px] font-black text-slate-900 uppercase tracking-[0.15em]">Job Ledger</h2>
+          </div>
+          <span class="text-[9px] text-slate-400 font-black uppercase tracking-widest hidden sm:block">Showing {{ pagedJobs().length }} records</span>
+        </div>
         
-        <table mat-table [dataSource]="pagedJobs()" class="w-full">
-          <!-- Client Column -->
-          <ng-container matColumnDef="client">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Client Name</th>
-            <td mat-cell *matCellDef="let job">
-              <div class="flex items-center gap-4 py-6">
-                <div class="h-10 w-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-700 font-black text-[11px] uppercase border border-blue-100 shadow-sm">{{ job.initials }}</div>
-                <div>
-                  <p class="text-sm font-black text-slate-900 leading-tight">{{ job.client }}</p>
-                  <p class="text-[10px] text-slate-400 font-black uppercase mt-1">{{ job.service }}</p>
+        <div class="overflow-x-auto">
+          <table mat-table [dataSource]="pagedJobs()" class="w-full min-w-[1000px]">
+            <!-- Client Column -->
+            <ng-container matColumnDef="client">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest">Client</th>
+              <td mat-cell *matCellDef="let job" class="!px-6 !py-5">
+                <div class="flex items-center gap-4">
+                  <div class="h-11 w-11 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-sm uppercase border border-indigo-100 shadow-sm">
+                    {{ job.initials }}
+                  </div>
+                  <div>
+                    <p class="text-base font-black text-slate-900 tracking-tight leading-tight mb-0.5">{{ job.client }}</p>
+                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-wider flex items-center gap-1.5">
+                      <span class="w-1 h-1 bg-indigo-500 rounded-full"></span>
+                      {{ job.service }}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </td>
-          </ng-container>
+              </td>
+            </ng-container>
 
-          <!-- Date Column -->
-          <ng-container matColumnDef="date">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Service Date</th>
-            <td mat-cell *matCellDef="let job" class="text-sm font-bold text-slate-500">{{ job.date }}</td>
-          </ng-container>
+            <!-- Date Column -->
+            <ng-container matColumnDef="date">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">Date</th>
+              <td mat-cell *matCellDef="let job" class="!px-6 !py-5 text-center text-sm font-black text-slate-900">{{ job.date }}</td>
+            </ng-container>
 
-          <!-- Earnings Column -->
-          <ng-container matColumnDef="earnings">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest">Earnings</th>
-            <td mat-cell *matCellDef="let job" class="text-sm font-black text-slate-900">{{ job.earnings }}</td>
-          </ng-container>
+            <!-- Earnings Column -->
+            <ng-container matColumnDef="earnings">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">Net</th>
+              <td mat-cell *matCellDef="let job" class="!px-6 !py-5 text-center text-lg font-black text-slate-900 tracking-tighter">{{ job.earnings }}</td>
+            </ng-container>
 
-          <!-- Rating Column -->
-          <ng-container matColumnDef="rating">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-center">Quality Rating</th>
-            <td mat-cell *matCellDef="let job" class="text-center">
-              <div class="flex items-center justify-center gap-0.5 text-amber-500">
-                @if (job.rating) {
-                  @for (s of [1,2,3,4,5]; track s) {
-                    <mat-icon class="!text-[14px] !w-auto !h-auto" [style.font-variation-settings]="s <= job.rating ? '\\'FILL\\' 1' : ''">star</mat-icon>
-                  }
-                } @else {
-                  <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Awaiting Review</span>
-                }
-              </div>
-            </td>
-          </ng-container>
-
-          <!-- Status Column -->
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef class="!bg-slate-900 !text-white !font-black !text-[10px] !uppercase !tracking-widest text-right">Status & Actions</th>
-            <td mat-cell *matCellDef="let job" class="text-right">
-              <div class="flex flex-col items-end gap-2">
-                <span class="inline-block px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest" [ngClass]="job.statusBg + ' ' + job.statusColor">
-                  {{ job.status }}
-                </span>
-                
-                <div class="flex gap-1">
-                  @if (state.updatingJobIds().has(job.id)) {
-                    <div class="px-3 py-1.5"><mat-icon class="animate-spin text-blue-600 !text-xs !w-auto !h-auto">sync</mat-icon></div>
+            <!-- Rating Column -->
+            <ng-container matColumnDef="rating">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">Rating</th>
+              <td mat-cell *matCellDef="let job" class="!px-6 !py-5 text-center">
+                <div class="flex items-center justify-center gap-0.5 text-amber-400">
+                  @if (job.rating) {
+                    @for (s of [1,2,3,4,5]; track s) {
+                      <mat-icon class="!text-base !w-auto !h-auto drop-shadow-sm" [style.font-variation-settings]="s <= job.rating ? '\\'FILL\\' 1' : ''">star</mat-icon>
+                    }
                   } @else {
-                    @if (job.status === 'Pending') {
-                      <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" class="bg-indigo-600 text-white p-1 rounded hover:bg-indigo-700 transition-colors" title="Accept Request">
-                        <mat-icon class="!text-xs !w-auto !h-auto">check</mat-icon>
-                      </button>
-                      <button (click)="state.updateJobStatus(job.id, 'REJECTED')" class="bg-rose-600 text-white p-1 rounded hover:bg-rose-700 transition-colors" title="Decline Request">
-                        <mat-icon class="!text-xs !w-auto !h-auto">close</mat-icon>
-                      </button>
-                    }
-                    @if (job.status === 'Approved' || job.status === 'Accepted') {
-                      <button (click)="state.updateJobStatus(job.id, 'COMPLETED')" class="bg-emerald-600 text-white px-2 py-1 rounded hover:bg-emerald-700 transition-colors text-[8px] font-black uppercase tracking-widest" title="Mark as Finished">
-                        Complete Job
-                      </button>
-                    }
+                    <span class="px-3 py-1 bg-slate-50 text-slate-400 text-[8px] font-black uppercase tracking-widest rounded-full border border-slate-100">Pending</span>
                   }
                 </div>
-              </div>
-            </td>
-          </ng-container>
+              </td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let job; columns: displayedColumns;" class="hover:bg-slate-50 transition-colors"></tr>
-        </table>
+            <!-- Status Column -->
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-right">Actions</th>
+              <td mat-cell *matCellDef="let job" class="!px-6 !py-5">
+                <div class="flex items-center justify-end gap-3 flex-wrap sm:flex-nowrap">
+                  <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.05em] shadow-sm border flex items-center gap-1.5 whitespace-nowrap" 
+                        [ngClass]="job.statusBg + ' ' + job.statusColor">
+                    <span class="w-1.5 h-1.5 rounded-full" [class.bg-current]="true" [class.animate-pulse]="job.status === 'Pending'"></span>
+                    {{ job.status }}
+                  </span>
+                  
+                  <div class="flex items-center gap-2">
+                    @if (state.updatingJobIds().has(job.id)) {
+                      <mat-icon class="animate-spin text-indigo-600 !w-5 !h-5">sync</mat-icon>
+                    } @else {
+                      @if (job.status === 'Pending') {
+                        <div class="flex gap-1.5">
+                          <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" class="p-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-600 hover:text-white transition-all border border-teal-100 shadow-sm" title="Accept Request">
+                            <mat-icon class="!text-base !w-auto !h-auto">check</mat-icon>
+                          </button>
+                          <button (click)="state.updateJobStatus(job.id, 'REJECTED')" class="p-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all border border-rose-100 shadow-sm" title="Decline Request">
+                            <mat-icon class="!text-base !w-auto !h-auto">close</mat-icon>
+                          </button>
+                        </div>
+                      }
+                      @if (job.status === 'Accepted' || job.status === 'Revision Requested' || job.status === 'In Progress') {
+                        <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-[9px] font-black uppercase tracking-[0.1em] shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 hover:scale-[1.02] transition-all flex items-center gap-1.5">
+                          <mat-icon class="!w-3.5 !h-3.5">send</mat-icon>
+                          Deliver
+                        </button>
+                      }
+                      @if (job.status === 'Submitted') {
+                        <div class="text-[9px] font-bold text-slate-400 italic px-2">Reviewing...</div>
+                      }
+                    }
+                  </div>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let job; columns: displayedColumns;" class="hover:bg-slate-50/50 transition-colors"></tr>
+          </table>
+        </div>
 
         @if (jobs().length > 4) {
-          <div class="p-8 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-            <button mat-button color="primary" (click)="prevPage()" [disabled]="currentPage() === 1" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1 disabled:!opacity-40">
-              <mat-icon class="!text-sm">chevron_left</mat-icon> Previous
+          <div class="p-6 bg-slate-50/50 border-t border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <button (click)="prevPage()" [disabled]="currentPage() === 1" class="group px-6 py-3 bg-white border-2 border-slate-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-slate-400 hover:border-indigo-600 hover:text-indigo-600 transition-all disabled:opacity-30 flex items-center gap-2">
+              <mat-icon class="!text-lg transition-transform group-hover:-translate-x-1">chevron_left</mat-icon> Previous
             </button>
             <div class="flex gap-2">
               @for (p of pageNumbers(); track p) {
                 <button
-                  mat-stroked-button
-                  color="primary"
                   (click)="goToPage(p)"
-                  [ngClass]="p === currentPage() ? '!bg-slate-900 !text-white !border-slate-900' : ''"
-                  class="!min-w-[40px] !w-10 !h-10 !p-0 !rounded-xl !font-black !border-slate-200">
+                  [ngClass]="p === currentPage() ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-600/20' : 'bg-white text-slate-400 border-slate-200 hover:border-indigo-600'"
+                  class="w-10 h-10 rounded-lg border-2 font-black text-[10px] transition-all">
                   {{ p }}
                 </button>
               }
             </div>
-            <button mat-button color="primary" (click)="nextPage()" [disabled]="currentPage() >= totalPages()" class="!font-black !text-[10px] !uppercase !tracking-widest flex items-center gap-1 disabled:!opacity-40">
-              Next <mat-icon class="!text-sm">chevron_right</mat-icon>
+            <button (click)="nextPage()" [disabled]="currentPage() >= totalPages()" class="group px-6 py-3 bg-white border-2 border-slate-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-slate-400 hover:border-indigo-600 hover:text-indigo-600 transition-all disabled:opacity-30 flex items-center gap-2">
+              Next <mat-icon class="!text-lg transition-transform group-hover:translate-x-1">chevron_right</mat-icon>
             </button>
           </div>
         }
-      </mat-card>
+      </div>
     </div>
   `,
   styles: [`
-    :host { display: block; }
+    :host { display: block; min-height: 100vh; background: #fafafa; }
+    .fill-star { font-variation-settings: 'FILL' 1; }
     
+    .mat-mdc-table { background: transparent !important; }
+    .mat-mdc-row, .mat-mdc-header-row { border-bottom: 1px solid #f8fafc !important; }
+    .mat-mdc-cell, .mat-mdc-header-cell { border-bottom: none !important; }
+
+    @media (max-width: 1024px) {
+      .max-w-7xl { padding-left: 2rem; padding-right: 2rem; }
+    }
+
     @media (max-width: 768px) {
-      .header-title { font-size: 1.75rem !important; }
-      mat-card { padding: 1.25rem !important; }
-      .h-60 { height: 10rem !important; }
-      .grid { gap: 1rem !important; }
+      .text-5xl { font-size: 2.75rem !important; }
+      .p-10 { padding: 2rem !important; }
+      
+      .mat-mdc-table { display: block !important; }
+      .mat-mdc-header-row { display: none !important; }
+      .mat-mdc-row {
+        display: block !important;
+        background: #fff;
+        margin-bottom: 1.5rem;
+        padding: 2rem !important;
+        border: 1px solid #f1f5f9 !important;
+        border-radius: 2.5rem !important;
+        height: auto !important;
+      }
+      .mat-mdc-cell {
+        display: block !important;
+        padding: 1rem 0 !important;
+        text-align: left !important;
+        width: 100% !important;
+        border: none !important;
+      }
+      .mat-mdc-cell::before {
+        content: attr(data-label);
+        display: block;
+        font-weight: 900;
+        text-transform: uppercase;
+        font-size: 10px;
+        color: #94a3b8;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.75rem;
+      }
+      
+      .mat-column-status { text-align: left !important; }
+      .flex.items-center.justify-end { justify-content: flex-start !important; }
     }
   `]
 })
@@ -235,14 +306,14 @@ export class WorkerHistoryPage {
 
   get metrics() {
     const jobs = this.state.bookings();
-    const completed = jobs.filter(j => j.status === 'Completed').length;
-    const approved = jobs.filter(j => j.status === 'Approved').length;
+    const completed = jobs.filter(j => j.status === 'Completed' || j.status === 'Approved').length;
+    const submitted = jobs.filter(j => j.status === 'Submitted').length;
     const total = jobs.length || 1;
     const rated = jobs.filter(j => typeof j.rating === 'number') as any[];
     const avgRating = rated.length ? (rated.reduce((s, r) => s + (r.rating || 0), 0) / rated.length) : 0;
     return [
       { label: 'Completion Rate', value: `${Math.round((completed / total) * 100)}%`, icon: 'verified' },
-      { label: 'Accepted Requests', value: `${Math.round((approved / total) * 100)}%`, icon: 'schedule' },
+      { label: 'Accepted Requests', value: `${Math.round((completed / total) * 100)}%`, icon: 'schedule' },
       { label: 'Avg. Rating', value: avgRating.toFixed(2), icon: 'star' }
     ];
   }
@@ -259,8 +330,16 @@ export class WorkerHistoryPage {
         date: b.date,
         earnings: `$${b.earnings.toFixed(2)}`,
         rating: b.rating,
-        statusBg: b.status === 'Approved' ? 'bg-teal-50' : (b.status === 'Revision' ? 'bg-amber-50' : 'bg-blue-50'),
-        statusColor: b.status === 'Approved' ? 'text-teal-700' : (b.status === 'Revision' ? 'text-amber-700' : 'text-blue-700')
+        statusBg: b.status === 'Approved' ? 'bg-indigo-50' : 
+                  (b.status === 'Submitted' ? 'bg-teal-50' : 
+                  (b.status === 'Revision Requested' ? 'bg-amber-50' : 
+                  (b.status === 'Cancelled' ? 'bg-rose-50' : 
+                  (b.status === 'Disputed' ? 'bg-rose-100' : 'bg-blue-50')))),
+        statusColor: b.status === 'Approved' ? 'text-indigo-700' : 
+                     (b.status === 'Submitted' ? 'text-teal-700' : 
+                     (b.status === 'Revision Requested' ? 'text-amber-700' : 
+                     (b.status === 'Cancelled' ? 'text-rose-500' : 
+                     (b.status === 'Disputed' ? 'text-rose-700' : 'text-blue-700'))))
       }));
   });
 

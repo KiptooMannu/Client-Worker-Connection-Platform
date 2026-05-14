@@ -24,7 +24,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   template: `
     <div class="space-y-6 animate-in fade-in duration-700">
       <!-- Step-by-Step Progress Tracker -->
-      <mat-card class="premium-card !border !border-slate-100 !shadow-sm !p-6 md:!p-8">
+      <mat-card class="premium-card !border !border-slate-100 !shadow-sm !p-5 md:!p-6">
         <div class="flex justify-between items-center mb-6">
            <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Verification Progress</h3>
            <span class="text-[10px] font-black text-blue-600">{{ completionPercentage() }}% Complete</span>
@@ -56,7 +56,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       <!-- Status Hero Card -->
       <mat-card class="premium-card overflow-hidden !border-none !shadow-xl" 
                 [ngClass]="worker().status === 'Verified' ? '!bg-emerald-700' : (worker().status === 'Pending' ? '!bg-slate-700' : '!bg-indigo-900')">
-        <mat-card-content class="!p-6 md:!p-8 text-white relative">
+        <mat-card-content class="!p-5 md:!p-6 text-white relative">
           <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
             <div class="flex items-center gap-6 text-center md:text-left flex-col md:flex-row">
               <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30">

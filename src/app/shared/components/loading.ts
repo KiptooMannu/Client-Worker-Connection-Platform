@@ -25,9 +25,10 @@ import { LoadingService } from '../../core/services/loading.service';
       justify-content: center;
       align-items: center;
       z-index: 9999;
-      backdrop-filter: blur(2px);
+      pointer-events: none;
     }
   `]
+
 })
 export class LoadingComponent {
   public loadingService = inject(LoadingService);

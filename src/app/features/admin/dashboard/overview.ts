@@ -35,7 +35,7 @@ import { NotificationService } from '../../../core/services/notification.service
           
           <div class="flex items-center gap-3">
              <!-- Compact Stat Strip -->
-             <div class="hidden lg:flex items-center gap-4 px-4 py-2 bg-white border border-slate-100 rounded-2xl shadow-sm mr-4">
+             <div class="hidden lg:flex items-center gap-3 px-3 py-1.5 bg-white border border-slate-100 rounded-2xl shadow-sm mr-2">
                 @for (stat of stats; track stat.label) {
                   <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-lg flex items-center justify-center" [ngClass]="stat.bg">

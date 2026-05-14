@@ -17,553 +17,208 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     RouterLink
   ],
   template: `
-    <div class="profile-wrap">
-
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-700">
       <!-- Breadcrumb -->
-      <nav class="crumb">
-        <a routerLink="/client" class="crumb-link">Marketplace</a>
-        <span class="crumb-sep">›</span>
-        <span>{{ worker()?.name }}</span>
+      <nav class="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400 mb-8">
+        <a routerLink="/client" class="hover:text-indigo-600 transition-colors">Marketplace</a>
+        <mat-icon class="!text-[10px] !w-auto !h-auto">chevron_right</mat-icon>
+        <span class="text-slate-900">{{ worker()?.name }}</span>
       </nav>
 
-      <!-- Hero banner -->
-      <div class="hero">
-        <div class="hero-top">
-          <div class="hero-top-left">
-            <div class="avatar-wrap">
-              <div class="avatar">
-                @if (worker()?.image) {
-                  <img [src]="worker()?.image" alt="{{ worker()?.name }}" class="avatar-img">
-                } @else {
-                  {{ worker()?.initials }}
-                }
-              </div>
-              <span class="avail-dot"></span>
-            </div>
-            <div class="hero-identity">
-              <h1 class="hero-name">{{ worker()?.name }}</h1>
-              <p class="hero-role">{{ worker()?.category }}</p>
-              <span class="hero-badge">
-                <svg width="7" height="7" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#4ade80"/></svg>
-                Available now · {{ worker()?.location || 'Location not specified' }}
-              </span>
-            </div>
+      <!-- Profile Header / Hero -->
+      <div class="bg-white rounded-[3.5rem] profile-header-card border border-slate-100 shadow-sm overflow-hidden mb-12">
+        <div class="bg-[#0f172a] p-10 sm:p-16 relative overflow-hidden group">
+          <!-- Decorative elements -->
+          <div class="absolute top-0 right-0 p-16 text-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-700">
+            <mat-icon class="!text-[15rem] !w-auto !h-auto">workspace_premium</mat-icon>
           </div>
-          <div class="hero-actions">
-            <button [disabled]="hasPendingRequest()" 
-                    [class.btn-disabled]="hasPendingRequest()"
-                    class="btn-hire-hero" (click)="hire()">
-              {{ hasPendingRequest() ? 'Request Pending' : 'Hire now' }}
-            </button>
-            <button class="btn-msg-hero" (click)="message()">Message</button>
+          
+          <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-10 relative z-10">
+            <div class="flex flex-col sm:flex-row items-center gap-8">
+              <div class="relative">
+                <div class="w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-white/10 shadow-2xl bg-indigo-900 flex items-center justify-center text-indigo-300 font-black text-3xl uppercase group-hover:rotate-3 transition-transform duration-500">
+                  @if (worker()?.image) { 
+                    <img [src]="worker()?.image" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"> 
+                  } @else { {{ worker()?.initials }} }
+                </div>
+                <span class="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 border-4 border-[#0f172a] rounded-full shadow-lg animate-pulse"></span>
+              </div>
+              <div class="text-center sm:text-left">
+                <h1 class="text-4xl sm:text-5xl font-black text-white tracking-tight mb-2">{{ worker()?.name }}</h1>
+                <p class="text-indigo-300 text-lg font-black uppercase tracking-[0.2em] mb-6">{{ worker()?.category }}</p>
+                <div class="flex flex-wrap justify-center sm:justify-start gap-4">
+                  <span class="px-5 py-2 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold text-indigo-100 flex items-center gap-2 backdrop-blur-sm">
+                    <mat-icon class="!text-emerald-400 !text-sm !w-auto !h-auto">verified</mat-icon>
+                    Verified Professional
+                  </span>
+                  <span class="px-5 py-2 bg-white/5 border border-white/10 rounded-2xl text-xs font-bold text-indigo-100 flex items-center gap-2 backdrop-blur-sm">
+                    <mat-icon class="!text-indigo-400 !text-sm !w-auto !h-auto">location_on</mat-icon>
+                    {{ worker()?.location || 'Global' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="flex gap-4 w-full md:w-auto">
+              <button [disabled]="hasPendingRequest()" 
+                      [class.opacity-50]="hasPendingRequest()"
+                      (click)="hire()"
+                      class="flex-1 md:flex-none px-10 py-5 bg-white text-slate-900 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-indigo-50 hover:scale-105 active:scale-95 transition-all disabled:cursor-not-allowed">
+                {{ hasPendingRequest() ? 'Request Pending' : 'Hire now' }}
+              </button>
+              <button (click)="message()" class="px-5 py-5 bg-white/5 text-white border border-white/10 rounded-[1.5rem] font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95">
+                <mat-icon>chat_bubble</mat-icon>
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="hero-stats">
-          <div class="h-stat">
-            <p class="h-stat-label">Hourly rate</p>
-            <p class="h-stat-val accent">\${{ worker()?.rate }}</p>
+        <!-- Quick Stats Banner -->
+        <div class="grid grid-cols-2 md:grid-cols-4 border-t border-slate-50">
+          <div class="p-6 border-r border-slate-50 text-center group hover:bg-slate-50/50 transition-colors">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Hourly Rate</p>
+            <p class="text-3xl font-black text-slate-900 tracking-tighter group-hover:text-indigo-600 transition-colors">$\{{ worker()?.rate }}</p>
           </div>
-          <div class="h-stat">
-            <p class="h-stat-label">Reviews</p>
-            <p class="h-stat-val">{{ worker()?.reviews }}</p>
+          <div class="p-6 border-r border-slate-50 text-center group hover:bg-slate-50/50 transition-colors">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Reviews</p>
+            <p class="text-3xl font-black text-slate-900 tracking-tighter group-hover:text-indigo-600 transition-colors">{{ worker()?.reviews }}</p>
           </div>
-          <div class="h-stat">
-            <p class="h-stat-label">Success rate</p>
-            <p class="h-stat-val">{{ successRate() }}%</p>
+          <div class="p-6 border-r border-slate-50 text-center group hover:bg-slate-50/50 transition-colors">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Success Rate</p>
+            <p class="text-3xl font-black text-emerald-600 tracking-tighter">{{ successRate() }}%</p>
           </div>
-          <div class="h-stat">
-            <p class="h-stat-label">Work records</p>
-            <p class="h-stat-val">{{ worker()?.workHistory?.length || 0 }}</p>
+          <div class="p-6 text-center group hover:bg-slate-50/50 transition-colors">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Projects</p>
+            <p class="text-3xl font-black text-slate-900 tracking-tighter group-hover:text-indigo-600 transition-colors">{{ worker()?.workHistory?.length || 0 }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Two-column body -->
-      <div class="two-col">
-
-        <!-- Left: main content -->
-        <div class="left-col">
-
+      <!-- Main Profile Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+        <!-- Left: Details & History -->
+        <div class="lg:col-span-8 space-y-12">
           <!-- About -->
-          <div class="card">
-            <p class="card-label">About</p>
-            <p class="bio-text">{{ worker()?.bio }}</p>
-            <div class="tags">
+          <section class="bg-white p-10 sm:p-14 rounded-[3rem] content-card border border-slate-100 shadow-sm relative overflow-hidden group">
+            <div class="flex items-center gap-3 mb-10">
+              <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+              <h2 class="text-[12px] font-black text-slate-900 uppercase tracking-[0.2em]">Professional Background</h2>
+            </div>
+            <p class="text-xl text-slate-600 font-medium leading-relaxed mb-12 relative z-10">{{ worker()?.bio }}</p>
+            
+            <div class="flex flex-wrap gap-3">
               @for (skill of worker()?.skills; track skill) {
-                <span class="tag">{{ skill }}</span>
+                <span class="px-5 py-2.5 bg-slate-50 text-slate-500 rounded-2xl text-[11px] font-black uppercase tracking-widest border border-slate-100 hover:border-indigo-600 hover:text-indigo-600 transition-all cursor-default">
+                  {{ skill }}
+                </span>
+              }
+            </div>
+          </section>
+
+          <!-- Portfolio / History -->
+          <section class="bg-white p-10 sm:p-14 rounded-[3rem] content-card border border-slate-100 shadow-sm">
+            <div class="flex items-center gap-3 mb-12">
+              <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+              <h2 class="text-[12px] font-black text-slate-900 uppercase tracking-[0.2em]">Verified Work History</h2>
+            </div>
+
+            <div class="space-y-10">
+              @for (job of displayHistory(); track $index) {
+                <div class="group relative pl-12 border-l-2 border-slate-100 hover:border-indigo-600 transition-all pb-10 last:pb-0">
+                  <!-- Timeline point -->
+                  <div class="absolute left-[-9px] top-0 w-4 h-4 bg-white border-2 border-slate-200 rounded-full group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-all"></div>
+                  
+                  <div class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
+                    <div>
+                      <h4 class="text-2xl font-black text-slate-900 tracking-tight">{{ job.role }}</h4>
+                      <p class="text-indigo-500 font-black text-[11px] uppercase tracking-widest">{{ job.company }}</p>
+                    </div>
+                    <span class="px-4 py-1.5 bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-full border border-slate-100">{{ job.period }}</span>
+                  </div>
+                  <p class="text-slate-500 font-medium leading-relaxed bg-slate-50/50 p-6 rounded-[1.5rem] border border-dashed border-slate-100 italic group-hover:bg-indigo-50 group-hover:border-indigo-100 transition-all">"{{ job.description }}"</p>
+                </div>
+              }
+            </div>
+          </section>
+        </div>
+
+        <!-- Right: Actions & Metrics -->
+        <div class="lg:col-span-4 space-y-8">
+          <!-- Sidebar Engagement -->
+          <div class="bg-indigo-950 p-10 rounded-[3rem] content-card text-white shadow-2xl sticky top-24 overflow-hidden group">
+            <div class="relative z-10">
+              <div class="flex items-center gap-3 mb-10">
+                <div class="w-1.5 h-6 bg-white rounded-full"></div>
+                <h3 class="text-[11px] font-black text-indigo-200 uppercase tracking-widest">Hire Engagement</h3>
+              </div>
+              
+              <div class="flex items-baseline gap-2 mb-8">
+                <span class="text-5xl font-black tracking-tighter">$\{{ worker()?.rate }}</span>
+                <span class="text-xs font-black text-indigo-300 uppercase tracking-widest">/ hr</span>
+              </div>
+
+              <div class="flex items-center gap-3 p-4 bg-white/5 rounded-2xl border border-white/10 mb-10 backdrop-blur-sm">
+                <div class="flex items-center gap-0.5 text-amber-400">
+                  @for (s of [1,2,3,4,5]; track s) {
+                    <mat-icon class="!text-lg !w-auto !h-auto" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
+                  }
+                </div>
+                <span class="text-xs font-black text-white">{{ worker()?.rating?.toFixed(2) }} · {{ worker()?.reviews }} reviews</span>
+              </div>
+
+              <div class="space-y-4">
+                <button [disabled]="hasPendingRequest()" 
+                        (click)="hire()"
+                        class="w-full py-5 bg-white text-slate-900 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-indigo-50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+                  {{ hasPendingRequest() ? 'Hiring Pending' : 'Initialize Contract' }}
+                </button>
+                <button (click)="message()" class="w-full py-5 bg-white/5 text-white border border-white/10 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all active:scale-95">
+                  Send Message
+                </button>
+              </div>
+
+              <p class="text-[10px] text-center text-indigo-400 font-black uppercase tracking-widest mt-8 italic">Secure Escrow Payments Enabled</p>
+            </div>
+
+            <!-- Decoration -->
+            <div class="absolute -bottom-10 -right-10 opacity-5 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
+              <mat-icon class="!text-[12rem] !w-auto !h-auto">lock_person</mat-icon>
+            </div>
+          </div>
+
+          <!-- Skills & Certifications -->
+          <div class="bg-white p-10 rounded-[3rem] content-card border border-slate-100 shadow-sm overflow-hidden">
+            <div class="flex items-center gap-3 mb-10">
+              <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
+              <h3 class="text-[11px] font-black text-slate-900 uppercase tracking-widest">Credentials</h3>
+            </div>
+            
+            <div class="space-y-8">
+              @for (c of displayCerts(); track c.name) {
+                <div class="flex items-center gap-5 group">
+                  <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-all">
+                    <mat-icon>workspace_premium</mat-icon>
+                  </div>
+                  <div>
+                    <h5 class="text-sm font-black text-slate-900 leading-tight mb-1 group-hover:text-indigo-600 transition-colors">{{ c.name }}</h5>
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ c.issuer }} · {{ c.year }}</p>
+                  </div>
+                </div>
               }
             </div>
           </div>
-
-          <!-- Work history -->
-          <div class="card">
-            <p class="card-label">Work history</p>
-
-            @for (job of displayHistory(); track $index) {
-              <div class="job" [class.first]="$first">
-                <div class="job-head">
-                  <span class="job-title">{{ job.role }}</span>
-                  <span class="job-co">{{ job.company }}</span>
-                </div>
-                <p class="job-period">{{ job.period }}</p>
-                <p class="job-quote">"{{ job.description }}"</p>
-              </div>
-            }
-
-            <button class="more-btn">View all reviews</button>
-          </div>
-
-        </div>
-
-        <!-- Right: sidebar -->
-        <div class="right-col">
-
-          <!-- Engagement card -->
-          <div class="sidebar-card">
-            <p class="s-label">Engagement</p>
-            <div class="rate-display">
-              <span class="rate-num">\${{ worker()?.rate }}</span>
-              <span class="rate-unit">/ hr</span>
-            </div>
-            <div class="star-row">
-              <span class="stars">★★★★★</span>
-              <span class="star-meta">{{ worker()?.rating?.toFixed(2) }} · {{ worker()?.reviews }} reviews</span>
-            </div>
-            <button [disabled]="hasPendingRequest()" 
-                    [class.btn-disabled]="hasPendingRequest()"
-                    class="btn-hire-full" (click)="hire()">
-              {{ hasPendingRequest() ? 'Hiring Pending' : 'Hire ' + (worker()?.name?.split(' ')?.[0] || 'Professional') }}
-            </button>
-            <button class="btn-msg-full" (click)="message()">
-              Send message
-            </button>
-            <div class="save-row">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
-              </svg>
-              Save to shortlist
-            </div>
-          </div>
-
-          <!-- Performance -->
-          <div class="sidebar-card">
-            <p class="s-label">Performance</p>
-            @for (m of metrics(); track m.label) {
-              <div class="metric">
-                <div class="metric-top">
-                  <span class="metric-name">{{ m.label }}</span>
-                  <span class="metric-pct">{{ m.value }}%</span>
-                </div>
-                <div class="track">
-                  <div class="fill" [style.width.%]="m.value"></div>
-                </div>
-              </div>
-            }
-          </div>
-
-          <!-- Certifications -->
-          <div class="sidebar-card">
-            <p class="s-label">Certifications</p>
-            @for (c of displayCerts(); track c.name) {
-              <div class="cert-item">
-                <div class="cert-dot"></div>
-                <div>
-                  <p class="cert-name">{{ c.name }}</p>
-                  <p class="cert-sub">{{ c.issuer }} · {{ c.year }}</p>
-                </div>
-              </div>
-            }
-          </div>
-
         </div>
       </div>
     </div>
   `,
   styles: [`
-    :host { display: block; }
-
-    .profile-wrap {
-      padding: 4px 0 32px;
-    }
-
-    /* ── Breadcrumb ── */
-    .crumb {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #64748b;
-      margin-bottom: 18px;
-      letter-spacing: .04em;
-      text-transform: uppercase;
-    }
-    .crumb-link {
-      color: #185FA5;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .crumb-link:hover { text-decoration: underline; }
-    .crumb-sep { opacity: .4; }
-
-    /* ── Hero ── */
-    .hero {
-      background: #fff;
-      border: 0.5px solid #e2e8f0;
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 20px;
-    }
-    .hero-top {
-      background: #0f172a;
-      padding: 28px 28px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    .hero-top-left {
-      display: flex;
-      gap: 16px;
-      align-items: flex-end;
-    }
-    .avatar-wrap { position: relative; }
-    .avatar {
-      width: 72px;
-      height: 72px;
-      border-radius: 10px;
-      background: #1e3a5f;
-      color: #93c5fd;
-      font-size: 22px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .avatar-img { width: 100%; height: 100%; object-fit: cover; }
-    .avail-dot {
-      position: absolute;
-      bottom: 4px;
-      right: 4px;
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #4ade80;
-      border: 2px solid #0f172a;
-    }
-    .hero-identity { padding-bottom: 0; }
-    .hero-name {
-      color: #f8fafc;
-      font-size: 20px;
-      font-weight: 500;
-      margin: 0 0 3px;
-    }
-    .hero-role {
-      color: #94a3b8;
-      font-size: 13px;
-      margin: 0 0 10px;
-    }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(255,255,255,.07);
-      color: #cbd5e1;
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      border: 0.5px solid rgba(255,255,255,.12);
-    }
-    .hero-actions {
-      display: flex;
-      gap: 8px;
-      padding-top: 4px;
-    }
-    .btn-hire-hero {
-      background: #3b82f6;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 18px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-    }
-    .btn-hire-hero:hover { background: #2563eb; }
-    .btn-msg-hero {
-      background: transparent;
-      color: #94a3b8;
-      border: 0.5px solid rgba(255,255,255,.15);
-      border-radius: 8px;
-      padding: 9px 18px;
-      font-size: 13px;
-      cursor: pointer;
-    }
-    .btn-msg-hero:hover { background: rgba(255,255,255,.06); }
-
-    .hero-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      border-top: 0.5px solid #e2e8f0;
-    }
-    .h-stat {
-      padding: 16px 20px;
-      border-right: 0.5px solid #e2e8f0;
-    }
-    .h-stat:last-child { border-right: none; }
-    .h-stat-label {
-      font-size: 11px;
-      color: #94a3b8;
-      letter-spacing: .05em;
-      text-transform: uppercase;
-      margin: 0 0 5px;
-    }
-    .h-stat-val {
-      font-size: 18px;
-      font-weight: 500;
-      color: #0f172a;
-      margin: 0;
-    }
-    .h-stat-val.accent { color: #185FA5; }
-
-    /* ── Two-column layout ── */
-    .two-col {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 252px;
-      gap: 16px;
-    }
-    .left-col { display: flex; flex-direction: column; gap: 16px; }
-    .right-col { display: flex; flex-direction: column; gap: 14px; }
-
-    /* ── Cards ── */
-    .card {
-      background: #fff;
-      border: 0.5px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 22px 24px;
-    }
-    .card-label {
-      font-size: 11px;
-      color: #94a3b8;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      margin: 0 0 14px;
-    }
-    .bio-text {
-      font-size: 14px;
-      color: #475569;
-      line-height: 1.75;
-      margin: 0;
-    }
-    .tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-top: 14px;
-    }
-    .tag {
-      font-size: 12px;
-      color: #475569;
-      background: #f8fafc;
-      border: 0.5px solid #e2e8f0;
-      border-radius: 20px;
-      padding: 4px 11px;
-    }
-
-    /* ── Work history ── */
-    .job {
-      padding: 18px 0;
-      border-bottom: 0.5px solid #f1f5f9;
-    }
-    .job.first { padding-top: 0; }
-    .job:last-of-type { border-bottom: none; padding-bottom: 0; }
-    .job-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 3px;
-    }
-    .job-title {
-      font-size: 14px;
-      font-weight: 500;
-      color: #0f172a;
-    }
-    .job-co {
-      font-size: 13px;
-      color: #94a3b8;
-    }
-    .job-period {
-      font-size: 12px;
-      color: #94a3b8;
-      margin: 0 0 10px;
-    }
-    .job-quote {
-      font-size: 13px;
-      color: #475569;
-      line-height: 1.7;
-      border-left: 2px solid #e2e8f0;
-      border-radius: 0;
-      padding-left: 12px;
-      margin: 0;
-    }
-    .more-btn {
-      width: 100%;
-      margin-top: 16px;
-      padding: 10px;
-      background: transparent;
-      border: 0.5px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 12px;
-      color: #64748b;
-      cursor: pointer;
-    }
-    .more-btn:hover { background: #f8fafc; }
-
-    /* ── Sidebar cards ── */
-    .sidebar-card {
-      background: #fff;
-      border: 0.5px solid #e2e8f0;
-      border-radius: 12px;
-      padding: 20px;
-    }
-    .s-label {
-      font-size: 11px;
-      color: #94a3b8;
-      letter-spacing: .06em;
-      text-transform: uppercase;
-      margin: 0 0 16px;
-    }
-    .rate-display {
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-      margin-bottom: 10px;
-    }
-    .rate-num {
-      font-size: 28px;
-      font-weight: 500;
-      color: #0f172a;
-    }
-    .rate-unit {
-      font-size: 13px;
-      color: #94a3b8;
-    }
-    .star-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      margin-bottom: 16px;
-    }
-    .stars { color: #EF9F27; font-size: 14px; letter-spacing: 1px; }
-    .star-meta { font-size: 12px; color: #94a3b8; }
-
-    .btn-hire-full {
-      display: block;
-      width: 100%;
-      padding: 11px;
-      background: #0f172a;
-      color: #f8fafc;
-      border: none;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      margin-bottom: 8px;
-      text-align: center;
-    }
-    .btn-hire-full:hover { background: #1e293b; }
-    .btn-disabled {
-      background: #94a3b8 !important;
-      cursor: not-allowed !important;
-      opacity: 0.7;
-    }
-    .btn-msg-full {
-      display: block;
-      width: 100%;
-      padding: 10px;
-      background: transparent;
-      color: #475569;
-      border: 0.5px solid #e2e8f0;
-      border-radius: 8px;
-      font-size: 13px;
-      cursor: pointer;
-      text-align: center;
-    }
-    .btn-msg-full:hover { background: #f8fafc; }
-
-    .save-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      margin-top: 12px;
-      font-size: 12px;
-      color: #94a3b8;
-      cursor: pointer;
-      padding: 6px;
-    }
-    .save-row:hover { color: #475569; }
-
-    /* ── Performance metrics ── */
-    .metric { margin-bottom: 14px; }
-    .metric:last-child { margin-bottom: 0; }
-    .metric-top {
-      display: flex;
-      justify-content: space-between;
-      font-size: 12px;
-      margin-bottom: 6px;
-    }
-    .metric-name { color: #475569; }
-    .metric-pct { font-weight: 500; color: #0f172a; }
-    .track {
-      height: 3px;
-      background: #f1f5f9;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .fill {
-      height: 100%;
-      border-radius: 2px;
-      background: #185FA5;
-    }
-
-    /* ── Certifications ── */
-    .cert-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 0.5px solid #f1f5f9;
-    }
-    .cert-item:first-of-type { padding-top: 0; }
-    .cert-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .cert-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #185FA5;
-      flex-shrink: 0;
-    }
-    .cert-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: #0f172a;
-      margin: 0;
-    }
-    .cert-sub {
-      font-size: 11px;
-      color: #94a3b8;
-      margin: 2px 0 0;
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-
-    /* ── Responsive ── */
+    :host { display: block; min-height: 100vh; background: #fafafa; }
+    
     @media (max-width: 768px) {
-      .two-col { grid-template-columns: 1fr; }
-      .hero-top { flex-direction: column; gap: 16px; padding-bottom: 20px; }
-      .hero-stats { grid-template-columns: repeat(2, 1fr); }
-      .h-stat:nth-child(2) { border-right: none; }
+      .p-10, .p-14, .p-16 { padding: 2rem !important; }
+      .text-5xl { font-size: 2.75rem !important; }
+      .text-4xl { font-size: 2.25rem !important; }
+      .profile-header-card, .content-card { border-radius: 2rem !important; }
     }
   `]
 })

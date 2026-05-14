@@ -1,201 +1,247 @@
 <!-- Top Navigation Bar -->
-<nav class="sticky top-0 w-full z-50 border-b border-slate-200 bg-white/95 backdrop-blur-md shadow-sm">
-    <div class="flex justify-between items-center h-16 px-6 lg:px-12 max-w-7xl mx-auto">
-        <div class="flex items-center gap-8">
-            <span class="text-xl font-bold text-[#1A2B3C] tracking-tight">Kazi Konnect</span>
-            <div class="hidden md:flex items-center gap-8">
-                <a routerLink="/worker/dashboard" routerLinkActive="active-link"
-                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                    Find Work
-                </a>
-                <a routerLink="/client/marketplace" routerLinkActive="active-link"
-                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                    Hire Talent
-                </a>
-                <a routerLink="/enterprise" routerLinkActive="active-link"
-                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                    Enterprise
-                </a>
-                <a routerLink="/solutions" routerLinkActive="active-link"
-                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                    Solutions
-                </a>
-                <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
-                    routerLinkActive="active-link"
-                    class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
-                    Messages
-                    @if (state.unreadMessagesCount() > 0) {
-                    <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{
-                        state.unreadMessagesCount() }}</span>
-                    }
-                </a>
+<nav class="sticky top-0 w-full z-50 border-b border-slate-100 bg-white/80 backdrop-blur-xl transition-all">
+    <div class="flex justify-between items-center h-20 px-6 lg:px-12 max-w-7xl mx-auto">
+        <div class="flex items-center gap-12">
+            <div class="flex items-center gap-3 group cursor-pointer" routerLink="/">
+                <div
+                    class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform">
+                    <mat-icon>hub</mat-icon>
+                </div>
+                <span class="text-2xl font-black text-slate-900 tracking-tighter">Kazi Konnect</span>
+            </div>
+            <div class="hidden lg:flex items-center gap-10">
+                <a routerLink="/worker/dashboard"
+                    class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-widest">Find
+                    Work</a>
+                <a routerLink="/client/marketplace"
+                    class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-widest">Hire
+                    Talent</a>
+                <a routerLink="/enterprise"
+                    class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-widest">Enterprise</a>
+                <a routerLink="/solutions"
+                    class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-widest">Solutions</a>
             </div>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-6">
             @if (auth.isAuthenticated()) {
             <button (click)="auth.logout()"
-                class="text-slate-600 hover:text-rose-600 transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log
+                class="text-[11px] font-black text-slate-400 hover:text-rose-600 transition-colors uppercase tracking-widest">Log
                 Out</button>
             <button [routerLink]="['/admin']"
-                class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">Dashboard</button>
+                class="bg-slate-900 text-white px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-900/10 active:scale-95">Dashboard</button>
             } @else {
             <button [routerLink]="['/login']"
-                class="text-slate-600 hover:text-[#1A2B3C] transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">Log
+                class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest">Log
                 In</button>
             <button [routerLink]="['/register']"
-                class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">Sign
+                class="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95">Sign
                 Up</button>
             }
         </div>
     </div>
 </nav>
 
-<main>
+<main class="overflow-x-hidden">
     <!-- Hero Section -->
-    <section class="relative overflow-hidden pt-20 pb-24 lg:pt-32 lg:pb-40">
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-12 items-center">
-            <div class="z-10">
-                <span
-                    class="inline-block py-1 px-3 mb-6 rounded-full bg-secondary-fixed text-on-secondary-fixed font-bold text-[12px] uppercase tracking-wider">VERIFIED
-                    SERVICE MARKETPLACE</span>
-                <h1 class="text-5xl font-bold text-primary mb-6 max-w-lg leading-tight">
-                    Connect with Verified Talent for Your Highest Stakes.
+    <section class="relative pt-24 pb-32 lg:pt-40 lg:pb-56">
+        <!-- Background Decoration -->
+        <div class="absolute top-0 right-0 -z-10 w-full h-full opacity-30">
+            <div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-100 rounded-full blur-[120px]"></div>
+            <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-50 rounded-full blur-[100px]">
+            </div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-12 gap-20 items-center">
+            <div class="lg:col-span-7 z-10">
+                <div
+                    class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-10 border border-indigo-100">
+                    <mat-icon class="!text-[14px] !w-auto !h-auto">verified</mat-icon>
+                    Verified Professional Ecosystem
+                </div>
+                <h1 class="text-6xl sm:text-7xl font-black text-slate-900 mb-8 tracking-tighter leading-[0.95]">
+                    Elite Talent. <br>
+                    <span class="text-indigo-600">Absolute Trust.</span>
                 </h1>
-                <p class="text-lg text-on-surface-variant mb-10 max-w-md">
-                    The professional marketplace built on trust, transparency, and top-tier security for local services.
+                <p class="text-xl text-slate-500 mb-12 max-w-xl font-medium leading-relaxed">
+                    The premium marketplace for verified local professionals. Secure your high-stakes projects with our
+                    institutional-grade escrow and vetting system.
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4">
                     <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
-                        class="bg-secondary text-on-secondary font-bold px-8 py-4 rounded-xl shadow-lg hover:bg-on-secondary-fixed-variant transition-all active:scale-95">Find
-                        a Professional</button>
+                        class="bg-slate-900 text-white font-black text-xs uppercase tracking-[0.2em] px-10 py-6 rounded-[1.5rem] shadow-2xl hover:bg-indigo-600 hover:-translate-y-1 transition-all active:scale-95">
+                        Discover Experts
+                    </button>
                     <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
-                        class="border-2 border-primary text-primary font-bold px-8 py-4 rounded-xl hover:bg-surface-container transition-all active:scale-95">Join
-                        as Worker</button>
+                        class="bg-white text-slate-900 border-2 border-slate-100 font-black text-xs uppercase tracking-[0.2em] px-10 py-6 rounded-[1.5rem] hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95">
+                        Apply to Join
+                    </button>
+                </div>
+
+                <div
+                    class="mt-16 flex items-center gap-10 opacity-40 grayscale group hover:grayscale-0 transition-all duration-700">
+                    <div class="flex flex-col gap-1">
+                        <span class="text-2xl font-black tracking-tighter text-slate-900">4.9/5</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg. Rating</span>
+                    </div>
+                    <div class="w-px h-10 bg-slate-200"></div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-2xl font-black tracking-tighter text-slate-900">12k+</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Vetted Pros</span>
+                    </div>
+                    <div class="w-px h-10 bg-slate-200"></div>
+                    <div class="flex flex-col gap-1">
+                        <span class="text-2xl font-black tracking-tighter text-slate-900">$2.5M+</span>
+                        <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Escrow
+                            Volume</span>
+                    </div>
                 </div>
             </div>
-            <div class="relative">
-                <div class="aspect-square rounded-3xl overflow-hidden shadow-2xl border-8 border-white">
-                    <img alt="Professional home inspector" class="w-full h-full object-cover"
-                        src="https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop" />
-                </div>
-                <!-- Floating Badge -->
+
+            <div class="lg:col-span-5 relative">
                 <div
-                    class="absolute -bottom-6 -left-6 tonal-layer-2 p-6 rounded-2xl flex items-center gap-4 animate-bounce-subtle">
-                    <div class="w-12 h-12 rounded-full bg-on-tertiary-container flex items-center justify-center">
-                        <span class="material-symbols-outlined text-white"
-                            style="font-variation-settings: 'FILL' 1;">verified</span>
+                    class="aspect-[4/5] rounded-[4rem] overflow-hidden shadow-2xl border-[12px] border-white relative group">
+                    <img alt="Professional Team"
+                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                        src="https://images.unsplash.com/photo-1521737711867-e3b97375f902?q=80&w=2070&auto=format&fit=crop" />
+                    <div class="absolute inset-0 bg-indigo-600/10 mix-blend-overlay"></div>
+                </div>
+                <!-- Floating Trust Card -->
+                <div
+                    class="absolute -bottom-10 -left-10 bg-white p-6 rounded-[2.5rem] shadow-2xl border border-slate-50 flex items-center gap-6 animate-bounce-slow">
+                    <div
+                        class="w-16 h-16 rounded-3xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                        <mat-icon class="!text-3xl">verified_user</mat-icon>
                     </div>
                     <div>
-                        <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">TRUST STATUS
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Trust Status
                         </p>
-                        <p class="font-bold text-primary">Identity Verified</p>
+                        <p class="text-lg font-black text-slate-900 tracking-tight">Fully Verified</p>
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Background Decorative Elements -->
-        <div class="absolute top-0 right-0 -z-10 w-1/3 h-full bg-gradient-to-l from-primary-fixed/20 to-transparent">
-        </div>
     </section>
 
-    <!-- Trust Indicators -->
-    <section class="py-12 bg-surface-container-low border-y border-outline-variant">
-        <div class="max-w-7xl mx-auto px-6 lg:px-12">
-            <p class="text-center text-xs font-bold text-outline mb-10 uppercase tracking-widest">PARTNERED WITH
-                INDUSTRY LEADERS</p>
+    <!-- Marquee Partnerships -->
+    <section class="py-16 bg-white border-y border-slate-50">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 overflow-hidden">
+            <p class="text-center text-[10px] font-black text-slate-400 mb-12 uppercase tracking-[0.3em]">Institutional
+                Partners</p>
             <div
-                class="flex flex-wrap justify-center items-center gap-12 lg:gap-24 opacity-60 grayscale hover:grayscale-0 transition-all">
-                <span class="text-2xl font-bold text-primary tracking-tighter">GlobalTrust</span>
-                <span class="text-2xl font-bold text-primary tracking-tighter">SafetyFirst</span>
-                <span class="text-2xl font-bold text-primary tracking-tighter">SecurePay</span>
-                <span class="text-2xl font-bold text-primary tracking-tighter">AuthNetwork</span>
+                class="flex flex-wrap justify-center items-center gap-16 lg:gap-32 opacity-30 grayscale group hover:grayscale-0 transition-all duration-700">
+                <span class="text-3xl font-black text-slate-900 tracking-tighter">GlobalTrust</span>
+                <span class="text-3xl font-black text-slate-900 tracking-tighter">SafetyFirst</span>
+                <span class="text-3xl font-black text-slate-900 tracking-tighter">SecurePay</span>
+                <span class="text-3xl font-black text-slate-900 tracking-tighter">AuthNetwork</span>
             </div>
         </div>
     </section>
 
-    <!-- Features Grid -->
-    <section class="py-24 bg-surface">
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 text-center mb-16">
-            <h2 class="text-3xl font-bold text-primary mb-4">Uncompromising Standards</h2>
-            <p class="text-on-surface-variant max-w-2xl mx-auto">We've built Kazi Konnect to solve the trust gap in the
-                service economy.</p>
+    <!-- Standards Section -->
+    <section class="py-32 bg-[#fafafa]">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 mb-24">
+            <div class="flex flex-col items-center text-center">
+                <div class="w-2 h-12 bg-indigo-600 rounded-full mb-8"></div>
+                <h2 class="text-5xl font-black text-slate-900 tracking-tight mb-6 leading-tight">Uncompromising
+                    Standards</h2>
+                <p class="text-xl text-slate-500 max-w-2xl font-medium leading-relaxed">We've engineered Kazi Konnect to
+                    bridge the trust gap in the service economy through institutional-grade infrastructure.</p>
+            </div>
         </div>
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
-                <span class="material-symbols-outlined text-secondary text-4xl mb-4">badge</span>
-                <h3 class="font-bold text-lg text-primary mb-2">Strict Verification</h3>
-                <p class="text-sm text-on-surface-variant">Multi-layer background checks and license validation for
-                    every provider.</p>
+
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div
+                class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
+                <div
+                    class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-8 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    <mat-icon>shield</mat-icon>
+                </div>
+                <h3 class="text-xl font-black text-slate-900 mb-4 tracking-tight">Strict Vetting</h3>
+                <p class="text-sm text-slate-400 font-medium leading-relaxed">Multi-layer identity verification and
+                    professional credential auditing for every provider.</p>
             </div>
-            <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
-                <span class="material-symbols-outlined text-secondary text-4xl mb-4">distance</span>
-                <h3 class="font-bold text-lg text-primary mb-2">Local Connections</h3>
-                <p class="text-sm text-on-surface-variant">Proximity-based matching ensures fast responses and community
-                    integrity.</p>
+            <div
+                class="bg-white p-12 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
+                <div
+                    class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    <mat-icon>location_searching</mat-icon>
+                </div>
+                <h3 class="text-xl font-black text-slate-900 mb-4 tracking-tight">Hyper-Local</h3>
+                <p class="text-sm text-slate-400 font-medium leading-relaxed">Proximity-based matching ensures elite
+                    responsiveness and strong community accountability.</p>
             </div>
-            <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
-                <span class="material-symbols-outlined text-secondary text-4xl mb-4">payments</span>
-                <h3 class="font-bold text-lg text-primary mb-2">Secure Payments</h3>
-                <p class="text-sm text-on-surface-variant">Funds are held in escrow until you are 100% satisfied with
-                    the work.</p>
+            <div
+                class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
+                <div
+                    class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center text-amber-600 mb-8 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+                    <mat-icon>payments</mat-icon>
+                </div>
+                <h3 class="text-xl font-black text-slate-900 mb-4 tracking-tight">Elite Escrow</h3>
+                <p class="text-sm text-slate-400 font-medium leading-relaxed">Funds are secured in a managed escrow
+                    layer, released only upon verified project completion.</p>
             </div>
-            <div class="tonal-layer-1 p-8 rounded-xl hover:translate-y-[-4px] transition-transform">
-                <span class="material-symbols-outlined text-secondary text-4xl mb-4">gavel</span>
-                <h3 class="font-bold text-lg text-primary mb-2">Admin Moderation</h3>
-                <p class="text-sm text-on-surface-variant">24/7 human moderation to resolve disputes and maintain
-                    platform quality.</p>
+            <div
+                class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
+                <div
+                    class="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 mb-8 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                    <mat-icon>gavel</mat-icon>
+                </div>
+                <h3 class="text-xl font-black text-slate-900 mb-4 tracking-tight">Governance</h3>
+                <p class="text-sm text-slate-400 font-medium leading-relaxed">Expert human moderation to ensure platform
+                    integrity and fair dispute resolution.</p>
             </div>
         </div>
     </section>
 
-    <!-- Interactive Platform Overview -->
-    <section class="py-24 bg-white overflow-hidden relative">
-        <div class="max-w-7xl mx-auto px-margin relative z-10">
-            <!-- Navigation Tabs -->
-            <div class="flex justify-center gap-12 mb-20 border-b border-slate-100 pb-6">
-                <button (click)="selectedOverview.set('trust')" [class.text-blue-600]="selectedOverview() === 'trust'"
-                    [class.border-blue-600]="selectedOverview() === 'trust'"
-                    class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+    <!-- Platform Overview Interactive -->
+    <section class="py-40 bg-white">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12">
+            <div class="flex justify-center gap-12 mb-24 overflow-x-auto pb-4 scrollbar-hide">
+                <button (click)="selectedOverview.set('trust')" [class.text-indigo-600]="selectedOverview() === 'trust'"
+                    [class.border-indigo-600]="selectedOverview() === 'trust'"
+                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover:text-indigo-600">
                     Trust & Safety
                 </button>
-                <button (click)="selectedOverview.set('scale')" [class.text-blue-600]="selectedOverview() === 'scale'"
-                    [class.border-blue-600]="selectedOverview() === 'scale'"
-                    class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+                <button (click)="selectedOverview.set('scale')" [class.text-indigo-600]="selectedOverview() === 'scale'"
+                    [class.border-indigo-600]="selectedOverview() === 'scale'"
+                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover:text-indigo-600">
                     Marketplace Scale
                 </button>
                 <button (click)="selectedOverview.set('settlement')"
-                    [class.text-blue-600]="selectedOverview() === 'settlement'"
-                    [class.border-blue-600]="selectedOverview() === 'settlement'"
-                    class="text-[10px] font-black uppercase tracking-[0.3em] pb-6 border-b-2 border-transparent transition-all hover:text-blue-600">
+                    [class.text-indigo-600]="selectedOverview() === 'settlement'"
+                    [class.border-indigo-600]="selectedOverview() === 'settlement'"
+                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover:text-indigo-600">
                     Secure Settlement
                 </button>
             </div>
 
-            <!-- Content Card -->
-            <div
-                class="bg-slate-50/50 backdrop-blur-sm rounded-[3rem] p-12 lg:p-20 border border-slate-100 relative overflow-hidden group">
-                <!-- Ghosted Background Image -->
+            <div class="bg-indigo-950 rounded-[4rem] p-10 lg:p-16 text-white relative overflow-hidden group shadow-2xl">
+                <!-- Background visual -->
                 <div
-                    class="absolute inset-0 opacity-10 grayscale mix-blend-multiply pointer-events-none group-hover:opacity-20 transition-opacity duration-1000">
-                    <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=2070&auto=format&fit=crop"
-                        class="w-full h-full object-cover" alt="Modern Architecture">
+                    class="absolute inset-0 opacity-20 grayscale group-hover:scale-105 transition-transform duration-[2s]">
+                    <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2069"
+                        class="w-full h-full object-cover" alt="Elite Infrastructure">
                 </div>
 
-                <div class="relative z-10 flex flex-col lg:flex-row gap-16 items-start">
-                    <div class="lg:w-1/2">
+                <div class="relative z-10 grid lg:grid-cols-2 gap-20 items-center">
+                    <div>
                         <span
-                            class="text-blue-600 text-sm font-black uppercase tracking-widest block mb-10">Overview</span>
-                        <h3 class="text-3xl md:text-5xl font-black text-[#041627] leading-tight font-['Manrope'] mb-8">
+                            class="px-4 py-1.5 bg-white/10 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest mb-10 inline-block">Architecture
+                            Overview</span>
+                        <h3 class="text-4xl lg:text-6xl font-black leading-[1.1] tracking-tighter mb-10">
                             {{ overviews[selectedOverview()].highlight }}
                         </h3>
                     </div>
-                    <div class="lg:w-1/2">
-                        <p class="text-lg text-slate-500 leading-relaxed font-medium mb-12">
+                    <div>
+                        <p class="text-xl text-indigo-100 font-medium leading-relaxed mb-16">
                             {{ overviews[selectedOverview()].description }}
                         </p>
-                        <div class="flex items-center gap-4 pt-10 border-t border-slate-200">
-                            <mat-icon class="text-emerald-500">verified</mat-icon>
-                            <span class="text-xs font-black uppercase tracking-widest text-[#041627]">
+                        <div
+                            class="flex items-center gap-6 p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-md">
+                            <div class="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                <mat-icon>analytics</mat-icon>
+                            </div>
+                            <span class="text-xs font-black uppercase tracking-[0.2em] text-white">
                                 {{ overviews[selectedOverview()].footer }}
                             </span>
                         </div>
@@ -205,89 +251,33 @@
         </div>
     </section>
 
-    <!-- Role-Specific Deep Dives -->
-    <section class="py-24">
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-2 gap-12">
-            <!-- For Professionals -->
-            <div class="tonal-layer-1 rounded-3xl overflow-hidden flex flex-col">
-                <div class="h-64 relative">
-                    <img alt="Professional electrician" class="w-full h-full object-cover"
-                        src="https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop" />
-                    <div class="absolute inset-0 bg-primary/40 flex items-end p-8">
-                        <h3 class="text-3xl font-bold text-white">For Professionals</h3>
-                    </div>
-                </div>
-                <div class="p-10 flex-grow">
-                    <ul class="space-y-4 mb-8">
-                        <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-on-tertiary-container"
-                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-on-surface">Get a 'Verified' badge to boost trust</span>
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-on-tertiary-container"
-                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-on-surface">Access to high-value local contracts</span>
-                        </li>
-                    </ul>
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
-                        class="w-full py-4 border-2 border-primary text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-all">Apply
-                        as a Professional</button>
-                </div>
-            </div>
-            <!-- For Clients -->
-            <div class="tonal-layer-1 rounded-3xl overflow-hidden flex flex-col">
-                <div class="h-64 relative">
-                    <img alt="Happy homeowner" class="w-full h-full object-cover"
-                        src="https://images.unsplash.com/photo-1556911220-e150223eaa77?q=80&w=2070&auto=format&fit=crop" />
-                    <div class="absolute inset-0 bg-secondary/40 flex items-end p-8">
-                        <h3 class="text-3xl font-bold text-white">For Clients</h3>
-                    </div>
-                </div>
-                <div class="p-10 flex-grow">
-                    <ul class="space-y-4 mb-8">
-                        <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-secondary"
-                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-on-surface">Hire with confidence via background checks</span>
-                        </li>
-                        <li class="flex items-center gap-3">
-                            <span class="material-symbols-outlined text-secondary"
-                                style="font-variation-settings: 'FILL' 1;">check_circle</span>
-                            <span class="text-on-surface">Browse portfolio and verified reviews</span>
-                        </li>
-                    </ul>
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
-                        class="w-full py-4 bg-secondary text-white font-bold rounded-xl hover:bg-on-secondary-fixed-variant transition-all">Start
-                        Your Search</button>
-                </div>
-            </div>
-        </div>
-    </section>
+    <!-- CTA Section -->
+    <section class="py-32 bg-white">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12">
+            <div class="bg-slate-900 rounded-[4rem] p-16 lg:p-32 text-center relative overflow-hidden shadow-2xl">
+                <div class="relative z-10">
+                    <h2 class="text-5xl lg:text-7xl font-black text-white tracking-tighter mb-10 leading-none">Elevate
+                        Your Standard. <br> <span class="text-indigo-400">Join Kazi Konnect.</span></h2>
+                    <p class="text-xl text-slate-400 mb-16 max-w-2xl mx-auto font-medium">Join the community where
+                        professional integrity is the ultimate currency. Start your journey today.</p>
 
-    <!-- Final CTA -->
-    <section class="py-24 max-w-7xl mx-auto px-6 lg:px-12 mb-24">
-        <div class="bg-[#1A2B3C] rounded-[2rem] p-12 lg:p-20 text-center relative overflow-hidden">
-            <div class="relative z-10">
-                <h2 class="text-4xl font-bold text-white mb-6">Ready to Experience Kazi Konnect?</h2>
-                <p class="text-lg text-primary-fixed-dim mb-10 max-w-2xl mx-auto">Join the community where professional
-                    integrity and customer satisfaction are the primary currency.</p>
-                <div class="flex flex-col sm:flex-row gap-6 justify-center">
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
-                        class="bg-secondary text-white px-10 py-5 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-transform active:scale-95">Get
-                        Started as a Client</button>
-                    <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
-                        class="bg-white text-[#1A2B3C] px-10 py-5 rounded-xl font-bold text-lg shadow-xl hover:scale-105 transition-transform active:scale-95">Apply
-                        to Provide Services</button>
+                    <div class="flex flex-col sm:flex-row gap-8 justify-center">
+                        <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
+                            class="bg-indigo-600 text-white px-12 py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/20 hover:bg-indigo-700 hover:scale-105 transition-all active:scale-95">
+                            Hire Elite Talent
+                        </button>
+                        <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
+                            class="bg-white text-slate-900 px-12 py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-slate-50 hover:scale-105 transition-all active:scale-95">
+                            Join as a Professional
+                        </button>
+                    </div>
                 </div>
-            </div>
-            <!-- Abstract BG pattern -->
-            <div class="absolute inset-0 opacity-10 pointer-events-none">
+                <!-- Abstract Glows -->
                 <div
-                    class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl">
+                    class="absolute top-0 left-0 w-96 h-96 bg-indigo-600 rounded-full -translate-x-1/2 -translate-y-1/2 blur-[150px] opacity-20">
                 </div>
                 <div
-                    class="absolute bottom-0 right-0 w-96 h-96 bg-secondary rounded-full translate-x-1/2 translate-y-1/2 blur-3xl">
+                    class="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500 rounded-full translate-x-1/2 translate-y-1/2 blur-[150px] opacity-10">
                 </div>
             </div>
         </div>
@@ -295,44 +285,68 @@
 </main>
 
 <!-- Footer -->
-<footer class="w-full border-t border-slate-800 bg-[#1A2B3C]">
-    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 px-6 lg:px-12 py-16 max-w-7xl mx-auto">
-        <div class="col-span-2">
-            <span class="text-lg font-black text-white block mb-4">Kazi Konnect</span>
-            <p class="text-slate-400 text-sm max-w-xs mb-6">The gold standard for secure, professional service
-                marketplaces. Built for trust.</p>
-            <div class="flex gap-4">
-                <span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">public</span>
-                <span
-                    class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">account_balance</span>
-                <span
-                    class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">shield_person</span>
+<footer class="bg-slate-950 pt-32 pb-16">
+    <div class="max-w-7xl mx-auto px-6 lg:px-12">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-20 mb-24">
+            <div class="lg:col-span-2">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                        <mat-icon class="!text-sm">hub</mat-icon>
+                    </div>
+                    <span class="text-2xl font-black text-white tracking-tighter">Kazi Konnect</span>
+                </div>
+                <p class="text-slate-500 text-lg font-medium leading-relaxed max-w-sm mb-10">The gold standard for
+                    secure, professional marketplaces. Built for trust and scale.</p>
+                <div class="flex gap-6">
+                    @for (icon of ['facebook', 'twitter', 'linkedin', 'instagram']; track icon) {
+                    <a href="#"
+                        class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white hover:bg-indigo-600 transition-all">
+                        <mat-icon class="!text-lg">{{ icon }}</mat-icon>
+                    </a>
+                    }
+                </div>
+            </div>
+            <div>
+                <h6 class="text-white font-black text-[11px] uppercase tracking-[0.2em] mb-10">Marketplace</h6>
+                <ul class="space-y-6">
+                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                            href="#">Find Work</a></li>
+                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                            href="#">Hire Talent</a></li>
+                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                            href="#">Enterprise</a></li>
+                </ul>
+            </div>
+            <div>
+                <h6 class="text-white font-black text-[11px] uppercase tracking-[0.2em] mb-10">Company</h6>
+                <ul class="space-y-6">
+                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                            href="#">About Us</a></li>
+                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                            href="#">Careers</a></li>
+                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                            href="#">Security</a></li>
+                </ul>
+            </div>
+            <div>
+                <h6 class="text-white font-black text-[11px] uppercase tracking-[0.2em] mb-10">Governance</h6>
+                <p class="text-xs text-slate-600 font-bold leading-relaxed mb-6">Access restricted to authorized
+                    personnel only.</p>
+                <button [routerLink]="['/admin']"
+                    class="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors">Admin
+                    Console →</button>
             </div>
         </div>
-        <div>
-            <h6 class="text-white font-semibold mb-6">Marketplace</h6>
-            <ul class="space-y-4">
-                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Find
-                        Work</a></li>
-                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Hire
-                        Talent</a></li>
-            </ul>
+
+        <div class="pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+            <p class="text-slate-600 text-xs font-black uppercase tracking-widest">© 2024 Kazi Konnect. All rights
+                reserved.</p>
+            <div class="flex gap-10">
+                <a href="#"
+                    class="text-slate-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors">Privacy</a>
+                <a href="#"
+                    class="text-slate-600 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors">Terms</a>
+            </div>
         </div>
-        <div>
-            <h6 class="text-white font-semibold mb-6">Resources</h6>
-            <ul class="space-y-4">
-                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline" href="#">Help
-                        Center</a></li>
-                <li><a class="text-slate-400 hover:text-white transition-colors text-sm hover:underline"
-                        href="#">Security</a></li>
-            </ul>
-        </div>
-        <div class="col-span-1 cursor-pointer group" [routerLink]="['/admin']">
-            <h6 class="text-white font-semibold mb-6 group-hover:text-secondary">Administration</h6>
-            <p class="text-xs text-slate-500">Platform Governance Access</p>
-        </div>
-    </div>
-    <div class="border-t border-slate-800 py-8 px-6 lg:px-12 max-w-7xl mx-auto">
-        <p class="text-slate-400 text-sm">© 2024 Kazi Konnect. All rights reserved.</p>
     </div>
 </footer>

@@ -43,7 +43,7 @@ import { AuthService } from '../../core/services/auth.service';
           
           <div class="hidden lg:block">
             <div class="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10 p-1 bg-white/5 backdrop-blur-sm">
-              <div class="bg-[#041627]/80 p-10 rounded-[1.8rem]">
+              <div class="bg-[#041627]/80 p-8 rounded-[1.8rem]">
                 <div class="flex items-center gap-6 mb-10">
                   <div class="w-14 h-14 rounded-2xl bg-[#0059bb] flex items-center justify-center shadow-[0_0_20px_rgba(0,89,187,0.3)]">
                     <mat-icon class="!text-white !text-2xl">architecture</mat-icon>
@@ -91,7 +91,7 @@ import { AuthService } from '../../core/services/auth.service';
           
           <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             <div *ngFor="let solution of solutions" 
-                 class="bg-white p-10 rounded-[2.5rem] shadow-[0_4px_24px_rgba(4,22,39,0.04)] hover:shadow-[0_16px_64px_rgba(4,22,39,0.1)] transition-all border border-slate-50 group flex flex-col cursor-pointer">
+                 class="bg-white p-8 rounded-[2.5rem] shadow-[0_4px_24px_rgba(4,22,39,0.04)] hover:shadow-[0_16px_64px_rgba(4,22,39,0.1)] transition-all border border-slate-50 group flex flex-col cursor-pointer">
               <div class="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-8 group-hover:bg-[#0059bb] transition-colors">
                 <mat-icon class="text-[#0059bb] group-hover:text-white transition-colors !text-3xl !w-auto !h-auto">{{ solution.icon }}</mat-icon>
               </div>

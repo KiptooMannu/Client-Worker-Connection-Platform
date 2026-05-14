@@ -12,99 +12,143 @@ import { NotificationService } from '../../../core/services/notification.service
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatButtonModule],
   template: `
-    <div class="min-h-screen bg-[#f7f9fb] flex flex-col">
-      <header class="h-20 flex items-center px-12 border-b border-slate-100 bg-white shadow-sm">
-        <div class="flex items-center gap-3 cursor-pointer" routerLink="/">
-          <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg">
-            <mat-icon>corporate_fare</mat-icon>
+    <div class="bg-white text-on-surface font-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-white">
+      <!-- Top Navigation Anchor -->
+      <header class="fixed top-0 w-full z-50 bg-white border-b border-slate-100">
+        <div class="h-[64px] max-w-[1280px] mx-auto flex items-center justify-between px-6">
+          <div class="flex items-center gap-3 cursor-pointer" routerLink="/">
+            <span class="material-symbols-outlined text-primary text-3xl">hub</span>
+            <span class="font-headline-md text-xl font-extrabold text-primary tracking-tighter">Kazi Konnect</span>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#0f172a]">Kazi Konnect</span>
+          
+          <div class="hidden md:flex gap-8 items-center absolute left-1/2 -translate-x-1/2">
+            <a routerLink="/solutions" class="font-label-sm text-[11px] font-bold text-secondary hover:text-primary transition-colors cursor-pointer uppercase tracking-wider">Solutions</a>
+            <a routerLink="/" class="font-label-sm text-[11px] font-bold text-secondary hover:text-primary transition-colors cursor-pointer uppercase tracking-wider">Resources</a>
+            <a routerLink="/enterprise" class="font-label-sm text-[11px] font-bold text-secondary hover:text-primary transition-colors cursor-pointer uppercase tracking-wider">Enterprise</a>
+          </div>
+
+          <div class="flex items-center">
+            <button routerLink="/login" class="font-label-sm text-[11px] font-black text-primary uppercase tracking-[0.1em] hover:underline transition-all">Sign In</button>
+          </div>
         </div>
       </header>
 
-      <main class="flex-grow flex items-center justify-center p-6">
-        <div class="w-full max-w-xl bg-white rounded-[2.5rem] p-12 shadow-[0_8px_48px_rgba(4,22,39,0.08)] border border-slate-100">
-          <div class="text-center mb-10">
-            <h1 class="text-3xl font-black text-[#0f172a] tracking-tight mb-2">Join the Marketplace</h1>
-            <p class="text-slate-400 font-medium text-sm">Create your secure account and get started.</p>
+      <main class="flex-grow flex items-center justify-center px-4 pt-24 pb-8">
+        <!-- Auth Container -->
+        <div class="w-full max-w-[500px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(46,49,146,0.05)] border border-slate-200 p-6 md:p-8">
+          <!-- Header Section -->
+          <div class="text-center mb-6">
+            <h1 class="font-headline-lg text-2xl md:text-3xl text-primary mb-1">Create Account</h1>
+            <p class="font-body-lg text-sm text-secondary">Join the community</p>
           </div>
 
-          <form (submit)="onSubmit()" class="space-y-8">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-2">
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                <div class="relative">
-                  <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">person</mat-icon>
-                  <input type="text" [(ngModel)]="name" name="name" required
-                         class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
-                         placeholder="John Doe">
+          <!-- Form -->
+          <form (submit)="onSubmit()" class="space-y-4">
+            <!-- Name Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">First Name <span class="text-rose-500">*</span></label>
+                <div class="relative group">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors !text-xl">person</span>
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                         placeholder="John" type="text" name="firstName" [(ngModel)]="firstName" required/>
                 </div>
               </div>
 
-              <div class="space-y-2">
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
-                <div class="relative">
-                  <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</mat-icon>
-                  <input type="email" [(ngModel)]="email" name="email" required
-                         class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
-                         placeholder="john@example.com">
-                </div>
-              </div>
-            </div>
-
-            <div class="space-y-4">
-              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">I want to join as a:</label>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div (click)="role = 'Client'" 
-                     [ngClass]="role === 'Client' ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-600/10' : 'border-slate-100 bg-white'"
-                     class="p-6 rounded-2xl border cursor-pointer transition-all hover:border-indigo-200 flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                    <mat-icon>person_search</mat-icon>
-                  </div>
-                  <div>
-                    <p class="text-sm font-black text-[#041627]">Client</p>
-                    <p class="text-[10px] font-medium text-slate-400">I want to hire talent</p>
-                  </div>
-                </div>
-
-                <div (click)="role = 'Worker'" 
-                     [ngClass]="role === 'Worker' ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-600/10' : 'border-slate-100 bg-white'"
-                     class="p-6 rounded-2xl border cursor-pointer transition-all hover:border-blue-200 flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-xl bg-teal-100 text-teal-600 flex items-center justify-center">
-                    <mat-icon>construction</mat-icon>
-                  </div>
-                  <div>
-                    <p class="text-sm font-black text-[#0f172a]">Worker</p>
-                    <p class="text-[10px] font-medium text-slate-400">I want to provide services</p>
-                  </div>
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Second Name <span class="text-rose-500">*</span></label>
+                <div class="relative group">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors !text-xl">person</span>
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                         placeholder="Doe" type="text" name="secondName" [(ngModel)]="secondName" required/>
                 </div>
               </div>
             </div>
 
-            <div class="space-y-2">
-              <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Choose Password</label>
-              <div class="relative">
-                <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">lock</mat-icon>
-                <input type="password" [(ngModel)]="password" name="password" required
-                       class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-blue-600/5 focus:border-blue-600 focus:bg-white transition-all text-sm font-medium"
-                       placeholder="••••••••">
+            <!-- Email & Role Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Email <span class="text-rose-500">*</span></label>
+                <div class="relative group">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors !text-xl">mail</span>
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                         placeholder="john@example.com" type="email" name="email" [(ngModel)]="email" required/>
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Account Type <span class="text-rose-500">*</span></label>
+                <div class="flex p-1 bg-slate-50 border border-slate-100 rounded-full gap-1 h-11">
+                  <button (click)="role = 'Client'" 
+                          [class.bg-white]="role === 'Client'"
+                          [class.text-primary]="role === 'Client'"
+                          [class.shadow-sm]="role === 'Client'"
+                          [class.text-secondary]="role !== 'Client'"
+                          class="flex-1 rounded-full font-label-sm text-[10px] font-bold uppercase tracking-wider transition-all outline-none" type="button">
+                    Client
+                  </button>
+                  <button (click)="role = 'Worker'"
+                          [class.bg-white]="role === 'Worker'"
+                          [class.text-primary]="role === 'Worker'"
+                          [class.shadow-sm]="role === 'Worker'"
+                          [class.text-secondary]="role !== 'Worker'"
+                          class="flex-1 rounded-full font-label-sm text-[10px] font-bold uppercase tracking-wider transition-all outline-none" type="button">
+                    Worker
+                  </button>
+                </div>
               </div>
             </div>
 
-            <button type="submit" [disabled]="loading()"
-                    class="w-full bg-[#0f172a] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 hover:shadow-2xl cursor-pointer">
-              {{ loading() ? 'Creating Account...' : 'Get Started Now' }}
-            </button>
+            <!-- Password Row -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Password <span class="text-rose-500">*</span></label>
+                <div class="relative group">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors !text-xl">lock</span>
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                         placeholder="••••••••" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" required/>
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Confirm <span class="text-rose-500">*</span></label>
+                <div class="relative group">
+                  <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-outline group-focus-within:text-primary transition-colors !text-xl">verified_user</span>
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                         placeholder="••••••••" [type]="showPassword ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="confirmPassword" required/>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="pt-2">
+              <button class="w-full h-12 bg-on-background text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98] disabled:opacity-50"
+                      type="submit" [disabled]="loading()">
+                {{ loading() ? 'PLEASE WAIT...' : 'GET STARTED' }}
+              </button>
+            </div>
           </form>
 
-          <div class="mt-10 pt-8 border-t border-slate-100 text-center">
-            <p class="text-sm text-slate-400 font-medium">
+          <!-- Footer Link -->
+          <div class="mt-6 text-center">
+            <p class="font-body-md text-sm text-secondary">
               Already have an account? 
-              <a routerLink="/login" class="text-blue-600 font-black uppercase text-[10px] tracking-widest ml-1 hover:underline cursor-pointer">Sign In</a>
+              <a routerLink="/login" class="text-primary font-bold hover:underline transition-all cursor-pointer">Sign In</a>
             </p>
           </div>
         </div>
       </main>
+
+      <!-- Minimalist Footer -->
+      <footer class="py-6 border-t border-slate-100 bg-white">
+        <div class="flex justify-between items-center px-6 max-w-[1280px] mx-auto w-full">
+          <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">© 2024 Kazi Konnect. Professional.</span>
+          <div class="flex gap-6">
+            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Terms</a>
+            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Privacy</a>
+          </div>
+        </div>
+      </footer>
     </div>
   `
 })
@@ -114,14 +158,16 @@ export class RegisterPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   
-  name = '';
+  firstName = '';
+  secondName = '';
   email = '';
   password = '';
+  confirmPassword = '';
   role: UserRole = 'Client';
   loading = signal(false);
+  showPassword = false;
 
   ngOnInit() {
-    // Pre-select role from query param (e.g. ?role=worker from landing CTA)
     const roleParam = this.route.snapshot.queryParamMap.get('role');
     if (roleParam === 'worker') {
       this.role = 'Worker';
@@ -131,13 +177,18 @@ export class RegisterPage implements OnInit {
   }
 
   onSubmit() {
-    if (!this.name.trim() || !this.email.trim() || !this.password.trim()) {
-      this.notification.error('Please fill in all fields.');
+    if (!this.firstName.trim() || !this.secondName.trim() || !this.email.trim() || !this.password.trim()) {
+      this.notification.error('Please fill in all mandatory fields.');
+      return;
+    }
+
+    if (this.password !== this.confirmPassword) {
+      this.notification.error('Passwords do not match.');
       return;
     }
     
     this.loading.set(true);
-    this.auth.register(this.name, this.email, this.role, this.password).subscribe({
+    this.auth.register(this.firstName, this.secondName, this.email, this.role, this.password).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/login']);

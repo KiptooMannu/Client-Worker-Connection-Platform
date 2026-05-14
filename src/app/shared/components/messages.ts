@@ -197,7 +197,14 @@ interface UserContact {
                       }
                     }
                     <p class="bubble__text" [innerHTML]="highlightText(msg.text)"></p>
-                    <span class="bubble__time">{{ msg.time }}</span>
+                    <div class="bubble__footer">
+                      <span class="bubble__time">{{ msg.time }}</span>
+                      @if (msg.sent) {
+                        <mat-icon class="read-status" [class.read-status--seen]="msg.isRead">
+                          {{ msg.isRead ? 'done_all' : 'done' }}
+                        </mat-icon>
+                      }
+                    </div>
                   </div>
                 </div>
               }
@@ -679,7 +686,32 @@ interface UserContact {
       margin: 0;
     }
     .bubble__time {
-      opacity: .6;
+      font-size: 10px;
+      opacity: .7;
+      margin-top: 4px;
+      display: block;
+    }
+    .bubble__footer {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .bubble--recv .bubble__footer {
+      justify-content: flex-start;
+    }
+    .read-status {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+    .read-status--seen {
+      color: #fff;
+    }
+    .bubble--recv .read-status {
+      display: none;
     }
 
     .date-header {

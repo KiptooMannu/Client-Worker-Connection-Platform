@@ -79,9 +79,10 @@ export class WebSocketService {
   }
 
   private handleIncomingMessage(data: any) {
-    // This method will trigger the state update in PlatformStateService
-    // We already have logic in PlatformStateService to handle message updates
-    // but we might need to expose a method specifically for real-time additions.
-    this.state.addRealTimeMessage(data);
+    if (data.type === 'READ_RECEIPT') {
+      this.state.handleReadReceipt(data);
+    } else {
+      this.state.addRealTimeMessage(data);
+    }
   }
 }

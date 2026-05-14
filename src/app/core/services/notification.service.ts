@@ -10,7 +10,7 @@ export class NotificationService {
   private readonly defaultConfig: MatSnackBarConfig = {
     duration: 4000,
     horizontalPosition: 'center',
-    verticalPosition: 'bottom',
+    verticalPosition: 'top',
   };
 
   success(message: string): void {

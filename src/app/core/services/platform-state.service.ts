@@ -65,12 +65,14 @@ export interface ChatMessage {
   time: string;
   rawDate?: number;
   sent: boolean;
+  isRead: boolean;
   attachment?: {
     name: string;
     url: string;
     size: string;
   };
 }
+
 
 export interface Chat {
   id: string;
@@ -82,7 +84,7 @@ export interface Chat {
   role?: string; // User's role (Worker, Client, Admin, etc.)
   lastMessage: string;
   time: string;
-  rawTime?: number; // FIX BUG 2: store numeric timestamp for correct chronological sorting
+  rawTime?: number;
   active: boolean;
   online: boolean;
   unread?: number;
@@ -112,7 +114,7 @@ export interface Booking {
   earnings: number;
   rating?: number;
   hasReview?: boolean;
-  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Revision' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED' | 'REVISION';
+  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Revision Requested' | 'In Progress' | 'Submitted' | 'Disputed' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED' | 'SUBMITTED' | 'APPROVED' | 'DISPUTED' | 'REVISION_REQUESTED';
 }
 
 export interface ClientProfile {
@@ -169,7 +171,7 @@ export class PlatformStateService {
     this.http.put(`${this.apiUrl}/jobs/${jobId}/status?status=${status}`, {}).subscribe({
       next: () => {
         this.notification.success(`Job status updated to ${status}`);
-        
+
         // Refresh appropriate data
         if (user.role === 'Worker') {
           this.fetchWorkerJobs(this.currentWorker().id);
@@ -189,7 +191,7 @@ export class PlatformStateService {
       error: (err: HttpErrorResponse) => {
         console.error('Error updating job status', err);
         this.notification.error('Failed to update job status');
-        
+
         // Clear loading state on error
         this.updatingJobIds.update(set => {
           const next = new Set(set);
@@ -201,7 +203,13 @@ export class PlatformStateService {
   }
 
   private mapBooking(b: any): Booking {
-    const status = b.status || 'PENDING';
+    let status = b.status || 'PENDING';
+    
+    // Format status for display: replace underscore with space and capitalize words
+    const displayStatus = status.split('_')
+      .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+
     return {
       id: b.id,
       clientId: b.clientId,
@@ -212,7 +220,7 @@ export class PlatformStateService {
       clientInitials: (b.clientName || 'U').split(' ').filter((n: string) => n).map((n: any) => n[0]).join('').toUpperCase(),
       service: b.service || b.description || 'General Service',
       date: b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A',
-      status: (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as any,
+      status: displayStatus as any,
       earnings: b.totalCost || 0,
       rating: b.rating,
       hasReview: b.rating !== undefined && b.rating !== null
@@ -317,31 +325,31 @@ export class PlatformStateService {
             // Start background data fetching without blocking stability
             this.initializeUserData(u.id, u.role);
           }
-          
+
           // Start polling for real-time updates after initial load
           this.ngZone.runOutsideAngular(() => {
             if (this.pollingInterval) clearInterval(this.pollingInterval);
             this.pollingInterval = setInterval(() => {
               const u = this.auth.currentUser();
-                this.ngZone.run(() => {
-                  if (u && u.id) {
-                    // FIX BUG 3: Always fetch notifications and chats for ALL dashboards.
-                    this.fetchNotifications(u.id);
-                    this.fetchChats(u.id);
-                    
-                    // Periodically refresh jobs to ensure reviews/status changes reflect
-                    if (u.role === 'Worker' && this.currentWorker().id) {
-                      this.fetchWorkerJobs(this.currentWorker().id);
-                    } else if (u.role === 'Client') {
-                      this.fetchClientJobs(u.id);
-                    }
-                  }
+              this.ngZone.run(() => {
+                if (u && u.id) {
+                  // FIX BUG 3: Always fetch notifications and chats for ALL dashboards.
+                  this.fetchNotifications(u.id);
+                  this.fetchChats(u.id);
 
-                  if (u && u.role === 'Admin') {
-                    // Stop background polling for heavy admin data to prevent network congestion.
-                    // These will still be fetched once on initialization and when pages are visited.
+                  // Periodically refresh jobs to ensure reviews/status changes reflect
+                  if (u.role === 'Worker' && this.currentWorker().id) {
+                    this.fetchWorkerJobs(this.currentWorker().id);
+                  } else if (u.role === 'Client') {
+                    this.fetchClientJobs(u.id);
                   }
-                });
+                }
+
+                if (u && u.role === 'Admin') {
+                  // Stop background polling for heavy admin data to prevent network congestion.
+                  // These will still be fetched once on initialization and when pages are visited.
+                }
+              });
             }, 60000); // Increased interval to 60s to significantly reduce server load
           });
         }, 500);
@@ -404,7 +412,14 @@ export class PlatformStateService {
         const mapped = data.map(w => this.mapWorkerProfile(w));
         this.workers.set(mapped);
       },
-      error: (err: HttpErrorResponse) => console.error('Error fetching marketplace workers', err)
+      error: (err: HttpErrorResponse | any) => {
+        console.error('Error fetching marketplace workers', err);
+        if (err.name === 'TimeoutError') {
+          this.notification.info('Marketplace search is taking longer than expected. Please try again.');
+        } else {
+          this.notification.error('Failed to load marketplace. Please check your connection.');
+        }
+      }
     });
   }
 
@@ -760,7 +775,7 @@ export class PlatformStateService {
         this.activityLogs.set(data.activityLogs || []);
         this.bookings.set(data.bookings || []);
         this.currentClient.set(data.currentClient || null);
-        const validChats = (data.chats || []).filter((c: any) => 
+        const validChats = (data.chats || []).filter((c: any) =>
           c.id && c.id.length > 10 && c.id.includes('-') // Basic UUID check
         );
         this.chats.set(validChats);
@@ -1007,6 +1022,7 @@ export class PlatformStateService {
       text: text,
       time,
       sent: true,
+      isRead: false,
       attachment: attachmentUrl ? { name: 'File', url: attachmentUrl, size: '...' } : undefined
     };
 
@@ -1022,7 +1038,7 @@ export class PlatformStateService {
         // Try to get user details from allUsers to populate email and role
         const allUsersSnapshot = this.allUsers();
         const userDetails = allUsersSnapshot.find(u => u.id === receiverId);
-        
+
         const newChat: Chat = {
           id: receiverId,
           workerId: receiverId,
@@ -1073,8 +1089,8 @@ export class PlatformStateService {
       timeout(30000),
       catchError((err: any) => {
         // Rollback optimistic update on error
-        this.chats.update(chats => 
-          chats.map(c => 
+        this.chats.update(chats =>
+          chats.map(c =>
             c.id === receiverId ? { ...c, messages: c.messages.filter(m => m.id !== tempId) } : c
           )
         );
@@ -1207,8 +1223,9 @@ export class PlatformStateService {
           id: m.id,
           text: m.content || m.text || '',
           time: this.parseMessageDate(m.sentAt),
-          rawDate: m.sentAt ? (Array.isArray(m.sentAt) ? new Date(m.sentAt[0], m.sentAt[1]-1, m.sentAt[2], m.sentAt[3], m.sentAt[4]).getTime() : new Date(m.sentAt).getTime()) : Date.now(),
-          sent: m.senderId?.toString() === user.id?.toString()
+          rawDate: m.sentAt ? (Array.isArray(m.sentAt) ? new Date(m.sentAt[0], m.sentAt[1] - 1, m.sentAt[2], m.sentAt[3], m.sentAt[4]).getTime() : new Date(m.sentAt).getTime()) : Date.now(),
+          sent: m.senderId?.toString() === user.id?.toString(),
+          isRead: m.isRead || false
         })).reverse(); // Reverse so newest are at the end (bottom of chat)
 
         this.chats.update(chats => {
@@ -1267,8 +1284,8 @@ export class PlatformStateService {
 
       const now = new Date();
       const isToday = date.getDate() === now.getDate() &&
-                      date.getMonth() === now.getMonth() &&
-                      date.getFullYear() === now.getFullYear();
+        date.getMonth() === now.getMonth() &&
+        date.getFullYear() === now.getFullYear();
 
       const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       if (isToday) return timeStr;
@@ -1333,8 +1350,9 @@ export class PlatformStateService {
   private mapJobToBooking(job: any): Booking {
     const clientName = job.clientName || 'Client';
     const workerName = job.workerName || 'Worker';
-    const status = job.status || 'PENDING';
-    
+    const status = (job.status || 'PENDING').replace(/_/g, ' ');
+    const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+
     return {
       id: job.id,
       clientId: job.clientId,
@@ -1346,7 +1364,7 @@ export class PlatformStateService {
       service: job.description || 'Service Request',
       date: job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A',
       earnings: job.totalCost || 0,
-      status: (status.charAt(0).toUpperCase() + status.slice(1).toLowerCase()) as any,
+      status: formattedStatus as any,
       rating: job.rating,
       hasReview: job.rating !== undefined && job.rating !== null
     };
@@ -1409,6 +1427,7 @@ export class PlatformStateService {
       time,
       rawDate: rawTime,
       sent: isSender,
+      isRead: data.isRead || false,
       attachment: data.attachmentUrl ? { name: 'File', url: data.attachmentUrl, size: '...' } : undefined
     };
 
@@ -1451,5 +1470,18 @@ export class PlatformStateService {
     if (!isSender) {
       this.notification.info(`New message from ${otherName}`);
     }
+  }
+
+  handleReadReceipt(data: any) {
+    const receiverId = data.receiverId;
+    this.chats.update(chats => chats.map(c => {
+      if (c.id === receiverId) {
+        return {
+          ...c,
+          messages: c.messages.map(m => m.sent ? { ...m, isRead: true } : m)
+        };
+      }
+      return c;
+    }));
   }
 }
