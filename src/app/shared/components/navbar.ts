@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,125 +20,136 @@ import { WebSocketService } from '../../core/services/websocket.service';
     MatMenuModule
   ],
   template: `
-    <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm flex justify-between items-center px-4 sm:px-6 md:px-12 h-20 w-full sticky top-0 z-50 backdrop-blur-md bg-white/90 gap-4">
-      <div class="flex items-center gap-6 md:gap-12 min-w-0">
-        <div class="flex items-center gap-3 cursor-pointer group" routerLink="/">
+    <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm flex justify-between items-center px-4 sm:px-6 md:px-12 h-20 w-full sticky top-0 z-50 backdrop-blur-md bg-white/90 gap-8">
+      <div class="flex items-center gap-4 md:gap-8 min-w-0 flex-1">
+        <div class="flex items-center gap-3 cursor-pointer group shrink-0" routerLink="/">
           <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
             <mat-icon>corporate_fare</mat-icon>
           </div>
-          <span class="text-2xl font-black tracking-tighter text-[#0f172a] hidden sm:block">Kazi Konnect</span>
+          <span class="text-xl font-black tracking-tighter text-[#0f172a] hidden xl:block">KaziKonnect</span>
         </div>
-        
-        <!-- Desktop Nav -->
-        <nav class="hidden lg:flex items-center gap-8">
-          @if (auth.userRole() === 'Worker') {
-            <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-              Find Work
-            </a>
-          }
-          <a routerLink="/client/marketplace" routerLinkActive="active-link" 
-             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-            Hire Talent
-          </a>
-          @if (router.url === '/' && !auth.isAuthenticated()) {
-            <a routerLink="/enterprise" routerLinkActive="active-link" 
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-              Enterprise
-            </a>
-            <a routerLink="/solutions" routerLinkActive="active-link" 
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-              Solutions
-            </a>
-          }
-          <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
-             routerLinkActive="active-link"
-             class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
-            Messages
-            @if (state.unreadMessagesCount() > 0) {
-              <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
+
+        <!-- Dynamic Context Title & Badge -->
+        @if (pageTitle) {
+          <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
+          <div class="flex items-center gap-3 min-w-0">
+            <h1 class="text-sm font-black text-slate-900 uppercase tracking-widest truncate">{{ pageTitle }}</h1>
+            @if (badge) {
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-[9px] font-black uppercase tracking-widest rounded-full shrink-0 border border-blue-100/50">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                {{ badge }}
+              </span>
             }
-          </a>
-          
-          @if (auth.userRole() === 'Client') {
-            <a routerLink="/client/bookings" routerLinkActive="active-link"
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
-              My Bookings
-            </a>
-          }
-          @if (auth.userRole() === 'Worker') {
-            <a routerLink="/worker/history" routerLinkActive="active-link"
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
-              My Jobs
-            </a>
-          }
-        </nav>
+          </div>
+        }
       </div>
 
-      <div class="flex items-center gap-2 sm:gap-3 md:gap-6 shrink-0">
+      <!-- Desktop Nav (Hidden when in specific workspace mode) -->
+      @if (!pageTitle) {
+        <nav class="hidden lg:flex items-center gap-8 shrink-0">
+            @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
+              <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
+                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                Find Jobs
+              </a>
+            }
+            @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
+              <a routerLink="/client/marketplace" routerLinkActive="active-link" 
+                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                Hire Workers
+              </a>
+            }
+            @if (router.url === '/' && !auth.isAuthenticated()) {
+              <a routerLink="/enterprise" routerLinkActive="active-link" 
+                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                For Business
+              </a>
+              <a routerLink="/solutions" routerLinkActive="active-link" 
+                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                How it Works
+              </a>
+            }
+            <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
+               routerLinkActive="active-link"
+               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
+              Messages
+              @if (state.unreadMessagesCount() > 0) {
+                <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
+              }
+            </a>
+            
+            @if (auth.userRole() === 'Client') {
+              <a routerLink="/client/bookings" routerLinkActive="active-link"
+                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
+                My Bookings
+              </a>
+            }
+            @if (auth.userRole() === 'Worker') {
+              <a routerLink="/worker/history" routerLinkActive="active-link"
+                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
+                My Jobs
+              </a>
+            }
+        </nav>
+      }
+
+      <div class="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
         @if (auth.isAuthenticated()) {
-          <div class="flex items-center gap-2 sm:gap-4">
-             <div class="hidden xl:flex flex-col items-end mr-2">
-                <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest">{{ auth.userRole() }}</span>
-                <span class="text-xs font-bold text-slate-900">{{ auth.currentUser()?.name }}</span>
+             <!-- Notifications & Messages Icons (Always Visible when logged in) -->
+             <div class="hidden sm:flex items-center gap-2 mr-2 border-r border-slate-100 pr-4">
+               <button class="relative p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
+                 <mat-icon>notifications_none</mat-icon>
+               </button>
+               
+               <button [routerLink]="auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')" 
+                       class="relative p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
+                 <mat-icon>chat_bubble_outline</mat-icon>
+                 @if (state.unreadMessagesCount() > 0) {
+                   <span class="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
+                     {{ state.unreadMessagesCount() }}
+                   </span>
+                 }
+               </button>
              </div>
-             
-             <!-- Notification Bell -->
-             <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="!bg-slate-50 !rounded-xl hover:!bg-slate-100 transition-colors cursor-pointer relative !w-10 !h-10">
-               <span class="text-base leading-none">🔔</span>
-               @if (state.unreadNotificationsCount() > 0) {
-                 <span class="absolute -top-1 -right-1 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[9px] font-black leading-4 text-center">
-                   {{ state.unreadNotificationsCount() > 99 ? '99+' : state.unreadNotificationsCount() }}
-                 </span>
-               }
+
+             <!-- Unified Profile Menu -->
+             <button [matMenuTriggerFor]="profileMenu" class="flex items-center gap-3 p-1.5 hover:bg-slate-50 rounded-xl transition-all cursor-pointer">
+               <div class="hidden xl:flex flex-col items-end">
+                  <span class="text-[9px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1">{{ auth.userRole() }}</span>
+                  <span class="text-xs font-bold text-slate-900 leading-none">{{ auth.currentUser()?.name }}</span>
+               </div>
+               <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
+                 <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" 
+                      class="w-full h-full object-cover">
+               </div>
+               <mat-icon class="text-slate-400 !text-sm !w-auto !h-auto">expand_more</mat-icon>
              </button>
 
-             <mat-menu #notifMenu="matMenu" class="!rounded-2xl !mt-4 !shadow-2xl border border-slate-100 overflow-hidden">
-               <div class="w-80 max-h-[400px] flex flex-col">
-                 <div class="p-6 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
-                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-900">Notifications</span>
-                   <button (click)="state.markAllNotificationsAsRead()" class="text-[9px] font-black uppercase text-blue-600 hover:underline">Mark all read</button>
-                 </div>
-                 
-                 <div class="overflow-y-auto">
-                   @if (state.workerNotifications().length === 0) {
-                     <div class="p-10 text-center">
-                        <mat-icon class="text-slate-200 !text-4xl !w-auto !h-auto mb-2">notifications_off</mat-icon>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">No new alerts</p>
-                     </div>
-                   } @else {
-                     @for (n of state.workerNotifications(); track n.id) {
-                       <button mat-menu-item class="!h-auto !py-4 !px-6 hover:!bg-slate-50 border-b border-slate-50 last:border-0">
-                         <div class="flex items-start gap-4">
-                           <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                                [ngClass]="{
-                                  'bg-teal-50 text-teal-600': n.type === 'success',
-                                  'bg-blue-50 text-blue-600': n.type === 'info',
-                                  'bg-amber-50 text-amber-600': n.type === 'warning'
-                                }">
-                             <mat-icon class="!text-sm">{{ n.type === 'success' ? 'check_circle' : (n.type === 'warning' ? 'warning' : 'info') }}</mat-icon>
-                           </div>
-                           <div class="flex-1 min-w-0">
-                             <p class="text-xs font-black text-slate-900 truncate">{{ n.title }}</p>
-                             <p class="text-[10px] text-slate-500 font-medium line-clamp-2 mt-1">{{ n.message }}</p>
-                             <span class="text-[8px] font-black text-slate-400 uppercase mt-2 block">{{ n.time }}</span>
-                           </div>
-                         </div>
-                       </button>
-                     }
-                   }
-                 </div>
+             <mat-menu #profileMenu="matMenu" class="!rounded-2xl !mt-4 !shadow-2xl border border-slate-100 overflow-hidden min-w-[200px]">
+               <div class="p-5 border-b border-slate-50 bg-slate-50/30">
+                 <p class="text-xs font-black text-slate-900 uppercase tracking-tight">{{ auth.currentUser()?.name }}</p>
+                 <p class="text-[10px] text-slate-500 font-medium">{{ auth.currentUser()?.email }}</p>
                </div>
-             </mat-menu>
+               
+               <button mat-menu-item [routerLink]="auth.userRole() === 'Admin' ? '/admin' : (auth.userRole() === 'Worker' ? '/worker/dashboard' : '/client/marketplace')" class="!h-12">
+                 <mat-icon class="text-slate-500">dashboard</mat-icon>
+                 <span class="text-xs font-bold text-slate-700">Dashboard</span>
+               </button>
+               
+               @if (auth.userRole() === 'Worker') {
+                 <button mat-menu-item routerLink="/worker/profile" class="!h-12">
+                   <mat-icon class="text-slate-500">person_edit</mat-icon>
+                   <span class="text-xs font-bold text-slate-700">Edit Profile</span>
+                 </button>
+               }
 
-            <button (click)="auth.logout()" class="hidden sm:block text-slate-600 hover:text-rose-600 transition-colors px-4 py-2 text-sm font-semibold active:scale-95 duration-150 cursor-pointer">
-              Log Out
-            </button>
-            <button [routerLink]="auth.userRole() === 'Admin' ? '/admin' : (auth.userRole() === 'Worker' ? '/worker/dashboard' : '/client/marketplace')" 
-                    class="bg-slate-900 text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-slate-800 transition-all active:scale-95 duration-150 cursor-pointer shadow-lg shadow-slate-200">
-              Dashboard
-            </button>
-          </div>
+               <div class="h-px bg-slate-50 my-1"></div>
+               
+               <button mat-menu-item (click)="auth.logout()" class="!h-12 !text-rose-600">
+                 <mat-icon class="text-rose-600">logout</mat-icon>
+                 <span class="text-xs font-bold">Log Out</span>
+               </button>
+             </mat-menu>
         } @else {
           <div class="flex items-center gap-2 sm:gap-4">
             <button routerLink="/login" class="text-slate-600 font-black text-[10px] uppercase tracking-widest px-4 py-2 hover:text-[#041627] transition-colors cursor-pointer">Log In</button>
@@ -158,14 +169,16 @@ import { WebSocketService } from '../../core/services/websocket.service';
       <div class="fixed inset-0 top-20 z-40 lg:hidden animate-in slide-in-from-top duration-300">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="toggleMobileMenu()"></div>
         <nav class="relative bg-white border-t border-slate-100 flex flex-col p-6 gap-4 shadow-2xl">
-          @if (auth.userRole() === 'Worker') {
-            <a routerLink="/worker/dashboard" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Find Work</a>
+          @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
+            <a routerLink="/worker/dashboard" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Find Jobs</a>
           }
-          <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Hire Talent</a>
+          @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
+            <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Hire Workers</a>
+          }
           
           @if (router.url === '/' && !auth.isAuthenticated()) {
-            <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Enterprise</a>
-            <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Solutions</a>
+            <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">For Business</a>
+            <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">How it Works</a>
           }
 
           <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
@@ -197,6 +210,10 @@ import { WebSocketService } from '../../core/services/websocket.service';
   `]
 })
 export class NavbarComponent {
+  @Input() showHireTalent = true;
+  @Input() showMessages = true;
+  @Input() pageTitle = '';
+  @Input() badge = '';
   auth = inject(AuthService);
   state = inject(PlatformStateService);
   ws = inject(WebSocketService); // Initialize WebSocket connection

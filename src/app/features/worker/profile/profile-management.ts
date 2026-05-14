@@ -32,386 +32,287 @@ import { AuthService } from '../../../core/services/auth.service';
     FormsModule
   ],
   template: `
-    <div class="space-y-8 animate-in fade-in duration-500">
-      <!-- Rejection Alert (unchanged) -->
+    <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
+      
+      <!-- Rejection Alert -->
       @if (status === 'Rejected' && rejectionReason) {
-        <mat-card class="!rounded-2xl !bg-red-50 !border-2 !border-red-100 !shadow-sm animate-in slide-in-from-top">
-          <mat-card-content class="!p-6 flex items-start gap-4">
-            <div class="flex-shrink-0">
-              <mat-icon class="!text-2xl !w-auto !h-auto text-red-600">warning</mat-icon>
-            </div>
-            <div class="flex-1">
-              <h3 class="font-black text-red-900 mb-1 text-sm">Verification Rejected</h3>
-              <p class="text-xs text-red-800 font-medium mb-3">{{ rejectionReason }}</p>
-              <p class="text-[10px] text-red-700 font-black uppercase tracking-widest">✓ Please update your documents and resubmit below.</p>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <div class="bg-error-container border border-error/10 rounded-xl p-6 flex items-start gap-4 animate-in slide-in-from-top duration-500 shadow-sm">
+          <div class="w-12 h-12 rounded-lg bg-error text-white flex items-center justify-center shadow-lg shadow-error/20 shrink-0">
+            <mat-icon>report_problem</mat-icon>
+          </div>
+          <div class="flex-1">
+            <h3 class="font-bold text-on-error-container mb-1">Action Required</h3>
+            <p class="text-sm text-on-error-container/80 leading-relaxed">{{ rejectionReason }}</p>
+            <p class="mt-3 text-[10px] text-error font-black uppercase tracking-widest">Update your profile or documents and resubmit for audit.</p>
+          </div>
+        </div>
       }
 
-      <!-- Header (unchanged) -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <h1 class="header-title text-3xl md:text-4xl font-black text-slate-900 tracking-tighter">Profile Management</h1>
-          <p class="text-slate-500 text-sm font-medium mt-1">Update your professional identity and presence.</p>
-        </div>
-        <div class="flex flex-wrap gap-2">
-          <button mat-stroked-button [disabled]="isSaving()" class="!border-slate-900 !text-slate-900 !px-6 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest">Cancel</button>
-          @if (status === 'Draft' || status === 'Rejected') {
-            <button mat-flat-button color="primary" [disabled]="isSaving()" (click)="goToDocuments()" class="!px-6 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest !shadow-lg">
-              Next Step
-            </button>
-          } @else if (status === 'Pending') {
-            <div class="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-black text-[10px] uppercase tracking-widest border border-blue-100">
-              Under Review
-            </div>
-          }
-          <button mat-flat-button color="primary" [disabled]="isSaving()" (click)="saveProfile()" class="!px-6 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest !shadow-lg">
-            <mat-icon class="!text-xs mr-1">{{ isSaving() ? 'hourglass_empty' : 'save' }}</mat-icon>
-            {{ isSaving() ? 'Saving...' : 'Save Changes' }}
+      <!-- Profile Header & Picture -->
+      <section class="flex flex-col items-center pt-8">
+        <div class="relative group">
+          <div class="w-32 h-32 rounded-xl border border-outline-variant bg-surface overflow-hidden shadow-sm">
+            @if (worker().image) {
+              <img [src]="worker().image" alt="Profile" class="w-full h-full object-cover">
+            } @else {
+              <div class="w-full h-full flex items-center justify-center bg-surface-container text-2xl font-black text-primary">
+                {{ worker().initials }}
+              </div>
+            }
+          </div>
+          <button (click)="avatarInput.click()" class="absolute -bottom-2 -right-2 bg-primary text-white p-2.5 rounded-lg shadow-lg active:scale-95 transition-transform hover:bg-primary-container">
+            <span class="material-symbols-outlined text-[20px]">photo_camera</span>
           </button>
+          <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
+          
+          @if (worker().image) {
+            <button (click)="removeProfilePicture()" class="absolute -top-2 -right-2 w-6 h-6 bg-error text-white rounded-lg flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
+              <mat-icon class="!text-[14px]">close</mat-icon>
+            </button>
+          }
         </div>
-      </div>
+        <div class="text-center mt-6">
+          <h1 class="text-2xl font-black text-primary">{{ worker().name }}</h1>
+          <p class="text-on-surface-variant text-sm">{{ worker().category || 'Professional Craftsman' }}</p>
+        </div>
+      </section>
 
-      <div class="grid grid-cols-12 gap-8">
-        <!-- Sidebar (unchanged) -->
-        <div class="col-span-12 lg:col-span-4 space-y-6">
-          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !overflow-hidden">
-            <mat-card-content class="!p-6 text-center">
-              <div class="relative inline-block group mb-4 cursor-pointer" (click)="avatarInput.click()">
-                <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
-                <div class="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity z-10">
-                   <mat-icon class="!text-white">photo_camera</mat-icon>
+      <!-- Tab Interface -->
+      <nav class="flex border-b border-outline-variant overflow-x-auto no-scrollbar scroll-smooth">
+        @for (tab of tabs; track tab.id) {
+          <button (click)="activeTab.set(tab.id)"
+                  class="px-6 py-4 transition-all font-bold text-sm whitespace-nowrap border-b-2"
+                  [class]="activeTab() === tab.id ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-primary'">
+            {{ tab.label }}
+          </button>
+        }
+      </nav>
+
+      <!-- Profile Strength Indicator -->
+      <section class="flex flex-col gap-2 px-2">
+        <div class="flex justify-between items-end">
+          <span class="font-label-md text-label-md text-primary uppercase tracking-wider">Profile Readiness</span>
+          <span class="font-bold text-primary">{{ completionPercentage() }}%</span>
+        </div>
+        <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="bg-primary h-full transition-all duration-1000" [style.width.%]="completionPercentage()"></div>
+        </div>
+      </section>
+
+      <!-- Form Content Area -->
+      <div class="bg-white border border-outline-variant rounded-xl p-6 md:p-8 shadow-sm">
+        
+        <!-- Identity Tab -->
+        @if (activeTab() === 'identity') {
+          <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div class="space-y-2">
+              <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name</label>
+              <input [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" 
+                     class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors" 
+                     placeholder="Julian Thorne">
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Craft Category</label>
+                <div class="relative">
+                  <select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)"
+                          class="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors">
+                    <option value="Plumber">Plumber</option>
+                    <option value="Electrician">Electrician</option>
+                    <option value="Farm Worker">Farm Worker</option>
+                    <option value="Cleaner">Cleaner</option>
+                    <option value="Mechanic">Mechanic</option>
+                    <option value="General Laborer">General Laborer</option>
+                  </select>
+                  <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
                 </div>
-                @if (worker().image) { 
-                  <img class="w-32 h-32 rounded-full border-4 border-slate-50 shadow-xl object-cover" [src]="worker().image">
-                  <button (click)="$event.stopPropagation(); removeProfilePicture()" 
-                          class="absolute -top-1 -right-1 w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-700 transition-colors z-20">
-                    <mat-icon class="!text-sm">close</mat-icon>
-                  </button>
-                }
-                @else { <div class="w-32 h-32 rounded-full border-4 border-slate-50 shadow-xl bg-blue-50 flex items-center justify-center text-4xl font-black text-blue-700">{{ worker().initials }}</div> }
               </div>
-              <h3 class="text-xl font-black text-slate-900">{{ worker().name }}</h3>
-              <div class="flex items-center justify-center gap-2 mt-3">
-                @switch (status) {
-                  @case ('Draft') {
-                    <mat-icon class="!text-sm !w-auto !h-auto text-slate-400">edit_note</mat-icon>
-                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Status: Draft</p>
-                  }
-                  @case ('Pending') {
-                    <mat-icon class="!text-sm !w-auto !h-auto text-amber-600">hourglass_top</mat-icon>
-                    <p class="text-[10px] text-amber-700 font-black uppercase tracking-widest">Status: Pending</p>
-                  }
-                  @case ('Verified') {
-                    <mat-icon class="!text-sm !w-auto !h-auto text-teal-600">check_circle</mat-icon>
-                    <p class="text-[10px] text-teal-700 font-black uppercase tracking-widest">Status: Verified</p>
-                  }
-                  @case ('Rejected') {
-                    <mat-icon class="!text-sm !w-auto !h-auto text-red-600">cancel</mat-icon>
-                    <p class="text-[10px] text-red-700 font-black uppercase tracking-widest">Status: Rejected</p>
-                  }
-                }
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Hourly Rate (USD)</label>
+                <div class="relative">
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md">$</span>
+                  <input type="number" [ngModel]="form.rate()" (ngModelChange)="form.rate.set($event)"
+                         class="w-full bg-surface border border-outline-variant rounded-lg pl-8 pr-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors">
+                </div>
               </div>
-            </mat-card-content>
-          </mat-card>
+            </div>
 
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-6">
-             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Verification Checklist</h4>
-             <div class="space-y-4">
-               @for (req of requirements(); track req.label) {
-                 <div class="flex items-center gap-3">
-                   <mat-icon [class]="req.done ? 'text-teal-600' : 'text-slate-200'" class="!text-lg">
-                     {{ req.done ? 'check_circle' : 'radio_button_unchecked' }}
-                   </mat-icon>
-                   <span class="text-xs font-bold" [class]="req.done ? 'text-slate-900' : 'text-slate-400'">{{ req.label }}</span>
-                 </div>
-               }
-             </div>
-             
-             @if (completionPercentage() < 100) {
-                <div class="mt-8 p-4 bg-indigo-50 rounded-2xl border border-indigo-100">
-                  <p class="text-[9px] font-black text-indigo-800 uppercase tracking-widest mb-1">Onboarding Guide</p>
-                  <p class="text-[10px] text-indigo-700 font-medium">Follow the "Next Step" buttons to complete your professional setup sequentially.</p>
+            <div class="space-y-2">
+              <label class="font-label-md text-label-md text-on-surface-variant ml-1">Professional Bio</label>
+              <textarea [ngModel]="form.bio()" (ngModelChange)="form.bio.set($event)" rows="4"
+                        class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors resize-none"
+                        placeholder="Detail your expertise and operational background..."></textarea>
+            </div>
+
+            <div class="space-y-2">
+              <label class="font-label-md text-label-md text-on-surface-variant ml-1">Core Skills (Comma separated)</label>
+              <input [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)"
+                     class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors"
+                     placeholder="e.g. Irrigation, Safety Audits, Harvesting">
+            </div>
+
+            <div class="pt-4">
+              <button (click)="nextTab()" class="w-full bg-primary text-white py-4 rounded-lg font-label-md text-label-md active:opacity-90 transition-opacity">
+                Next Area: Experience
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Experience Tab -->
+        @if (activeTab() === 'experience') {
+          <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div class="flex justify-between items-center mb-2">
+              <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Work History</h2>
+              <button (click)="addWorkHistory()" class="text-primary font-bold text-xs flex items-center gap-1 hover:underline">
+                <mat-icon class="!text-sm">add</mat-icon> Add Entry
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              @for (work of form.workHistory(); track $index) {
+                <div class="p-6 border border-outline-variant rounded-lg bg-surface relative group">
+                  <button (click)="removeWorkHistory($index)" class="absolute top-4 right-4 text-outline hover:text-error transition-colors">
+                    <mat-icon class="!text-lg">delete_outline</mat-icon>
+                  </button>
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="space-y-1">
+                      <label class="text-[10px] font-bold text-on-surface-variant uppercase">Organization</label>
+                      <input [(ngModel)]="work.company" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-primary">
+                    </div>
+                    <div class="space-y-1">
+                      <label class="text-[10px] font-bold text-on-surface-variant uppercase">Role</label>
+                      <input [(ngModel)]="work.role" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-primary">
+                    </div>
+                  </div>
+                  <div class="space-y-1">
+                     <label class="text-[10px] font-bold text-on-surface-variant uppercase">Details</label>
+                     <textarea [(ngModel)]="work.description" rows="2" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-primary resize-none"></textarea>
+                  </div>
+                </div>
+              } @empty {
+                <div class="py-12 text-center border-2 border-dashed border-outline-variant rounded-xl bg-surface-container-low">
+                   <mat-icon class="text-outline !text-4xl mb-2">history_edu</mat-icon>
+                   <p class="text-xs text-on-surface-variant font-bold">No professional history recorded</p>
                 </div>
               }
-          </mat-card>
-
-          <mat-card class="!rounded-3xl !border !border-slate-100 !shadow-sm !p-6">
-             <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Service Availability</h4>
-             <div class="space-y-6">
-                <div class="flex items-center justify-between">
-                  <span class="text-sm font-bold text-slate-700">Market Visibility</span>
-                  <mat-slide-toggle color="primary" [checked]="status === 'Verified'" [disabled]="status !== 'Verified'"></mat-slide-toggle>
-                </div>
-             </div>
-          </mat-card>
-        </div>
-
-        <!-- Main Form with Tabs -->
-        <div class="col-span-12 lg:col-span-8 space-y-6">
-          <!-- Profile Completion Card (still visible across tabs) -->
-          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
-            <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Profile Completion</h4>
-            <div class="flex items-center gap-4">
-              <div class="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div class="h-full bg-blue-600 transition-all duration-1000" [style.width.%]="completionPercentage()"></div>
-              </div>
-              <span class="text-[10px] font-black text-slate-900">{{ completionPercentage() }}%</span>
             </div>
-          </mat-card>
 
-          <!-- Tab Switcher -->
-          <div class="flex gap-1 p-1 bg-slate-100/50 rounded-xl border border-slate-200 overflow-x-auto no-scrollbar whitespace-nowrap">
-            @for (tab of tabs; track tab.id) {
-              <button (click)="activeTab.set(tab.id)"
-                      class="flex-shrink-0 flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 font-black text-[10px] uppercase tracking-wider"
-                      [class]="activeTab() === tab.id ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 hover:bg-white/50'">
-                <mat-icon class="!text-base">{{ tab.icon }}</mat-icon>
-                {{ tab.label }}
+            <div class="pt-4 flex gap-4">
+              <button (click)="activeTab.set('identity')" class="flex-1 py-4 border border-outline-variant text-primary rounded-lg font-label-md text-label-md">Back</button>
+              <button (click)="nextTab()" class="flex-1 bg-primary text-white py-4 rounded-lg font-label-md text-label-md">Continue</button>
+            </div>
+          </div>
+        }
+
+        <!-- Certifications Tab -->
+        @if (activeTab() === 'certifications') {
+          <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div class="flex justify-between items-center mb-2">
+              <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Accreditations</h2>
+              <button (click)="addCertification()" class="text-primary font-bold text-xs flex items-center gap-1 hover:underline">
+                <mat-icon class="!text-sm">add</mat-icon> Add Award
               </button>
-            }
+            </div>
+
+            <div class="space-y-3">
+              @for (cert of form.certifications(); track $index) {
+                <div class="flex items-center gap-4 p-4 border border-outline-variant rounded-lg bg-surface group">
+                  <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                    <mat-icon>military_tech</mat-icon>
+                  </div>
+                  <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <input [(ngModel)]="cert.name" placeholder="Name" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-primary">
+                    <input [(ngModel)]="cert.issuer" placeholder="Issuer" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-primary">
+                    <input [(ngModel)]="cert.year" placeholder="Year" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-primary">
+                  </div>
+                  <button (click)="removeCertification($index)" class="text-outline hover:text-error">
+                    <mat-icon class="!text-sm">close</mat-icon>
+                  </button>
+                </div>
+              }
+            </div>
+
+            <div class="pt-4 flex gap-4">
+              <button (click)="activeTab.set('experience')" class="flex-1 py-4 border border-outline-variant text-primary rounded-lg font-label-md text-label-md">Back</button>
+              <button (click)="nextTab()" class="flex-1 bg-primary text-white py-4 rounded-lg font-label-md text-label-md">Continue</button>
+            </div>
           </div>
+        }
 
-          <!-- Tab Content (each section in its own scrollable container) -->
-          <div class="min-h-[500px] transition-all duration-300">
-            <!-- Identity Tab -->
-            @if (activeTab() === 'identity') {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
-                <h4 class="text-[9px] font-black text-slate-900 uppercase tracking-widest mb-4">Professional Identity</h4>
-                <div class="space-y-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Full Name</mat-label>
-                      <input matInput [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" name="name" placeholder="Enter your full name">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Phone Number (Mandatory)</mat-label>
-                      <input matInput [ngModel]="form.phoneNumber()" (ngModelChange)="form.phoneNumber.set($event)" name="phoneNumber" placeholder="e.g. +254 700 000000">
-                      <mat-icon matPrefix class="mr-2 text-slate-400">phone</mat-icon>
-                    </mat-form-field>
+        <!-- Availability Tab -->
+        @if (activeTab() === 'availability') {
+          <div class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-5 bg-surface border border-outline-variant/60 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer group"
+                   (click)="form.availabilityDetails.set({...form.availabilityDetails(), weekdays: !form.availabilityDetails().weekdays})">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all"
+                       [class]="form.availabilityDetails().weekdays ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'">
+                    <mat-icon>{{ form.availabilityDetails().weekdays ? 'calendar_today' : 'calendar_month' }}</mat-icon>
                   </div>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Primary Category</mat-label>
-                      <mat-select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)" name="category">
-                        <mat-option value="Plumber">Plumber</mat-option>
-                        <mat-option value="Electrician">Electrician</mat-option>
-                        <mat-option value="Farm Worker">Farm Worker</mat-option>
-                        <mat-option value="Cleaner">Cleaner</mat-option>
-                        <mat-option value="Mechanic">Mechanic</mat-option>
-                        <mat-option value="General Laborer">General Laborer</mat-option>
-                      </mat-select>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Hourly Rate ($)</mat-label>
-                      <input matInput type="number" [ngModel]="form.rate()" (ngModelChange)="form.rate.set($event)" name="rate" placeholder="0">
-                    </mat-form-field>
-                  </div>
-
-                  <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Professional Bio</mat-label>
-                    <textarea matInput rows="3" [ngModel]="form.bio()" (ngModelChange)="form.bio.set($event)" name="bio" placeholder="Describe your experience..."></textarea>
-                  </mat-form-field>
-
-                  <mat-form-field appearance="outline" class="w-full">
-                    <mat-label>Core Skills (Comma separated)</mat-label>
-                    <input matInput [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)" name="skills" placeholder="e.g. Plumbing, Leak Detection">
-                  </mat-form-field>
-
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Primary Work Location</mat-label>
-                      <input matInput [ngModel]="form.location()" (ngModelChange)="form.location.set($event)" name="location" placeholder="e.g. Nairobi">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Preferred Job Locations (Comma separated)</mat-label>
-                      <input matInput [ngModel]="form.preferredLocations()" (ngModelChange)="form.preferredLocations.set($event)" name="preferredLocations" placeholder="e.g. Westlands, Kilimani">
-                    </mat-form-field>
-                  </div>
-                  
-                  <div class="pt-6 flex justify-end">
-                    <button mat-flat-button color="primary" (click)="nextTab()" class="!px-10 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest shadow-lg">
-                      Next: Experience <mat-icon class="ml-2">arrow_forward</mat-icon>
-                    </button>
+                  <div>
+                    <p class="font-bold text-primary">Weekdays</p>
+                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-60">Mon - Fri Operational</p>
                   </div>
                 </div>
-              </mat-card>
-            }
+                <mat-slide-toggle color="primary" [checked]="form.availabilityDetails().weekdays"></mat-slide-toggle>
+              </div>
 
-            <!-- Work History Tab -->
-            @if (activeTab() === 'experience') {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
-                <div class="flex justify-between items-center mb-6">
-                  <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Work History & Experience</h4>
-                  <button mat-button color="primary" (click)="addWorkHistory()" class="!font-black !text-[10px] !uppercase !tracking-widest">
-                    <mat-icon class="!text-sm">add</mat-icon> Add Experience
-                  </button>
-                </div>
-                <!-- Scrollable list of work entries -->
-                <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                  @for (work of form.workHistory(); track $index) {
-                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 relative group/item">
-                      <button mat-icon-button (click)="removeWorkHistory($index)" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 opacity-0 group-hover/item:opacity-100 transition-opacity">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                        <mat-form-field appearance="outline" class="!mb-0">
-                          <mat-label>Company / Project</mat-label>
-                          <input matInput [(ngModel)]="work.company">
-                        </mat-form-field>
-                        <mat-form-field appearance="outline" class="!mb-0">
-                          <mat-label>Role</mat-label>
-                          <input matInput [(ngModel)]="work.role">
-                        </mat-form-field>
-                      </div>
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                        <mat-form-field appearance="outline" class="!mb-0">
-                          <mat-label>Period</mat-label>
-                          <input matInput [(ngModel)]="work.period">
-                        </mat-form-field>
-                      </div>
-                      <mat-form-field appearance="outline" class="w-full !mb-0">
-                        <mat-label>Description</mat-label>
-                        <textarea matInput rows="2" [(ngModel)]="work.description"></textarea>
-                      </mat-form-field>
-                    </div>
-                  } @empty {
-                    <div class="text-center py-8 text-slate-400 text-sm">No experience added yet. Click "Add Experience" to start.</div>
-                  }
-                </div>
-                
-                <div class="pt-6 flex justify-end">
-                  <button mat-flat-button color="primary" (click)="nextTab()" class="!px-10 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest shadow-lg">
-                    Next: Certifications <mat-icon class="ml-2">arrow_forward</mat-icon>
-                  </button>
-                </div>
-              </mat-card>
-            }
-
-            <!-- Certifications Tab -->
-            @if (activeTab() === 'certifications') {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
-                <div class="flex justify-between items-center mb-6">
-                  <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Professional Certifications</h4>
-                  <button mat-button color="primary" (click)="addCertification()" class="!font-black !text-[10px] !uppercase !tracking-widest">
-                    <mat-icon class="!text-sm">add</mat-icon> Add Certification
-                  </button>
-                </div>
-                <div class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                  @for (cert of form.certifications(); track $index) {
-                    <div class="flex flex-col md:flex-row gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100 items-end group/cert">
-                      <mat-form-field appearance="outline" class="flex-1 !mb-0">
-                        <mat-label>Certificate Name</mat-label>
-                        <input matInput [(ngModel)]="cert.name">
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="flex-1 !mb-0">
-                        <mat-label>Issuing Institution</mat-label>
-                        <input matInput [(ngModel)]="cert.issuer">
-                      </mat-form-field>
-                      <mat-form-field appearance="outline" class="w-24 !mb-0">
-                        <mat-label>Year</mat-label>
-                        <input matInput [(ngModel)]="cert.year">
-                      </mat-form-field>
-                      <button mat-icon-button (click)="removeCertification($index)" class="text-slate-300 hover:text-red-500 opacity-0 group-hover/cert:opacity-100 transition-opacity">
-                        <mat-icon>delete</mat-icon>
-                      </button>
-                    </div>
-                  } @empty {
-                    <div class="text-center py-8 text-slate-400 text-sm">No certifications added yet. Click "Add Certification" to start.</div>
-                  }
-                </div>
-                
-                <div class="pt-6 flex justify-end">
-                  <button mat-flat-button color="primary" (click)="nextTab()" class="!px-10 !py-3 !rounded-xl !font-black !text-[11px] !uppercase !tracking-widest shadow-lg">
-                    Next: Availability <mat-icon class="ml-2">arrow_forward</mat-icon>
-                  </button>
-                </div>
-              </mat-card>
-            }
-
-            <!-- Availability Tab -->
-            @if (activeTab() === 'availability') {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6">
-                <h4 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6">Detailed Availability</h4>
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <div class="flex items-center justify-between flex-wrap gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 availability-card">
-                    <div class="flex flex-col min-w-[120px]">
-                      <span class="text-xs font-black text-slate-900 uppercase">Weekdays</span>
-                      <span class="text-[10px] text-slate-500">Mon - Fri</span>
-                    </div>
-                    <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().weekdays" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), weekdays: $event})" name="weekdays"></mat-slide-toggle>
+              <div class="flex items-center justify-between p-5 bg-surface border border-outline-variant/60 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer group"
+                   (click)="form.availabilityDetails.set({...form.availabilityDetails(), weekends: !form.availabilityDetails().weekends})">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all"
+                       [class]="form.availabilityDetails().weekends ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'">
+                    <mat-icon>event</mat-icon>
                   </div>
-                  <div class="flex items-center justify-between flex-wrap gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 availability-card">
-                    <div class="flex flex-col min-w-[120px]">
-                      <span class="text-xs font-black text-slate-900 uppercase">Weekends</span>
-                      <span class="text-[10px] text-slate-500">Sat - Sun</span>
-                    </div>
-                    <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().weekends" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), weekends: $event})" name="weekends"></mat-slide-toggle>
-                  </div>
-                  <div class="flex items-center justify-between flex-wrap gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 availability-card">
-                    <div class="flex flex-col min-w-[120px]">
-                      <span class="text-xs font-black text-slate-900 uppercase">Evenings</span>
-                      <span class="text-[10px] text-slate-500">After 6 PM</span>
-                    </div>
-                    <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().evenings" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), evenings: $event})" name="evenings"></mat-slide-toggle>
+                  <div>
+                    <p class="font-bold text-primary">Weekends</p>
+                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-60">Sat - Sun Coverage</p>
                   </div>
                 </div>
+                <mat-slide-toggle color="primary" [checked]="form.availabilityDetails().weekends"></mat-slide-toggle>
+              </div>
+            </div>
 
-                <div class="pt-8 flex justify-end">
-                  <button mat-flat-button color="primary" (click)="goToDocuments()" class="!px-10 !py-4 !rounded-2xl !font-black !text-xs !uppercase !tracking-widest shadow-xl bg-slate-900 text-white">
-                    Final Step: Verification <mat-icon class="ml-2">verified_user</mat-icon>
-                  </button>
+            <div class="flex items-center justify-between p-6 bg-surface-container-high border border-outline-variant rounded-xl shadow-sm">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-primary border border-outline-variant">
+                  <mat-icon class="!text-2xl">dark_mode</mat-icon>
                 </div>
-              </mat-card>
-            }
+                <div>
+                  <p class="font-bold text-primary">Late Shift Coverage</p>
+                  <p class="text-xs text-on-surface-variant">Active after 18:00 UTC</p>
+                </div>
+              </div>
+              <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().evenings" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), evenings: $event})"></mat-slide-toggle>
+            </div>
+
+            <div class="pt-4 flex gap-4">
+              <button (click)="activeTab.set('certifications')" class="flex-1 py-4 border border-outline-variant text-primary rounded-lg font-label-md text-label-md">Back</button>
+              <button (click)="saveProfile()" class="flex-1 bg-primary text-white py-4 rounded-lg font-label-md text-label-md shadow-lg shadow-primary/10">Save All Changes</button>
+            </div>
           </div>
-        </div>
+        }
       </div>
+
+      <!-- Action Footer -->
+      <section class="pt-4 flex flex-col gap-3">
+        <button (click)="saveProfile()" [disabled]="isSaving()" 
+                class="w-full bg-primary text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/10 hover:bg-opacity-90 active:scale-95 transition-all">
+          {{ isSaving() ? 'Synchronizing...' : 'Commit Profile Changes' }}
+        </button>
+        <button (click)="goToDocuments()" class="w-full bg-surface border border-outline-variant text-primary py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container-low transition-all">
+          Proceed to Vault Audit
+        </button>
+      </section>
     </div>
   `,
   styles: [`
     :host { display: block; }
-    
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #94a3b8;
-    }
-
-    .availability-card {
-      transition: all 0.2s ease;
-    }
-    .availability-card:hover {
-      border-color: #cbd5e1 !important;
-      background: #f8fafc !important;
-    }
-
-    .no-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .no-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-    
-    @media (max-width: 768px) {
-      .header-title { font-size: 1.75rem !important; }
-      mat-card-content { padding: 1.25rem !important; }
-      .gap-8 { gap: 1rem !important; }
-      .w-32 { width: 6rem !important; height: 6rem !important; }
-      .flex-col.md\\:flex-row { align-items: stretch !important; }
-    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   `]
 })
 export class WorkerProfilePage {
@@ -486,8 +387,11 @@ export class WorkerProfilePage {
   }
 
   removeProfilePicture() {
+    const userId = this.worker().userId || this.auth.currentUser()?.id;
+    if (!userId) return;
+    
     this.notification.info('Removing profile picture...');
-    this.state.deleteProfilePicture(this.worker().id).subscribe({
+    this.state.deleteProfilePicture(userId).subscribe({
       next: (response: any) => {
         const mapped = this.state.mapWorkerProfile(response);
         this.state.currentWorker.set(mapped);
@@ -503,8 +407,15 @@ export class WorkerProfilePage {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
     const file = input.files[0];
+    
+    const userId = this.worker().userId || this.auth.currentUser()?.id;
+    if (!userId) {
+      this.notification.error('User context not found.');
+      return;
+    }
+
     this.notification.info('Uploading profile picture...');
-    this.state.uploadProfilePicture(this.worker().id, file).subscribe({
+    this.state.uploadProfilePicture(userId, file).subscribe({
       next: (response: any) => {
         const mapped = this.state.mapWorkerProfile(response);
         this.state.currentWorker.set(mapped);
@@ -533,30 +444,19 @@ export class WorkerProfilePage {
   }
 
   saveProfile() {
-    const updates: Partial<any> = {
-      fullName: this.form.name(),
-      phoneNumber: this.form.phoneNumber(),
-      category: this.form.category(),
-      hourlyRate: Number(this.form.rate()) || 0,
-      bio: this.form.bio(),
-      skills: (this.form.skills() || '').split(',').map(s => s.trim()).filter(s => s),
-      location: this.form.location(),
-      preferredLocations: (this.form.preferredLocations() || '').split(',').map(l => l.trim()).filter(l => l),
-      workHistory: this.form.workHistory()
-        .filter(w => w.company.trim() && w.role.trim())
-        .map(w => ({ ...w })),
-      certifications: this.form.certifications()
-        .filter(c => c.name.trim() && c.issuer.trim())
-        .map(c => ({ ...c, year: Number(c.year) })),
-      availabilityDetails: this.form.availabilityDetails(),
-      profilePictureUrl: this.form.image()
-    };
+    const updates = this.getProfileUpdates();
+    const userId = this.worker().userId || this.auth.currentUser()?.id;
+    if (!userId) {
+      this.notification.error('User context not found.');
+      return;
+    }
+
     this.isSaving.set(true);
-    this.state.updateWorkerProfile(this.worker().id, updates).subscribe({
+    this.state.updateWorkerProfile(userId, updates).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.notification.success('✓ Profile saved successfully!');
-        this.state.fetchWorkerProfile(this.auth.currentUser()!.id);
+        this.state.fetchWorkerProfile(userId);
       },
       error: () => {
         this.isSaving.set(false);
@@ -576,11 +476,14 @@ export class WorkerProfilePage {
   }
 
   resubmit() {
+    const userId = this.worker().userId || this.auth.currentUser()?.id;
+    if (!userId) return;
+
     this.isSaving.set(true);
     const updates = this.getProfileUpdates();
-    this.state.updateWorkerProfile(this.worker().id, updates).subscribe({
+    this.state.updateWorkerProfile(userId, updates).subscribe({
       next: () => {
-        this.state.resubmitWorker(this.worker().id);
+        this.state.resubmitWorker(userId);
         this.isSaving.set(false);
       },
       error: () => this.isSaving.set(false)

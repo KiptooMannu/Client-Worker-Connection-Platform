@@ -49,16 +49,23 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   };
 
   if (token) {
-    const cloned = req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
+    const isFormData = req.body instanceof FormData;
+    const isGetOrDelete = req.method === 'GET' || req.method === 'DELETE';
     
-    console.debug('[AuthInterceptor] Request with auth token:', {
-      url: req.url,
+    let headers: { [header: string]: string } = {
+      Authorization: `Bearer ${token}`
+    };
+
+    // Only add JSON content type if not sending FormData and not a GET/DELETE request
+    if (!isFormData && !isGetOrDelete) {
+      headers['Content-Type'] = 'application/json';
+    }
+    
+    const cloned = req.clone({ setHeaders: headers });
+    
+    console.debug(`[AuthInterceptor] ${req.method} ${req.url}`, {
       userRole: userRole || 'role-not-cached',
+      isFormData,
       hasToken: true
     });
     

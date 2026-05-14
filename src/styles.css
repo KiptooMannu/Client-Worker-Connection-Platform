@@ -1,69 +1,78 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-on-background: #131b2e;
-  --color-primary-fixed-dim: #c0c1ff;
-  --color-tertiary-container: #3c3f41;
-  --color-on-tertiary-container: #a7aaac;
-  --color-surface-container-high: #e2e7ff;
-  --color-on-secondary-fixed: #0b1c30;
-  --color-on-primary-container: #9da1ff;
-  --color-on-secondary-fixed-variant: #38485d;
-  --color-surface-tint: #4f54b4;
-  --color-primary-container: #2e3192;
-  --color-tertiary: #26292b;
-  --color-surface-container: #eaedff;
-  --color-primary: #15157d;
-  --color-on-tertiary-fixed: #191c1e;
-  --color-secondary-fixed-dim: #b7c8e1;
+  --color-on-tertiary-fixed-variant: #51443f;
+  --color-secondary-fixed-dim: #d7c3b2;
+  --color-primary-container: #2d3436;
+  --color-secondary-fixed: #f4dfcd;
   --color-on-error: #ffffff;
-  --color-error: #ba1a1a;
-  --color-surface-bright: #faf8ff;
-  --color-on-primary-fixed-variant: #373a9b;
-  --color-on-tertiary: #ffffff;
-  --color-surface: #ffffff;
-  --color-surface-dim: #d2d9f4;
-  --color-surface-variant: #dae2fd;
-  --color-secondary: #505f76;
-  --color-inverse-surface: #283044;
-  --color-outline-variant: #c7c5d4;
-  --color-surface-container-highest: #dae2fd;
-  --color-on-surface: #131b2e;
+  --color-on-secondary-fixed-variant: #524437;
   --color-error-container: #ffdad6;
-  --color-inverse-primary: #c0c1ff;
-  --color-secondary-container: #d0e1fb;
-  --color-on-error-container: #93000a;
-  --color-on-tertiary-fixed-variant: #444749;
-  --color-primary-fixed: #e1e0ff;
-  --color-tertiary-fixed-dim: #c4c7c9;
-  --color-on-primary-fixed: #04006d;
-  --color-surface-container-low: #f2f3ff;
-  --color-secondary-fixed: #d3e4fe;
-  --color-inverse-on-surface: #eef0ff;
-  --color-on-surface-variant: #464652;
-  --color-on-primary: #ffffff;
-  --color-tertiary-fixed: #e0e3e5;
-  --color-background: #faf8ff;
-  --color-on-secondary-container: #54647a;
-  --color-outline: #777683;
   --color-surface-container-lowest: #ffffff;
+  --color-primary: #181f21;
+  --color-surface-tint: #586062;
+  --color-on-primary-fixed-variant: #41484a;
+  --color-tertiary-fixed: #f3ded7;
   --color-on-secondary: #ffffff;
+  --color-on-secondary-fixed: #24190f;
+  --color-on-error-container: #93000a;
+  --color-surface: #f8f9fa;
+  --color-error: #ba1a1a;
+  --color-secondary: #6b5c4e;
+  --color-surface-container-low: #f3f4f5;
+  --color-tertiary-fixed-dim: #d6c3bb;
+  --color-inverse-surface: #2e3132;
+  --color-on-secondary-container: #6f6052;
+  --color-inverse-on-surface: #f0f1f2;
+  --color-surface-bright: #f8f9fa;
+  --color-secondary-container: #f1dcca;
+  --color-background: #f8f9fa;
+  --color-on-tertiary: #ffffff;
+  --color-primary-fixed: #dde4e6;
+  --color-surface-dim: #d9dadb;
+  --color-on-primary: #ffffff;
+  --color-on-tertiary-container: #a99790;
+  --color-surface-container-highest: #e1e3e4;
+  --color-on-primary-container: #959c9f;
+  --color-surface-container: #edeeef;
+  --color-surface-variant: #e1e3e4;
+  --color-inverse-primary: #c1c8ca;
+  --color-on-surface: #191c1d;
+  --color-on-primary-fixed: #161d1f;
+  --color-outline: #747879;
+  --color-on-tertiary-fixed: #241915;
+  --color-on-surface-variant: #434749;
+  --color-outline-variant: #c3c7c8;
+  --color-surface-container-high: #e7e8e9;
+  --color-tertiary-container: #3c302b;
+  --color-on-background: #191c1d;
+  --color-tertiary: #261b17;
+  --color-primary-fixed-dim: #c1c8ca;
 
-  --font-hanken: "Hanken Grotesk", sans-serif;
-  --font-inter: "Inter", sans-serif;
+  /* Spacing */
+  --spacing-margin-desktop: 40px;
+  --spacing-margin-mobile: 16px;
+  --spacing-gutter: 24px;
+  --spacing-container-max: 1440px;
+  --spacing-unit: 8px;
 
-  --font-headline-lg-mobile: var(--font-hanken);
-  --font-label-caps: var(--font-hanken);
-  --font-headline-md: var(--font-hanken);
-  --font-label-sm: var(--font-inter);
-  --font-headline-lg: var(--font-hanken);
-  --font-body-md: var(--font-inter);
-  --font-body-lg: var(--font-inter);
+  /* Typography */
+  --font-manrope: "Manrope", sans-serif;
+  
+  --font-size-headline-lg: 32px;
+  --font-size-label-md: 14px;
+  --font-size-display-lg: 48px;
+  --font-size-label-sm: 12px;
+  --font-size-headline-lg-mobile: 24px;
+  --font-size-body-md: 16px;
+  --font-size-body-lg: 18px;
+  --font-size-body-sm: 14px;
+  --font-size-headline-md: 24px;
 }
 
 @layer base {
   html, body {
-    @apply font-inter bg-surface text-on-surface antialiased;
+    @apply font-manrope bg-surface text-on-surface antialiased;
   }
 }
 

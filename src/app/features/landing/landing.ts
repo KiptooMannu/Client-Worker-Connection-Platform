@@ -1,21 +1,33 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../core/services/auth.service';
 import { PlatformStateService } from '../../core/services/platform-state.service';
 
+import { NavbarComponent } from '../../shared/components/navbar';
+
 @Component({
   selector: 'app-landing',
   standalone: true,
-  imports: [CommonModule, RouterLink, MatIconModule],
+  imports: [CommonModule, RouterLink, MatIconModule, NavbarComponent],
   templateUrl: './landing.html'
 })
-export class LandingPage {
+export class LandingPage implements OnInit {
   auth = inject(AuthService);
   state = inject(PlatformStateService);
+  router = inject(Router);
   
   selectedOverview = signal<'trust' | 'scale' | 'settlement'>('trust');
+
+  ngOnInit() {
+    if (this.auth.isAuthenticated()) {
+      const role = this.auth.userRole();
+      if (role === 'Worker') this.router.navigate(['/worker']);
+      else if (role === 'Client') this.router.navigate(['/client']);
+      else if (role === 'Admin') this.router.navigate(['/admin']);
+    }
+  }
 
   overviews = {
     trust: {

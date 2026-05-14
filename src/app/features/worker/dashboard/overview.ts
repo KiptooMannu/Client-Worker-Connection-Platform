@@ -22,197 +22,217 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     RouterLink
   ],
   template: `
-    <div class="space-y-6 animate-in fade-in duration-700">
-      <!-- Step-by-Step Progress Tracker -->
-      <mat-card class="premium-card !border !border-slate-100 !shadow-sm !p-5 md:!p-6">
-        <div class="flex justify-between items-center mb-6">
-           <h3 class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Verification Progress</h3>
-           <span class="text-[10px] font-black text-blue-600">{{ completionPercentage() }}% Complete</span>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative">
-          <!-- Connector Lines (Desktop) -->
-          <div class="hidden md:block absolute top-5 left-20 right-20 h-0.5 bg-slate-100 z-0">
-             <div class="h-full bg-blue-600 transition-all duration-1000" [style.width]="(currentStep() / 2) * 100 + '%'"></div>
-          </div>
-
-          @for (step of steps; track step.id; let i = $index) {
-            <div class="relative z-10 flex flex-col items-center text-center group">
-              <div class="w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 mb-3 border-2"
-                   [ngClass]="{
-                     'bg-blue-600 border-blue-600 text-white shadow-xl shadow-blue-200 scale-110': currentStep() === i,
-                     'bg-teal-500 border-teal-500 text-white': currentStep() > i,
-                     'bg-white border-slate-100 text-slate-300': currentStep() < i
-                   }">
-                <mat-icon class="!text-lg"> {{ currentStep() > i ? 'check' : step.icon }} </mat-icon>
-              </div>
-              <p class="text-[11px] font-black transition-colors" [ngClass]="currentStep() >= i ? 'text-slate-900' : 'text-slate-400'">{{ step.label }}</p>
-              <p class="text-[9px] font-medium text-slate-500 mt-0.5">{{ step.desc }}</p>
-            </div>
-          }
-        </div>
-      </mat-card>
-
-      <!-- Status Hero Card -->
-      <mat-card class="premium-card overflow-hidden !border-none !shadow-xl" 
-                [ngClass]="worker().status === 'Verified' ? '!bg-emerald-700' : (worker().status === 'Pending' ? '!bg-slate-700' : '!bg-indigo-900')">
-        <mat-card-content class="!p-5 md:!p-6 text-white relative">
-          <div class="flex flex-col md:flex-row items-center justify-between gap-6 relative z-10">
-            <div class="flex items-center gap-6 text-center md:text-left flex-col md:flex-row">
-              <div class="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/30">
-                <mat-icon class="!text-white !text-2xl !w-auto !h-auto" style="font-variation-settings: 'FILL' 1;">
-                  {{ worker().status === 'Verified' ? 'verified' : (worker().status === 'Pending' ? 'schedule' : 'edit_note') }}
-                </mat-icon>
-              </div>
-              <div>
-                <h2 class="text-xl md:text-2xl font-black tracking-tight mb-1">
-                  {{ worker().status === 'Verified' ? 'Identity Verified' : (worker().status === 'Pending' ? 'Review in Progress' : 'Profile Incomplete') }}
-                </h2>
-                <p class="text-white/80 font-medium text-sm max-w-xl leading-relaxed">
-                  {{ worker().status === 'Verified' ? 'Your profile is live! You are visible to clients.' : 
-                     (worker().status === 'Pending' ? 'Admins are reviewing your documents.' : 
-                     'Complete your profile and upload documents to get verified.') }}
-                </p>
-              </div>
+    <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 font-manrope">
+      
+      <!-- Status Hero Section (Premium Industrial Look) -->
+      <section>
+        <div class="relative overflow-hidden rounded-[1.5rem] bg-primary-container p-6 md:p-8 min-h-[260px] flex flex-col justify-between group shadow-xl shadow-primary/10 border border-white/5">
+          <!-- Atmospheric Background Image -->
+          <img class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-700" 
+               src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80" 
+               alt="Background">
+          
+          <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full mb-6 border border-white/10">
+              <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+              <span class="font-label-sm text-[10px] text-white uppercase tracking-[0.2em] font-black">System Live</span>
             </div>
             
-            <div class="flex flex-col gap-2">
-              @if (worker().status === 'Verified') {
-                <button mat-flat-button (click)="state.toggleAvailability(worker().id)" 
-                        class="!px-6 !py-3 !rounded-xl !font-black !text-[9px] !uppercase !tracking-widest transition-all shadow-md"
-                        [ngClass]="worker().isAvailable ? '!bg-white !text-teal-700' : '!bg-white/20 !text-white !border !border-white/30'">
-                  <mat-icon class="!text-xs !mr-1">{{ worker().isAvailable ? 'check_circle' : 'do_not_disturb_on' }}</mat-icon>
-                  {{ worker().isAvailable ? 'Available' : 'Busy' }}
-                </button>
-              }
-              
-              @if (worker().status === 'Draft' || worker().status === 'Rejected') {
-                <button 
-                  mat-flat-button 
-                  [routerLink]="['../profile']"
-                  class="!bg-white !text-blue-700 !px-8 !py-4 !rounded-xl !font-black !text-xs !shadow-lg hover:scale-105 transition-transform">
-                  Onboarding
-                </button>
-              }
+            <div class="max-w-2xl">
+              <h1 class="text-3xl md:text-4xl font-black text-white mb-2 tracking-tighter leading-none">{{ statusTitle() }}</h1>
+              <p class="text-sm md:text-base text-white/70 max-w-xl leading-relaxed">{{ statusDesc() }}</p>
             </div>
           </div>
-          <mat-icon class="absolute -right-5 -bottom-5 !text-[120px] !w-auto !h-auto text-white/10 pointer-events-none">verified</mat-icon>
-        </mat-card-content>
-      </mat-card>
 
-      <!-- Hire Requests Section -->
-      @if (pendingRequests().length > 0) {
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="text-lg font-black text-slate-900 tracking-tight">New Hire Requests</h3>
-            <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full text-[9px] font-black uppercase tracking-widest">{{ pendingRequests().length }} Pending</span>
+          <div class="relative z-10 flex flex-wrap gap-12 mt-8 items-end">
+            <div class="space-y-1">
+              <p class="text-[9px] uppercase tracking-[0.2em] text-white/40 font-black">Profile Status</p>
+              <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-black text-white">{{ state.currentWorkerCompletion() }}%</span>
+                <span class="text-[10px] text-primary font-bold uppercase tracking-widest">Complete</span>
+              </div>
+            </div>
+            <div class="space-y-1">
+              <p class="text-[9px] uppercase tracking-[0.2em] text-white/40 font-black">New Requests</p>
+              <p class="text-3xl font-black text-white">{{ pendingRequests().length }}</p>
+            </div>
+            
+            <div class="ml-auto hidden md:block">
+              <button routerLink="../verification" class="px-8 py-4 bg-white text-primary rounded-xl font-black text-sm hover:scale-105 transition-all active:scale-95 shadow-xl shadow-black/20">
+                Check Documents
+              </button>
+            </div>
           </div>
+
+          <!-- Glassmorphic Accent -->
+          <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-primary rounded-full blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
+        </div>
+      </section>
+
+      <!-- Dashboard Layout Grid -->
+      <div class="flex flex-col lg:flex-row gap-10 items-start">
+        
+        <!-- Main Operations Column -->
+        <div class="flex-1 w-full space-y-10 min-w-0">
           
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            @for (req of pendingRequests(); track req.id) {
-              <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-5 animate-in zoom-in duration-300">
-                <div class="flex justify-between items-start mb-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-700 font-black text-xs">{{ req.clientInitials }}</div>
-                    <div>
-                      <p class="text-xs font-black text-slate-900">{{ req.clientName }}</p>
-                      <p class="text-[10px] font-medium text-slate-500">{{ req.service }}</p>
+          <!-- Hire Requests Ledger -->
+          <section>
+            <div class="flex justify-between items-center mb-6 px-4">
+              <div class="flex items-center gap-3">
+                <div class="w-1.5 h-6 bg-primary rounded-full"></div>
+                <h2 class="text-xl font-black tracking-tight text-primary uppercase">New Job Requests</h2>
+              </div>
+              <span class="font-label-sm text-[10px] font-black text-primary bg-primary-fixed px-3 py-1.5 rounded-full tracking-widest">{{ pendingRequests().length }} NEW</span>
+            </div>
+            
+            <div class="space-y-1">
+              @for (req of pendingRequests(); track req.id) {
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface hover:bg-surface-container-low transition-all border-b border-outline-variant/30 group">
+                  <div class="flex items-center gap-4 mb-4 sm:mb-0 min-w-0">
+                    <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary font-black text-xs shrink-0">
+                      {{ req.clientName[0] }}
+                    </div>
+                    <div class="min-w-0">
+                      <h3 class="font-bold text-sm text-primary truncate">{{ req.service }}</h3>
+                      <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-wider truncate">{{ req.clientName }}</p>
                     </div>
                   </div>
-                  <div class="text-right">
-                    <p class="text-base font-black text-slate-900 tracking-tighter">$\{{ req.earnings }}</p>
+                  
+                  <div class="flex items-center gap-6 shrink-0">
+                    <div class="text-right hidden md:block">
+                      <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold leading-none mb-1">Fee</p>
+                      <p class="font-black text-sm text-primary">$ {{ req.earnings }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                      <button (click)="state.acceptBooking(req.id)" class="px-5 py-2 bg-primary text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">Accept</button>
+                      <button (click)="state.deleteJobRequest(req.id)" class="px-4 py-2 border border-outline-variant text-on-surface-variant font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-error/10 hover:text-error hover:border-error/20 transition-all">Decline</button>
+                    </div>
                   </div>
                 </div>
-                
-                <div class="flex gap-2">
-                  <button mat-flat-button color="primary" class="flex-grow !py-2 !rounded-lg !font-black !text-[9px] !uppercase !tracking-widest" (click)="state.acceptBooking(req.id)">
-                    Accept
-                  </button>
-                  <button mat-stroked-button class="!border-slate-100 !text-slate-400 !px-4 !rounded-lg !font-black !text-[9px] !uppercase !tracking-widest" (click)="state.declineBooking(req.id)">
-                    Decline
-                  </button>
+              }
+              
+              @if (pendingRequests().length === 0) {
+                <div class="py-20 text-center bg-surface-container-low border border-dashed border-outline-variant rounded-[1.5rem]">
+                  <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                    <span class="material-symbols-outlined text-outline text-3xl">cloud_done</span>
+                  </div>
+                  <h3 class="font-black text-primary mb-1 uppercase tracking-widest">No New Requests</h3>
+                  <p class="text-[11px] text-on-surface-variant font-bold uppercase tracking-tighter">We'll notify you when new jobs arrive</p>
                 </div>
-              </mat-card>
-            }
-          </div>
-        </div>
-      }
+              }
+            </div>
+          </section>
 
-      <!-- Quick Actions & Messaging -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <mat-card class="!rounded-[24px] !border !border-slate-100 !shadow-sm !p-6 bg-white overflow-hidden">
-           <div class="flex justify-between items-center mb-6">
-             <div class="flex items-center gap-3">
-               <h3 class="text-base font-black text-slate-900 tracking-tight">Recent Dialogues</h3>
-               @if (state.unreadMessagesCount() > 0) {
-                 <span class="px-2 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black uppercase tracking-widest rounded-full">
-                   {{ state.unreadMessagesCount() }} New
-                 </span>
-               }
-             </div>
-             <button routerLink="../messages" class="text-[9px] font-black uppercase text-blue-600 hover:underline">Inbox</button>
-           </div>
-           
-           <div class="space-y-4">
+          <!-- System Controls Ledger -->
+          <section>
+             <div class="flex items-center gap-3 mb-6 px-4">
+                <div class="w-1.5 h-6 bg-primary rounded-full"></div>
+                <h2 class="text-xl font-black tracking-tight text-primary uppercase">Quick Links</h2>
+              </div>
+            <div class="space-y-1">
+              <div routerLink="../profile" class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-low transition-all border-b border-outline-variant/30 cursor-pointer group">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-xl">identity_platform</span>
+                  </div>
+                  <div>
+                    <h3 class="font-black text-primary text-xs uppercase tracking-widest">Edit Profile</h3>
+                    <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Update your bio and skills</p>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">chevron_right</span>
+              </div>
+
+              <div routerLink="../verification" class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-low transition-all border-b border-outline-variant/30 cursor-pointer group">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-xl">verified_user</span>
+                  </div>
+                  <div>
+                    <h3 class="font-black text-primary text-xs uppercase tracking-widest">Documents</h3>
+                    <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Upload ID and certificates</p>
+                  </div>
+                </div>
+                <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">chevron_right</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- System Intelligence Column -->
+        <div class="w-full lg:w-80 xl:w-96 space-y-10 shrink-0">
+          <!-- Audit Lifecycle Card -->
+          <section class="bg-white border border-outline-variant/60 rounded-xl p-6 shadow-sm">
+            <h2 class="text-[10px] font-black text-primary mb-6 uppercase tracking-[0.25em]">Profile Completion</h2>
+            
+            <div class="space-y-6 relative">
+              <div class="absolute left-3 top-2 bottom-2 w-px bg-outline-variant/30"></div>
+              
+              @for (step of steps; track step.id; let i = $index) {
+                <div class="flex gap-4 relative z-10">
+                  <div class="w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0"
+                       [ngClass]="currentStep() > i + 1 ? 'bg-primary text-white' : (currentStep() === i + 1 ? 'bg-white border border-primary text-primary' : 'bg-white border border-outline-variant text-outline')">
+                      @if (currentStep() > i + 1) {
+                        <span class="material-symbols-outlined text-[12px] font-black">check</span>
+                      } @else {
+                        <span class="text-[9px] font-black">{{ i + 1 }}</span>
+                      }
+                  </div>
+                  <div class="min-w-0">
+                    <h3 class="text-[10px] font-black uppercase tracking-tight" [ngClass]="currentStep() >= i + 1 ? 'text-primary' : 'text-on-surface-variant'">{{ step.label }}</h3>
+                    <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60 truncate">{{ step.desc }}</p>
+                  </div>
+                </div>
+              }
+            </div>
+            
+            <button (click)="submit()" [disabled]="worker().status !== 'Draft' || state.currentWorkerCompletion() < 100"
+                    class="w-full mt-8 py-3 bg-primary text-white rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-20 transition-all shadow-lg shadow-primary/10 active:scale-95">
+              Submit for Review
+            </button>
+          </section>
+
+          <!-- Dialogues Panel -->
+          <section class="bg-surface border border-outline-variant/60 rounded-xl p-6 shadow-sm flex flex-col group">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-[10px] font-black text-primary uppercase tracking-[0.25em]">Recent Chats</h3>
+              @if (state.unreadMessagesCount() > 0) {
+                <span class="bg-primary text-white px-2 py-0.5 rounded-full text-[8px] font-black tracking-widest">{{ state.unreadMessagesCount() }} NEW</span>
+              }
+            </div>
+
+            <div class="space-y-1 flex-1">
               @for (chat of state.chats().slice(0, 3); track chat.id) {
-                <div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" routerLink="../messages">
-                   <div class="w-10 h-10 rounded-xl bg-slate-100 text-slate-400 flex items-center justify-center font-black text-xs uppercase overflow-hidden border border-white">
-                      @if (chat.image) { <img [src]="chat.image" class="w-full h-full object-cover"> } @else { {{ chat.initials }} }
-                   </div>
-                   <div class="flex-1 min-w-0">
-                      <div class="flex justify-between items-center mb-0.5">
-                         <p class="text-xs font-black text-slate-900 truncate">{{ chat.name }}</p>
-                         <span class="text-[8px] font-bold text-slate-400">{{ chat.time }}</span>
-                      </div>
-                      <p class="text-[10px] text-slate-500 truncate">{{ chat.lastMessage }}</p>
-                   </div>
+                <div class="flex items-center gap-3 p-3 hover:bg-surface-container-low rounded-lg transition-all cursor-pointer group/item" routerLink="../messages">
+                  <img [src]="chat.image || 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop'" 
+                       class="w-10 h-10 rounded-lg object-cover shadow-sm group-hover/item:scale-105 transition-transform">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex justify-between items-baseline mb-0.5">
+                      <p class="text-[10px] font-black text-primary truncate uppercase tracking-tight">{{ chat.name }}</p>
+                      <span class="text-[8px] text-on-surface-variant font-bold">{{ chat.time }}</span>
+                    </div>
+                    <p class="text-[9px] text-on-surface-variant font-bold truncate tracking-tight opacity-70">{{ chat.lastMessage }}</p>
+                  </div>
                 </div>
               }
               @if (state.chats().length === 0) {
-                <div class="py-10 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-                   <mat-icon class="text-slate-200 !text-2xl !w-auto !h-auto mb-2">forum</mat-icon>
-                   <p class="text-[9px] text-slate-400 font-black uppercase tracking-widest">No active chats</p>
-                </div>
+                 <div class="py-6 text-center opacity-40">
+                    <p class="text-[9px] font-black uppercase tracking-widest">No messages yet</p>
+                 </div>
               }
-           </div>
-        </mat-card>
-
-        <div class="grid grid-cols-1 gap-4">
-          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 group hover:!border-blue-600 transition-all cursor-pointer" routerLink="../profile">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
-                <mat-icon>person</mat-icon>
-              </div>
-              <div>
-                <h3 class="text-lg font-black text-slate-900">Manage Profile</h3>
-                <p class="text-xs text-slate-500 font-medium">Bio, skills, and rates.</p>
-              </div>
             </div>
-          </mat-card>
 
-          <mat-card class="!rounded-2xl !border !border-slate-100 !shadow-sm !p-6 group hover:!border-teal-600 transition-all cursor-pointer" routerLink="../verification">
-            <div class="flex items-center gap-4">
-              <div class="w-12 h-12 bg-teal-50 text-teal-600 rounded-xl flex items-center justify-center group-hover:bg-teal-600 group-hover:text-white transition-all">
-                <mat-icon>file_upload</mat-icon>
-              </div>
-              <div>
-                <h3 class="text-lg font-black text-slate-900">Verification</h3>
-                <p class="text-xs text-slate-500 font-medium">Upload ID & certificates.</p>
-              </div>
-            </div>
-          </mat-card>
+            <button routerLink="../messages" class="w-full mt-6 py-3 border border-outline-variant text-primary rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white hover:border-primary transition-all">
+              Open Messages
+            </button>
+          </section>
         </div>
       </div>
     </div>
   `,
   styles: [`
     :host { display: block; }
-    
-    @media (max-width: 640px) {
-      .premium-card { padding: 1.25rem !important; }
-      .text-xl { font-size: 1.125rem !important; }
-      .text-base { font-size: 1rem !important; }
-    }
+    .fill-1 { font-variation-settings: 'FILL' 1; }
   `]
 })
 export class WorkerDashboardOverviewPage {
@@ -220,6 +240,20 @@ export class WorkerDashboardOverviewPage {
   private notification = inject(NotificationService);
 
   worker = this.state.currentWorker;
+
+  statusTitle = computed(() => {
+    const s = this.worker().status;
+    if (s === 'Verified') return 'Ready for New Jobs';
+    if (s === 'Pending') return 'Trust Audit in Progress';
+    return 'Incomplete Profile';
+  });
+
+  statusDesc = computed(() => {
+    const s = this.worker().status;
+    if (s === 'Verified') return 'Your profile is live and visible to elite clients. Keep your availability updated.';
+    if (s === 'Pending') return "Admins are currently reviewing your professional credentials. You'll be notified once cleared.";
+    return 'Complete your professional audit to unlock premium marketplace features.';
+  });
 
   steps = [
     { id: 'profile', label: 'Professional Profile', desc: 'Bio & Skills', icon: 'person' },

@@ -174,7 +174,7 @@ export class PlatformStateService {
 
         // Refresh appropriate data
         if (user.role === 'Worker') {
-          this.fetchWorkerJobs(this.currentWorker().id);
+          this.fetchWorkerJobs(this.currentWorker().userId || user.id);
         } else if (user.role === 'Client') {
           this.fetchClientJobs(user.id);
         } else if (user.role === 'Admin') {
@@ -204,7 +204,7 @@ export class PlatformStateService {
 
   private mapBooking(b: any): Booking {
     let status = b.status || 'PENDING';
-    
+
     // Format status for display: replace underscore with space and capitalize words
     const displayStatus = status.split('_')
       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -234,6 +234,7 @@ export class PlatformStateService {
 
   currentWorker = signal<WorkerProfile>({
     id: '',
+    userId: '',
     name: '',
     initials: '',
     email: '',
@@ -273,6 +274,7 @@ export class PlatformStateService {
     this.currentClient.set(null);
     this.currentWorker.set({
       id: '',
+      userId: '',
       name: '',
       initials: '',
       email: '',
@@ -295,7 +297,8 @@ export class PlatformStateService {
       this.pollingInterval = null;
     }
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('pro_state');
+      sessionStorage.removeItem('kazi_konnect_state');
+      localStorage.removeItem('kazi_konnect_state'); // Also clear old localStorage if it exists
     }
   }
 
@@ -338,8 +341,9 @@ export class PlatformStateService {
                   this.fetchChats(u.id);
 
                   // Periodically refresh jobs to ensure reviews/status changes reflect
-                  if (u.role === 'Worker' && this.currentWorker().id) {
-                    this.fetchWorkerJobs(this.currentWorker().id);
+                  if (u.role === 'Worker') {
+                    const userId = this.currentWorker().userId || u.id;
+                    this.fetchWorkerJobs(userId);
                   } else if (u.role === 'Client') {
                     this.fetchClientJobs(u.id);
                   }
@@ -386,7 +390,9 @@ export class PlatformStateService {
       next: (data) => {
         const mapped = this.mapWorkerProfile(data);
         this.currentWorker.set(mapped);
-        this.fetchWorkerJobs(mapped.id);
+        if (mapped.userId) {
+          this.fetchWorkerJobs(mapped.userId);
+        }
       },
       error: (err: HttpErrorResponse) => {
         console.error('Error fetching worker profile', err);
@@ -423,13 +429,9 @@ export class PlatformStateService {
     });
   }
 
-  updateWorkerProfile(profileId: string, updates: any): Observable<any> {
-    const backendPayload = {
-      ...updates,
-      skills: updates.skills?.map((s: any) => typeof s === 'string' ? s : s.name)
-    };
-
-    return this.http.put<any>(`${this.apiUrl}/workers/profile/${profileId}`, backendPayload).pipe(
+  updateWorkerProfile(userId: string, updates: any): Observable<any> {
+    const backendPayload = this.mapToBackendUpdate(updates);
+    return this.http.put<any>(`${this.apiUrl}/workers/profile/${userId}`, backendPayload).pipe(
       tap(res => {
         if (res.workerProfile) {
           const mapped = this.mapWorkerProfile(res.workerProfile);
@@ -442,9 +444,9 @@ export class PlatformStateService {
     );
   }
 
-  uploadDocument(workerProfileId: string, type: string, name: string, file: File): Observable<any> {
+  uploadDocument(userId: string, type: string, name: string, file: File): Observable<any> {
     const formData = new FormData();
-    formData.append('workerProfileId', workerProfileId);
+    formData.append('userId', userId);
     formData.append('type', type);
     formData.append('name', name);
     formData.append('file', file);
@@ -452,14 +454,20 @@ export class PlatformStateService {
     return this.http.post(`${this.apiUrl}/documents`, formData);
   }
 
-  uploadProfilePicture(workerProfileId: string, file: File): Observable<any> {
+  uploadProfilePicture(userId: string, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.apiUrl}/workers/${workerProfileId}/profile-picture`, formData);
+    return this.http.post(`${this.apiUrl}/workers/profile/${userId}/profile-picture`, formData);
   }
 
-  deleteProfilePicture(workerProfileId: string): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/workers/${workerProfileId}/profile-picture`);
+  submitProfile(userId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/workers/profile/${userId}/submit`, {}).pipe(
+      tap(() => this.notification.success('Profile submitted for review!'))
+    );
+  }
+
+  deleteProfilePicture(userId: string): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/workers/profile/${userId}/profile-picture`);
   }
 
   deleteDocument(documentId: string): Observable<any> {
@@ -757,16 +765,16 @@ export class PlatformStateService {
       allBookings: this.allBookings(),
       clients: this.clients()
     };
-    localStorage.setItem('kazi_konnect_state', JSON.stringify(data));
+    sessionStorage.setItem('kazi_konnect_state', JSON.stringify(data));
   }
 
   private loadState() {
     if (!isPlatformBrowser(this.platformId)) return;
-    const saved = localStorage.getItem('kazi_konnect_state') || localStorage.getItem('nestfind_state');
+    const saved = sessionStorage.getItem('kazi_konnect_state') || sessionStorage.getItem('nestfind_state') || localStorage.getItem('kazi_konnect_state');
     if (saved) {
       try {
         const data = JSON.parse(saved);
-        if (data.currentWorker && data.currentWorker.id) {
+        if (data.currentWorker && (data.currentWorker.id || data.currentWorker.userId)) {
           console.log('Restoring worker profile from cache:', data.currentWorker.name);
           this.currentWorker.set(data.currentWorker);
         }
@@ -782,7 +790,7 @@ export class PlatformStateService {
         this.allUsers.set(data.allUsers || []);
         this.allBookings.set(data.allBookings || []);
         this.clients.set(data.clients || []);
-        console.log('[PlatformState] State restored from localStorage (full admin context)');
+        console.log('[PlatformState] State restored from sessionStorage');
       } catch (e) {
         console.error('Error parsing cached state', e);
       }
@@ -910,14 +918,14 @@ export class PlatformStateService {
     );
   }
 
-  resubmitWorker(id: string) {
-    this.http.put(`${this.apiUrl}/workers/profile/${id}/submit`, {}).subscribe({
+  resubmitWorker(userId: string) {
+    this.http.put(`${this.apiUrl}/workers/profile/${userId}/submit`, {}).subscribe({
       next: (data: any) => {
         const mapped = this.mapWorkerProfile(data);
-        if (id === this.currentWorker().id) {
+        if (userId === this.currentWorker().userId) {
           this.currentWorker.set(mapped);
         }
-        this.workers.update(prev => prev.map(w => w.id === id ? mapped : w));
+        this.workers.update(prev => prev.map(w => w.userId === userId ? mapped : w));
         this.notification.success('Profile resubmitted for verification.');
       },
       error: (err: HttpErrorResponse) => {
@@ -928,15 +936,17 @@ export class PlatformStateService {
   }
 
   submitForVerification() {
-    const workerId = this.currentWorker().id;
-    this.http.put(`${this.apiUrl}/workers/profile/${workerId}/submit`, {}).subscribe({
+    const userId = this.currentWorker().userId || this.auth.currentUser()?.id;
+    if (!userId) return;
+
+    this.http.put(`${this.apiUrl}/workers/profile/${userId}/submit`, {}).subscribe({
       next: (data: any) => {
         const mapped = this.mapWorkerProfile(data);
         this.currentWorker.set(mapped);
         this.workers.update(prev => {
-          const exists = prev.find(w => w.id === workerId);
+          const exists = prev.find(w => w.userId === userId);
           if (exists) {
-            return prev.map(w => w.id === workerId ? mapped : w);
+            return prev.map(w => w.userId === userId ? mapped : w);
           }
           return [mapped, ...prev];
         });
@@ -967,7 +977,7 @@ export class PlatformStateService {
     const payload = {
       description: `Hire request for ${worker.category} service`
     };
-    this.http.post<any>(`${this.apiUrl}/jobs/request?clientId=${user.id}&workerProfileId=${worker.id}`, payload).subscribe({
+    this.http.post<any>(`${this.apiUrl}/jobs/request?clientId=${user.id}&workerUserId=${worker.userId}`, payload).subscribe({
       next: () => {
         this.fetchClientJobs(user.id);
         this.notification.success(`Hire request sent to ${worker.name}.`);
@@ -983,7 +993,9 @@ export class PlatformStateService {
     this.http.put<any>(`${this.apiUrl}/jobs/${bookingId}/status?status=ACCEPTED`, {}).subscribe({
       next: () => {
         const user = this.auth.currentUser();
-        if (user?.role === 'Worker') this.fetchWorkerJobs(this.currentWorker().id);
+        if (user?.role === 'Worker' && this.currentWorker().userId) {
+          this.fetchWorkerJobs(this.currentWorker().userId!);
+        }
         if (user?.role === 'Client') this.fetchClientJobs(user.id);
       },
       error: (err: HttpErrorResponse) => console.error('Error accepting booking', err)
@@ -994,10 +1006,29 @@ export class PlatformStateService {
     this.http.put<any>(`${this.apiUrl}/jobs/${bookingId}/status?status=REJECTED`, {}).subscribe({
       next: () => {
         const user = this.auth.currentUser();
-        if (user?.role === 'Worker') this.fetchWorkerJobs(this.currentWorker().id);
+        if (user?.role === 'Worker' && this.currentWorker().userId) {
+          this.fetchWorkerJobs(this.currentWorker().userId!);
+        }
         if (user?.role === 'Client') this.fetchClientJobs(user.id);
       },
       error: (err: HttpErrorResponse) => console.error('Error declining booking', err)
+    });
+  }
+
+  deleteJobRequest(jobId: string) {
+    this.http.delete<any>(`${this.apiUrl}/jobs/${jobId}`).subscribe({
+      next: () => {
+        const user = this.auth.currentUser();
+        if (user?.role === 'Worker' && this.currentWorker().userId) {
+          this.fetchWorkerJobs(this.currentWorker().userId!);
+        }
+        if (user?.role === 'Client') this.fetchClientJobs(user.id);
+        this.notification.success('Job request removed.');
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('Error deleting job', err);
+        this.notification.error('Failed to remove job request.');
+      }
     });
   }
 
@@ -1167,7 +1198,7 @@ export class PlatformStateService {
                 ...existing,
                 lastMessage: inc.lastMessage,
                 time: inc.time,
-                rawTime: inc.rawTime, // FIX BUG 2: update rawTime on merge
+                rawTime: inc.rawTime,
                 unread: inc.unread
               });
             } else {
@@ -1339,9 +1370,9 @@ export class PlatformStateService {
     });
   }
 
-  fetchWorkerJobs(workerProfileId: string) {
-    if (!workerProfileId) return;
-    this.http.get<any[]>(`${this.apiUrl}/jobs/worker/${workerProfileId}`).subscribe({
+  fetchWorkerJobs(userId: string) {
+    if (!userId) return;
+    this.http.get<any[]>(`${this.apiUrl}/jobs/worker/user/${userId}`).subscribe({
       next: (jobs) => this.bookings.set(jobs.map(j => this.mapJobToBooking(j))),
       error: (err: HttpErrorResponse) => console.error('Error fetching worker jobs', err)
     });
@@ -1483,5 +1514,12 @@ export class PlatformStateService {
       }
       return c;
     }));
+  }
+
+  private mapToBackendUpdate(updates: any): any {
+    return {
+      ...updates,
+      skills: updates.skills?.map((s: any) => typeof s === 'string' ? s : s.name)
+    };
   }
 }

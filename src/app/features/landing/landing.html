@@ -1,45 +1,4 @@
-<!-- Top Navigation Bar -->
-<nav class="sticky top-0 w-full z-50 border-b border-slate-100 bg-white/80 backdrop-blur-xl transition-all">
-    <div class="flex justify-between items-center h-20 px-6 lg:px-12 max-w-7xl mx-auto">
-        <div class="flex items-center gap-12">
-            <div class="flex items-center gap-3 group cursor-pointer" routerLink="/">
-                <div
-                    class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20 group-hover:scale-110 transition-transform">
-                    <mat-icon>hub</mat-icon>
-                </div>
-                <span class="text-2xl font-black text-slate-900 tracking-tighter">Kazi Konnect</span>
-            </div>
-            <div class="hidden lg:flex items-center gap-10">
-                <a routerLink="/worker/dashboard"
-                    class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-widest">Find
-                    Work</a>
-                <a routerLink="/client/marketplace"
-                    class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-widest">Hire
-                    Talent</a>
-                <a routerLink="/enterprise"
-                    class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-widest">Enterprise</a>
-                <a routerLink="/solutions"
-                    class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-all uppercase tracking-widest">Solutions</a>
-            </div>
-        </div>
-        <div class="flex items-center gap-6">
-            @if (auth.isAuthenticated()) {
-            <button (click)="auth.logout()"
-                class="text-[11px] font-black text-slate-400 hover:text-rose-600 transition-colors uppercase tracking-widest">Log
-                Out</button>
-            <button [routerLink]="['/admin']"
-                class="bg-slate-900 text-white px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-xl shadow-slate-900/10 active:scale-95">Dashboard</button>
-            } @else {
-            <button [routerLink]="['/login']"
-                class="text-[11px] font-black text-slate-400 hover:text-indigo-600 transition-colors uppercase tracking-widest">Log
-                In</button>
-            <button [routerLink]="['/register']"
-                class="bg-indigo-600 text-white px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 active:scale-95">Sign
-                Up</button>
-            }
-        </div>
-    </div>
-</nav>
+<app-navbar></app-navbar>
 
 <main class="overflow-x-hidden">
     <!-- Hero Section -->
@@ -264,11 +223,11 @@
                     <div class="flex flex-col sm:flex-row gap-8 justify-center">
                         <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
                             class="bg-indigo-600 text-white px-12 py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/20 hover:bg-indigo-700 hover:scale-105 transition-all active:scale-95">
-                            Hire Elite Talent
+                            Hire Workers
                         </button>
                         <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
                             class="bg-white text-slate-900 px-12 py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-slate-50 hover:scale-105 transition-all active:scale-95">
-                            Join as a Professional
+                            Join as a Worker
                         </button>
                     </div>
                 </div>
@@ -310,11 +269,11 @@
                 <h6 class="text-white font-black text-[11px] uppercase tracking-[0.2em] mb-10">Marketplace</h6>
                 <ul class="space-y-6">
                     <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
-                            href="#">Find Work</a></li>
+                            href="#">Find Jobs</a></li>
                     <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
-                            href="#">Hire Talent</a></li>
+                            href="#">Hire Workers</a></li>
                     <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
-                            href="#">Enterprise</a></li>
+                            href="#">For Business</a></li>
                 </ul>
             </div>
             <div>

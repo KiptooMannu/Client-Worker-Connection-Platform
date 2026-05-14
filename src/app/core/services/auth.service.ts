@@ -37,22 +37,22 @@ export class AuthService {
 
   constructor(private router: Router) {
     if (isPlatformBrowser(this.platformId)) {
-      const savedUser = localStorage.getItem('pro_user');
+      const savedUser = sessionStorage.getItem('pro_user');
       if (savedUser) {
         try {
           const user = JSON.parse(savedUser);
 
           if (!user.token) {
-            user.token = localStorage.getItem('auth_token');
+            user.token = sessionStorage.getItem('auth_token');
           }
           this.userSignal.set(user);
-          console.log('[AuthService] User restored from localStorage with role:', user.role);
+          console.log('[AuthService] User restored from sessionStorage with role:', user.role);
         } catch (e) {
           console.error('[AuthService] Failed to parse saved user:', e);
         }
       }
 
-      const storedUsers = localStorage.getItem('kazi_konnect_users') || localStorage.getItem('nestfind_users');
+      const storedUsers = sessionStorage.getItem('kazi_konnect_users') || sessionStorage.getItem('nestfind_users');
       if (storedUsers) {
         this.users = [...this.users, ...JSON.parse(storedUsers).filter((su: any) => !this.users.find(u => u.email === su.email))];
       }
@@ -73,8 +73,8 @@ export class AuthService {
         this.userSignal.set(user);
         if (isPlatformBrowser(this.platformId)) {
           // Store token separately for interceptor access
-          localStorage.setItem('auth_token', response.accessToken);
-          localStorage.setItem('pro_user', JSON.stringify(user));
+          sessionStorage.setItem('auth_token', response.accessToken);
+          sessionStorage.setItem('pro_user', JSON.stringify(user));
           console.log('[AuthService] User logged in with role:', user.role, 'Token stored');
         }
 
@@ -121,8 +121,8 @@ export class AuthService {
   logout() {
     this.userSignal.set(null);
     if (isPlatformBrowser(this.platformId)) {
-      localStorage.removeItem('pro_user');
-      localStorage.removeItem('auth_token');
+      sessionStorage.removeItem('pro_user');
+      sessionStorage.removeItem('auth_token');
       console.log('[AuthService] User logged out');
     }
     this.notification.success('You have been logged out successfully.');

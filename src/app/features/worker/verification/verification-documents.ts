@@ -26,165 +26,213 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     MatListModule,
   ],
   template: `
-    <div class="max-w-6xl mx-auto space-y-6 pb-20">
-      <!-- Header -->
-      <div>
-        <div class="flex items-center gap-2 mb-1">
-          <span class="px-2 py-0.5 bg-blue-600 text-white rounded-md font-black text-[8px] uppercase">Security</span>
-          <span class="text-slate-300">/</span>
-          <span class="text-[9px] font-black text-slate-400 uppercase">Trust Audit</span>
+    <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
+      
+      <!-- Trust Audit Header -->
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-on-secondary-container text-[18px]">verified_user</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Identity Vault</span>
+          </div>
+          <h1 class="text-3xl font-black text-primary">Trust Audit</h1>
+          <p class="font-body-sm text-body-sm text-on-surface-variant max-w-md">Compliance auditing for secure marketplace operations. High-level encryption active.</p>
         </div>
-        <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Identity Verification</h1>
-        <p class="text-slate-500 text-sm font-medium">Securely upload credentials for marketplace approval.</p>
-      </div>
+
+        <div class="flex items-center gap-4 p-4 bg-white border border-outline-variant rounded-xl shadow-sm">
+           <div class="text-right">
+              <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest block">Audit Readiness</span>
+              <h2 class="text-2xl font-black text-primary">{{ state.currentWorkerCompletion() }}%</h2>
+           </div>
+           <div class="h-12 w-12 rounded-lg bg-secondary-container flex items-center justify-center">
+              <span class="material-symbols-outlined text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">security</span>
+           </div>
+        </div>
+      </header>
 
       <!-- Rejection Alert -->
       @if (workerStatus === 'Rejected' && rejectionReason) {
-        <div class="bg-red-50 border border-red-100 rounded-3xl p-6 flex items-start gap-4">
-          <mat-icon class="text-red-600">report_problem</mat-icon>
-          <div class="flex-1">
-            <h3 class="font-black text-red-900 mb-1">Review Required</h3>
-            <p class="text-sm text-red-800 font-medium">{{ rejectionReason }}</p>
-            <p class="text-[10px] text-red-700 font-black uppercase mt-2">Update documents and resubmit below.</p>
+        <div class="bg-error-container border border-error/10 rounded-xl p-6 flex items-start gap-4 animate-in slide-in-from-top duration-500 shadow-sm">
+          <div class="w-12 h-12 rounded-lg bg-error text-white flex items-center justify-center shadow-lg shadow-error/20 shrink-0">
+            <mat-icon>report_problem</mat-icon>
           </div>
-          <button (click)="dismissRejection()" class="text-red-400"><mat-icon>close</mat-icon></button>
+          <div class="flex-1">
+            <h3 class="font-bold text-on-error-container mb-1 uppercase tracking-wider text-xs">Action Required</h3>
+            <p class="text-sm text-on-error-container/80 leading-relaxed">{{ rejectionReason }}</p>
+            <div class="mt-4 flex items-center gap-4">
+              <p class="text-[10px] text-error font-black uppercase tracking-widest">Update documents and resubmit below.</p>
+              <button (click)="dismissRejection()" class="text-[10px] font-black text-error hover:underline uppercase">Dismiss</button>
+            </div>
+          </div>
         </div>
       }
 
       @if (workerStatus !== 'Pending') {
-        <div class="grid grid-cols-12 gap-8">
-          <!-- Main Content -->
-          <div class="col-span-12 lg:col-span-8 space-y-6">
-            <!-- ID Uploads (Front & Back) -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-100">
-              <div class="flex items-center gap-3 mb-6">
-                <mat-icon class="text-blue-600">badge</mat-icon>
-                <div>
-                  <h2 class="font-black text-slate-900">Identification</h2>
-                  <p class="text-xs text-slate-400">National ID / Passport</p>
-                </div>
-              </div>
-                <div (click)="fileInputFront.click()" class="aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 overflow-hidden relative group">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+          <!-- Main Submission Area -->
+          <div class="md:col-span-7 space-y-8">
+            
+            <!-- Identity Documents -->
+            <section class="space-y-4">
+              <h3 class="font-label-md text-label-md text-primary uppercase tracking-widest px-1">Primary Credentials</h3>
+              
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <!-- ID Front -->
+                <div (click)="fileInputFront.click()" class="group relative aspect-[1.5/1] bg-surface-container-low rounded-xl flex flex-col items-center justify-center border border-outline-variant hover:border-primary transition-all cursor-pointer overflow-hidden shadow-sm">
                   <input #fileInputFront type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Front')" class="hidden">
                   @if (getFileUrl('ID-Front')) {
                     <img [src]="getFileUrl('ID-Front')" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <span class="text-white text-[10px] font-black uppercase">Replace Front</span>
+                    <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
+                      <span class="bg-white px-3 py-1.5 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest shadow-lg">Replace Front</span>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
+                       <mat-icon class="!text-[14px]">check</mat-icon>
                     </div>
                   } @else {
-                    <mat-icon class="text-slate-400 mb-2">upload_file</mat-icon>
-                    <span class="text-xs font-black uppercase">ID Front</span>
+                    <div class="flex flex-col items-center gap-2">
+                      <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-primary border border-outline-variant">
+                        <span class="material-symbols-outlined">add_a_photo</span>
+                      </div>
+                      <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">ID Front View</span>
+                    </div>
                   }
                 </div>
-                <div (click)="fileInputBack.click()" class="aspect-video bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 overflow-hidden relative group">
+
+                <!-- ID Back -->
+                <div (click)="fileInputBack.click()" class="group relative aspect-[1.5/1] bg-surface-container-low rounded-xl flex flex-col items-center justify-center border border-outline-variant hover:border-primary transition-all cursor-pointer overflow-hidden shadow-sm">
                   <input #fileInputBack type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Back')" class="hidden">
                   @if (getFileUrl('ID-Back')) {
                     <img [src]="getFileUrl('ID-Back')" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                      <span class="text-white text-[10px] font-black uppercase">Replace Back</span>
+                    <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
+                      <span class="bg-white px-3 py-1.5 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest shadow-lg">Replace Back</span>
+                    </div>
+                    <div class="absolute top-2 right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
+                       <mat-icon class="!text-[14px]">check</mat-icon>
                     </div>
                   } @else {
-                    <mat-icon class="text-slate-400 mb-2">upload_file</mat-icon>
-                    <span class="text-xs font-black uppercase">ID Back</span>
+                    <div class="flex flex-col items-center gap-2">
+                      <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-primary border border-outline-variant">
+                        <span class="material-symbols-outlined">add_a_photo</span>
+                      </div>
+                      <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">ID Back View</span>
+                    </div>
                   }
                 </div>
-            </div>
+              </div>
+            </section>
 
             <!-- Professional Proof -->
-            <div class="bg-white rounded-3xl p-6 border border-slate-100">
-              <div class="flex items-center gap-3 mb-6">
-                <mat-icon class="text-teal-600">workspace_premium</mat-icon>
-                <div>
-                  <h2 class="font-black text-slate-900">Professional Proof</h2>
-                  <p class="text-xs text-slate-400">Trade licenses & certificates</p>
-                </div>
-              </div>
-              <div (click)="bulkFileInput.click()" class="py-12 bg-slate-50 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-teal-500">
-                <input #bulkFileInput type="file" multiple accept=".pdf,.jpg,.png" (change)="onFileSelected($event, 'Certification')" class="hidden">
-                <mat-icon class="text-slate-300 text-4xl mb-2">cloud_upload</mat-icon>
-                <p class="text-xs font-black">Drag & drop or click to upload</p>
-                <p class="text-[10px] text-slate-400">PDF, JPG, PNG (max 10MB)</p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Sidebar: File Vault -->
-          <div class="col-span-12 lg:col-span-4 space-y-6">
-            <div class="bg-slate-900 text-white rounded-3xl p-6">
-              <mat-icon class="text-teal-400 mb-2">verified_user</mat-icon>
-              <h3 class="text-xl font-black">Secure Vault</h3>
-              <p class="text-white/60 text-xs my-2">AES-256 encrypted storage.</p>
-              <div class="flex items-center gap-2 text-[9px] font-black text-teal-400">🔒 Military Grade Security</div>
-            </div>
-
-            <div class="bg-white rounded-3xl p-6 border border-slate-100">
-              <div class="flex justify-between text-xs font-black mb-4">
-                <span class="text-slate-400">Vault Inventory</span>
-                <span>{{ uploadedFiles().length }} items</span>
-              </div>
-              <div class="space-y-2 max-h-64 overflow-y-auto">
-                @for (file of uploadedFiles(); track file.id || (file.name + file.type + $index)) {
-                  <div class="flex justify-between items-center p-3 bg-slate-50 rounded-xl">
-                    <div class="flex items-center gap-2 truncate">
-                      <mat-icon [class]="file.status === 'approved' ? 'text-teal-600' : 'text-slate-400'" class="text-base">description</mat-icon>
-                      <span class="text-xs font-medium truncate">{{ file.name }}</span>
-                    </div>
-                    <button (click)="removeFile(file)" class="text-slate-300 hover:text-red-500"><mat-icon class="text-sm">delete</mat-icon></button>
+            <section class="space-y-4">
+              <h3 class="font-label-md text-label-md text-primary uppercase tracking-widest px-1">Secondary Proof</h3>
+              <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 space-y-6">
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex-1">
+                    <h4 class="font-bold text-primary mb-1">Trade Certifications</h4>
+                    <p class="text-xs text-on-surface-variant leading-relaxed">Safety audits, specialized licenses, or trade diplomas.</p>
                   </div>
-                } @empty {
-                  <div class="text-center py-8 text-slate-400 text-xs">No files uploaded</div>
-                }
-              </div>
-              <div class="mt-4 pt-4 border-t">
-                <div class="flex justify-between text-[10px] font-black mb-1">
-                  <span>Capacity</span>
-                  <span>{{ totalSize.toFixed(1) }} / 50 MB</span>
+                  <button (click)="bulkFileInput.click()" class="w-12 h-12 bg-primary text-white rounded-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                    <mat-icon>upload_file</mat-icon>
+                  </button>
+                  <input #bulkFileInput type="file" multiple accept=".pdf,.jpg,.png" (change)="onFileSelected($event, 'Certification')" class="hidden">
                 </div>
-                <div class="h-1 bg-slate-100 rounded-full"><div class="h-full bg-blue-600 rounded-full" [style.width.%]="(totalSize/50)*100"></div></div>
               </div>
-            </div>
-
-            <!-- Profile Completion Reminder -->
-            <div class="bg-blue-50 border border-blue-100 rounded-3xl p-6">
-              <h4 class="text-[10px] font-black text-blue-900 uppercase tracking-widest mb-4">Profile Readiness</h4>
-              <div class="flex items-center gap-4 mb-4">
-                <div class="flex-1 h-2 bg-blue-100 rounded-full overflow-hidden">
-                  <div class="h-full bg-blue-600 transition-all duration-500" [style.width.%]="state.currentWorkerCompletion()"></div>
-                </div>
-                <span class="text-[10px] font-black text-blue-900">{{ state.currentWorkerCompletion() }}%</span>
-              </div>
-              @if (state.currentWorkerCompletion() < 100) {
-                <p class="text-[10px] text-blue-700 font-medium leading-relaxed">
-                  Your professional profile is still missing key details. Ensure bio, skills, and work history are complete before submitting.
-                </p>
-                <button routerLink="/worker/profile" class="mt-4 w-full py-2 bg-white border border-blue-200 text-blue-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-50 transition-colors">
-                  Complete Profile
-                </button>
-              } @else {
-                <p class="text-[10px] text-teal-700 font-black flex items-center gap-2">
-                  <mat-icon class="!text-sm">check_circle</mat-icon> PROFILE DATA COMPLETE
-                </p>
-              }
-            </div>
+            </section>
           </div>
-        </div>
 
-        <!-- Submit Button -->
-        <div class="flex justify-end">
-          <button (click)="submitApplication()" [disabled]="isSubmitting() || uploadedFiles().length === 0 || state.currentWorkerCompletion() < 100"
-                  class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
-            {{ isSubmitting() ? 'Submitting...' : (workerStatus === 'Rejected' ? 'Resubmit' : (state.currentWorkerCompletion() < 100 ? 'Profile Incomplete' : 'Submit for Review')) }}
-          </button>
+          <!-- Sidebar: Secure Vault -->
+          <aside class="md:col-span-5 space-y-6">
+            <div class="bg-primary text-white rounded-xl p-6 shadow-xl relative overflow-hidden group">
+              <!-- Subtle AES encryption pattern background -->
+              <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+              
+              <div class="relative z-10">
+                <div class="flex items-center justify-between mb-8">
+                  <h3 class="text-xl font-black tracking-tight">Audit Ledger</h3>
+                  <span class="material-symbols-outlined text-white/60">lock_open</span>
+                </div>
+
+                <div class="space-y-4">
+                  <div class="flex items-center justify-between bg-white/10 p-3 rounded-lg border border-white/5">
+                    <div class="flex items-center gap-3">
+                      <span class="material-symbols-outlined text-secondary-container-fixed">fingerprint</span>
+                      <div>
+                        <p class="text-[9px] text-white/40 font-black uppercase tracking-widest">Encryption</p>
+                        <p class="text-xs font-bold">AES-256 Standard</p>
+                      </div>
+                    </div>
+                    <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">ACTIVE</span>
+                  </div>
+
+                  <div class="space-y-2 mt-6">
+                     <p class="text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Inventory • {{ uploadedFiles().length }} Items</p>
+                     @for (file of uploadedFiles(); track file.id) {
+                       <div class="flex items-center justify-between p-2 hover:bg-white/5 rounded transition-colors group/item">
+                          <div class="flex items-center gap-2 truncate">
+                             <mat-icon class="text-white/40 !text-sm">description</mat-icon>
+                             <span class="text-[11px] text-white/80 font-medium truncate">{{ file.name }}</span>
+                          </div>
+                          <button (click)="removeFile(file)" class="opacity-0 group-hover/item:opacity-100 text-white/40 hover:text-white transition-opacity">
+                             <mat-icon class="!text-[14px]">delete</mat-icon>
+                          </button>
+                       </div>
+                     }
+                     @if (uploadedFiles().length === 0) {
+                        <div class="text-center py-6 border border-dashed border-white/10 rounded-lg">
+                           <p class="text-[10px] text-white/30 italic">No credentials staged for audit</p>
+                        </div>
+                     }
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Readiness Action -->
+            <div class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm space-y-4">
+               <div>
+                  <h4 class="font-bold text-primary">Commit to Audit</h4>
+                  <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                     Review is finalized by compliance officers. Integrity check usually completes within 24 operational hours.
+                  </p>
+               </div>
+               
+               <button (click)="submitApplication()" 
+                       [disabled]="isSubmitting() || uploadedFiles().length === 0 || state.currentWorkerCompletion() < 100"
+                       class="w-full py-4 bg-primary text-white rounded-lg font-bold text-sm uppercase tracking-widest hover:opacity-90 disabled:opacity-30 disabled:grayscale transition-all shadow-lg shadow-primary/10 active:scale-[0.98]">
+                  {{ isSubmitting() ? 'Transmitting...' : 'Sign & Submit' }}
+               </button>
+
+               @if (state.currentWorkerCompletion() < 100) {
+                 <div class="flex items-start gap-2 p-3 bg-surface-container rounded-lg border border-outline-variant/30">
+                    <mat-icon class="text-primary !text-[16px]">info_outline</mat-icon>
+                    <p class="text-[10px] text-on-surface-variant font-medium leading-normal">
+                      Profile requires 100% completion (bio, skills, history) before transmission to compliance.
+                    </p>
+                 </div>
+               }
+            </div>
+          </aside>
         </div>
       } @else {
-        <!-- Pending State -->
-        <div class="bg-white rounded-3xl p-12 text-center max-w-2xl mx-auto">
-          <mat-icon class="text-blue-600 text-6xl !w-auto !h-auto mb-4">security</mat-icon>
-          <h2 class="text-2xl font-black">Review in Progress</h2>
-          <p class="text-slate-500 my-4">Your credentials are being verified. This takes 12-24 business hours.</p>
-          <button routerLink="/worker/dashboard" class="bg-blue-600 text-white px-6 py-3 rounded-xl font-black text-xs uppercase">Go to Dashboard</button>
+        <!-- Pending Review State -->
+        <div class="bg-surface-container-lowest rounded-xl p-12 text-center max-w-xl mx-auto border border-outline-variant shadow-sm animate-in zoom-in duration-700">
+          <div class="w-20 h-20 bg-secondary-container text-on-secondary-container rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
+            <span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1;">security</span>
+          </div>
+          <h2 class="text-2xl font-black text-primary mb-3">Audit Underway</h2>
+          <p class="text-on-surface-variant text-sm font-medium mb-8 leading-relaxed px-4">Our compliance team is currently auditing your professional credentials. Verification usually completes within 24 business hours.</p>
+          <div class="flex flex-col sm:flex-row gap-3 justify-center">
+            <button routerLink="/worker/dashboard" class="px-6 py-3 bg-primary text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-sm active:scale-95 transition-transform">Back to Workspace</button>
+            <button class="px-6 py-3 border border-outline-variant text-primary rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-surface-container-low transition-colors">Support Line</button>
+          </div>
         </div>
       }
+      
+      <footer class="text-center pt-12">
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-full border border-outline-variant">
+           <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+           <span class="text-[9px] font-black text-on-surface-variant uppercase tracking-[0.2em]">Kazi Secure Shield Active • ISO 27001 Protocol</span>
+        </div>
+      </footer>
     </div>
   `
 })
@@ -225,8 +273,12 @@ export class WorkerVerificationPage {
         this.notification.error('File too large (max 10MB)');
         continue;
       }
-      const workerId = this.state.currentWorker().id;
-      this.state.uploadDocument(workerId, type, file.name, file).subscribe({
+      const userId = this.state.currentWorker().userId;
+      if (!userId) {
+        this.notification.error('User identity not found. Please re-login.');
+        return;
+      }
+      this.state.uploadDocument(userId, type, file.name, file).subscribe({
         next: (doc) => {
           this.state.currentWorker.update(w => {
             // Only replace if it's a unique identity type (Front or Back)

@@ -25,203 +25,191 @@ import { inject, computed, signal } from '@angular/core';
     FormsModule
   ],
   template: `
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-700">
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h1 class="text-3xl font-black text-slate-900 tracking-tight mb-1">Job History & Analytics</h1>
-          <p class="text-slate-500 font-medium text-sm max-w-2xl">Track your professional growth and financial performance.</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="relative hidden sm:block">
-            <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 !text-lg">search</mat-icon>
-            <input class="pl-10 pr-4 py-2.5 bg-white border-2 border-slate-100 rounded-xl text-xs font-bold focus:ring-4 focus:ring-indigo-600/10 focus:border-indigo-600 transition-all outline-none w-56 shadow-sm" 
-                   placeholder="Search projects..." type="text" [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($any($event))"/>
+    <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
+      
+      <!-- History Header -->
+      <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
+        <div class="space-y-2">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="material-symbols-outlined text-on-secondary-container text-[18px]">account_balance_wallet</span>
+            <span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Financial Audit</span>
           </div>
-          <button (click)="exportHistory()" class="group px-6 py-2.5 bg-white border-2 border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition-all flex items-center gap-2 shadow-sm">
-            <mat-icon class="!w-4 !h-4">download</mat-icon>
+          <h1 class="text-3xl font-black text-primary">Job Ledger</h1>
+          <p class="font-body-sm text-body-sm text-on-surface-variant max-w-md">Detailed record of service contributions, performance metrics, and verified earnings.</p>
+        </div>
+
+        <div class="flex gap-3">
+          <button (click)="exportHistory()" class="px-5 py-3 bg-white border border-outline-variant text-primary rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all shadow-sm flex items-center gap-2">
+            <mat-icon class="!text-sm">receipt_long</mat-icon>
             Export
           </button>
         </div>
-      </div>
+      </header>
 
       <!-- Analytics Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-        <div class="lg:col-span-8 bg-white rounded-[2rem] border border-slate-100 shadow-sm p-5">
-          <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-3">
-              <div class="w-2 h-8 bg-teal-500 rounded-full"></div>
-              <h3 class="text-xl font-black text-slate-900 tracking-tight">Earnings Momentum</h3>
-            </div>
-            <span class="px-4 py-1.5 bg-teal-50 text-teal-700 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
-              <mat-icon class="!text-xs !w-auto !h-auto">trending_up</mat-icon> {{ state.bookings().length }} Total Jobs
-            </span>
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        <!-- Revenue Momentum -->
+        <div class="md:col-span-8 bg-white rounded-xl p-6 border border-outline-variant shadow-sm space-y-6 relative group overflow-hidden">
+          <div class="flex justify-between items-start">
+             <div>
+                <h3 class="font-bold text-primary">Revenue Momentum</h3>
+                <p class="text-[10px] text-on-surface-variant font-black uppercase tracking-widest mt-0.5">Earnings per cycle</p>
+             </div>
+             <div class="text-right">
+                <span class="text-2xl font-black text-primary">{{ state.bookings().length }}</span>
+                <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Total Projects</p>
+             </div>
           </div>
-          <div class="h-48 flex items-end justify-between gap-4 px-4 border-b border-slate-50 pb-4">
+
+          <div class="h-40 flex items-end justify-between gap-3 px-2">
             @for (bar of earnings; track $index) {
-              <div class="flex flex-col items-center gap-4 flex-1 group relative">
-                <div class="w-full bg-slate-50 rounded-2xl transition-all group-hover:bg-indigo-600 group-hover:shadow-2xl group-hover:shadow-indigo-900/20 cursor-pointer overflow-hidden" 
+              <div class="flex flex-col items-center gap-3 flex-1 group/bar relative h-full justify-end">
+                <div class="w-full bg-surface-container rounded-lg transition-all hover:bg-primary cursor-pointer relative" 
                      [style.height]="bar.height + '%'">
-                     <div class="w-full h-full bg-gradient-to-t from-black/5 to-transparent"></div>
+                     <div class="absolute inset-0 bg-white/5 opacity-0 group-hover/bar:opacity-100 transition-opacity"></div>
                 </div>
-                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-slate-900 transition-colors">{{ bar.label }}</span>
-                <!-- Tooltip on hover -->
-                <div class="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-lg pointer-events-none">
-                  Growth Active
-                </div>
+                <span class="text-[9px] font-bold text-on-surface-variant uppercase tracking-widest">{{ bar.label }}</span>
               </div>
             }
           </div>
         </div>
 
-        <div class="lg:col-span-4 bg-indigo-950 rounded-[2rem] text-white shadow-2xl p-5 flex flex-col justify-between relative overflow-hidden group">
-          <div class="relative z-10">
-            <h3 class="text-xl font-black mb-1 tracking-tight">Performance Score</h3>
-            <p class="text-indigo-200 text-xs font-medium">Top 5% category leader.</p>
-          </div>
-          <div class="space-y-4 my-4 relative z-10">
-            @for (m of metrics; track m.label) {
-              <div class="flex items-center justify-between group/metric">
-                <div class="flex items-center gap-3">
-                  <div class="p-2 bg-white/10 rounded-xl border border-white/10 group-hover/metric:bg-white/20 transition-colors">
-                    <mat-icon class="!text-indigo-200 !text-lg !w-auto !h-auto">{{ m.icon }}</mat-icon>
-                  </div>
-                  <span class="text-[9px] font-black uppercase tracking-widest text-indigo-100">{{ m.label }}</span>
-                </div>
-                <span class="text-2xl font-black text-white tracking-tighter">{{ m.value }}</span>
+        <!-- Performance Index -->
+        <div class="md:col-span-4 bg-primary text-white rounded-xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+           <div class="space-y-6 relative z-10">
+              <div class="flex items-center justify-between">
+                 <h4 class="font-bold tracking-tight">Audit Score</h4>
+                 <span class="material-symbols-outlined text-secondary-container-fixed">monitoring</span>
               </div>
-            }
-          </div>
-          <button mat-flat-button (click)="openAnalytics()" class="relative z-10 !bg-white/5 !text-white hover:!bg-white/10 !py-3 !rounded-xl !font-black !text-[9px] !uppercase !tracking-[0.15em] !border !border-white/10 transition-all">
-            Deep Insights
-          </button>
-          <div class="absolute -bottom-10 -right-10 opacity-10 transform rotate-12 group-hover:scale-110 transition-transform duration-700">
-            <mat-icon class="!text-[12rem] !w-auto !h-auto">insights</mat-icon>
-          </div>
+
+              <div class="space-y-4">
+                 @for (m of metrics; track m.label) {
+                   <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                         <mat-icon class="text-white/40 !text-sm">{{ m.icon }}</mat-icon>
+                         <span class="text-[10px] font-bold tracking-widest uppercase text-white/60">{{ m.label }}</span>
+                      </div>
+                      <span class="text-lg font-black">{{ m.value }}</span>
+                   </div>
+                 }
+              </div>
+           </div>
+           
+           <div class="absolute -bottom-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
         </div>
       </div>
 
-      <!-- Job Ledger Section -->
-      <div class="bg-white rounded-[2rem] border border-slate-100 shadow-sm overflow-hidden mb-8">
-        <div class="p-5 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-          <div class="flex items-center gap-2">
-            <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
-            <h2 class="text-[11px] font-black text-slate-900 uppercase tracking-[0.15em]">Job Ledger</h2>
-          </div>
-          <span class="text-[9px] text-slate-400 font-black uppercase tracking-widest hidden sm:block">Showing {{ pagedJobs().length }} records</span>
-        </div>
-        
-        <div class="overflow-x-auto">
-          <table mat-table [dataSource]="pagedJobs()" class="w-full min-w-[1000px]">
-            <!-- Client Column -->
-            <ng-container matColumnDef="client">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest">Client</th>
-              <td mat-cell *matCellDef="let job" class="!px-6 !py-5">
-                <div class="flex items-center gap-4">
-                  <div class="h-11 w-11 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 font-black text-sm uppercase border border-indigo-100 shadow-sm">
-                    {{ job.initials }}
-                  </div>
-                  <div>
-                    <p class="text-base font-black text-slate-900 tracking-tight leading-tight mb-0.5">{{ job.client }}</p>
-                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-wider flex items-center gap-1.5">
-                      <span class="w-1 h-1 bg-indigo-500 rounded-full"></span>
-                      {{ job.service }}
-                    </p>
-                  </div>
-                </div>
-              </td>
-            </ng-container>
-
-            <!-- Date Column -->
-            <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">Date</th>
-              <td mat-cell *matCellDef="let job" class="!px-6 !py-5 text-center text-sm font-black text-slate-900">{{ job.date }}</td>
-            </ng-container>
-
-            <!-- Earnings Column -->
-            <ng-container matColumnDef="earnings">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">Net</th>
-              <td mat-cell *matCellDef="let job" class="!px-6 !py-5 text-center text-lg font-black text-slate-900 tracking-tighter">{{ job.earnings }}</td>
-            </ng-container>
-
-            <!-- Rating Column -->
-            <ng-container matColumnDef="rating">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">Rating</th>
-              <td mat-cell *matCellDef="let job" class="!px-6 !py-5 text-center">
-                <div class="flex items-center justify-center gap-0.5 text-amber-400">
-                  @if (job.rating) {
-                    @for (s of [1,2,3,4,5]; track s) {
-                      <mat-icon class="!text-base !w-auto !h-auto drop-shadow-sm" [style.font-variation-settings]="s <= job.rating ? '\\'FILL\\' 1' : ''">star</mat-icon>
-                    }
-                  } @else {
-                    <span class="px-3 py-1 bg-slate-50 text-slate-400 text-[8px] font-black uppercase tracking-widest rounded-full border border-slate-100">Pending</span>
-                  }
-                </div>
-              </td>
-            </ng-container>
-
-            <!-- Status Column -->
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-white !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-right">Actions</th>
-              <td mat-cell *matCellDef="let job" class="!px-6 !py-5">
-                <div class="flex items-center justify-end gap-3 flex-wrap sm:flex-nowrap">
-                  <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-[0.05em] shadow-sm border flex items-center gap-1.5 whitespace-nowrap" 
-                        [ngClass]="job.statusBg + ' ' + job.statusColor">
-                    <span class="w-1.5 h-1.5 rounded-full" [class.bg-current]="true" [class.animate-pulse]="job.status === 'Pending'"></span>
-                    {{ job.status }}
-                  </span>
-                  
-                  <div class="flex items-center gap-2">
-                    @if (state.updatingJobIds().has(job.id)) {
-                      <mat-icon class="animate-spin text-indigo-600 !w-5 !h-5">sync</mat-icon>
-                    } @else {
-                      @if (job.status === 'Pending') {
-                        <div class="flex gap-1.5">
-                          <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" class="p-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-600 hover:text-white transition-all border border-teal-100 shadow-sm" title="Accept Request">
-                            <mat-icon class="!text-base !w-auto !h-auto">check</mat-icon>
-                          </button>
-                          <button (click)="state.updateJobStatus(job.id, 'REJECTED')" class="p-2 bg-rose-50 text-rose-600 rounded-lg hover:bg-rose-600 hover:text-white transition-all border border-rose-100 shadow-sm" title="Decline Request">
-                            <mat-icon class="!text-base !w-auto !h-auto">close</mat-icon>
-                          </button>
-                        </div>
-                      }
-                      @if (job.status === 'Accepted' || job.status === 'Revision Requested' || job.status === 'In Progress') {
-                        <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-[9px] font-black uppercase tracking-[0.1em] shadow-lg shadow-indigo-600/20 hover:bg-indigo-700 hover:scale-[1.02] transition-all flex items-center gap-1.5">
-                          <mat-icon class="!w-3.5 !h-3.5">send</mat-icon>
-                          Deliver
-                        </button>
-                      }
-                      @if (job.status === 'Submitted') {
-                        <div class="text-[9px] font-bold text-slate-400 italic px-2">Reviewing...</div>
-                      }
-                    }
-                  </div>
-                </div>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let job; columns: displayedColumns;" class="hover:bg-slate-50/50 transition-colors"></tr>
-          </table>
+      <!-- Job Ledger List -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between px-2">
+           <h2 class="text-[10px] font-black text-on-surface-variant uppercase tracking-[0.2em]">Operational Ledger</h2>
+           <span class="text-[9px] font-bold text-on-surface-variant/60">{{ jobs().length }} Entries</span>
         </div>
 
-        @if (jobs().length > 4) {
-          <div class="p-6 bg-slate-50/50 border-t border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4">
-            <button (click)="prevPage()" [disabled]="currentPage() === 1" class="group px-6 py-3 bg-white border-2 border-slate-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-slate-400 hover:border-indigo-600 hover:text-indigo-600 transition-all disabled:opacity-30 flex items-center gap-2">
-              <mat-icon class="!text-lg transition-transform group-hover:-translate-x-1">chevron_left</mat-icon> Previous
+        <div class="grid gap-3">
+          @for (job of pagedJobs(); track job.id) {
+            <div class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm hover:border-primary transition-all group animate-in slide-in-from-bottom-2 duration-500">
+              <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                 <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-primary font-black text-sm border border-outline-variant">
+                       {{ job.initials }}
+                    </div>
+                    <div class="space-y-0.5">
+                       <h3 class="font-bold text-primary">{{ job.client }}</h3>
+                       <div class="flex items-center gap-2">
+                          <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">{{ job.service }}</span>
+                          <span class="w-1 h-1 bg-outline-variant rounded-full"></span>
+                          <span class="text-[10px] font-bold text-on-surface-variant/60">{{ job.date | date:'mediumDate' }}</span>
+                       </div>
+                    </div>
+                 </div>
+
+                 <div class="flex flex-wrap items-center gap-8 md:gap-12">
+                    <!-- Rating -->
+                    <div class="flex flex-col items-center">
+                       <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Rating</p>
+                       <div class="flex items-center gap-0.5 text-primary">
+                          @if (job.rating) {
+                            @for (s of [1,2,3,4,5]; track s) {
+                               <span class="material-symbols-outlined !text-[14px]" [class.material-fill]="s <= job.rating">star</span>
+                            }
+                          } @else {
+                            <span class="text-[9px] font-bold text-on-surface-variant/40 italic">Pending</span>
+                          }
+                       </div>
+                    </div>
+
+                    <!-- Earnings -->
+                    <div class="flex flex-col items-end">
+                       <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-0.5">Earnings</p>
+                       <span class="text-xl font-black text-primary">{{ job.earnings }}</span>
+                    </div>
+
+                    <!-- Status & Actions -->
+                    <div class="flex items-center gap-3">
+                       <span class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border transition-colors shadow-sm flex items-center gap-2" 
+                             [ngClass]="job.statusBg + ' ' + job.statusColor">
+                         <span class="w-1.5 h-1.5 rounded-full" [class.bg-current]="true" [class.animate-pulse]="job.status === 'Pending'"></span>
+                         {{ job.status }}
+                       </span>
+
+                       <div class="flex items-center gap-2">
+                          @if (state.updatingJobIds().has(job.id)) {
+                             <div class="w-8 h-8 rounded-full border-2 border-outline-variant border-t-primary animate-spin"></div>
+                          } @else {
+                             @if (job.status === 'Pending') {
+                               <div class="flex gap-2">
+                                 <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" 
+                                         class="w-9 h-9 bg-surface-container text-primary rounded-lg hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-sm border border-outline-variant">
+                                   <mat-icon class="!text-[18px]">check</mat-icon>
+                                 </button>
+                                 <button (click)="state.updateJobStatus(job.id, 'REJECTED')" 
+                                         class="w-9 h-9 bg-surface-container text-error rounded-lg hover:bg-error hover:text-white transition-all flex items-center justify-center shadow-sm border border-outline-variant">
+                                   <mat-icon class="!text-[18px]">close</mat-icon>
+                                 </button>
+                               </div>
+                             }
+                             @if (job.status === 'Accepted' || job.status === 'Revision Requested' || job.status === 'In Progress') {
+                               <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')" 
+                                       class="px-5 py-2.5 bg-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-md shadow-primary/10 flex items-center gap-2">
+                                 <mat-icon class="!text-sm">send</mat-icon> Deliver
+                               </button>
+                             }
+                          }
+                       </div>
+                    </div>
+                 </div>
+              </div>
+            </div>
+          } @empty {
+             <div class="py-20 text-center bg-white rounded-xl border border-dashed border-outline-variant">
+                <mat-icon class="text-on-surface-variant/20 !text-5xl !w-auto !h-auto mb-3">history_edu</mat-icon>
+                <p class="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-[0.2em]">No operational records found</p>
+             </div>
+          }
+        </div>
+
+        <!-- Pagination -->
+        @if (jobs().length > pageSize) {
+          <div class="flex justify-center items-center gap-6 pt-6">
+            <button (click)="prevPage()" [disabled]="currentPage() === 1" 
+                    class="p-3 bg-white border border-outline-variant rounded-xl text-primary hover:bg-surface-container-low transition-all disabled:opacity-30">
+              <mat-icon>chevron_left</mat-icon>
             </button>
+            
             <div class="flex gap-2">
               @for (p of pageNumbers(); track p) {
-                <button
-                  (click)="goToPage(p)"
-                  [ngClass]="p === currentPage() ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-600/20' : 'bg-white text-slate-400 border-slate-200 hover:border-indigo-600'"
-                  class="w-10 h-10 rounded-lg border-2 font-black text-[10px] transition-all">
+                <button (click)="goToPage(p)"
+                        [ngClass]="p === currentPage() ? 'bg-primary text-white shadow-md shadow-primary/10' : 'bg-white text-on-surface-variant hover:text-primary border border-outline-variant'"
+                        class="w-10 h-10 rounded-lg font-bold text-xs transition-all flex items-center justify-center">
                   {{ p }}
                 </button>
               }
             </div>
-            <button (click)="nextPage()" [disabled]="currentPage() >= totalPages()" class="group px-6 py-3 bg-white border-2 border-slate-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-slate-400 hover:border-indigo-600 hover:text-indigo-600 transition-all disabled:opacity-30 flex items-center gap-2">
-              Next <mat-icon class="!text-lg transition-transform group-hover:translate-x-1">chevron_right</mat-icon>
+            
+            <button (click)="nextPage()" [disabled]="currentPage() >= totalPages()" 
+                    class="p-3 bg-white border border-outline-variant rounded-xl text-primary hover:bg-surface-container-low transition-all disabled:opacity-30">
+              <mat-icon>chevron_right</mat-icon>
             </button>
           </div>
         }
@@ -229,53 +217,7 @@ import { inject, computed, signal } from '@angular/core';
     </div>
   `,
   styles: [`
-    :host { display: block; min-height: 100vh; background: #fafafa; }
-    .fill-star { font-variation-settings: 'FILL' 1; }
-    
-    .mat-mdc-table { background: transparent !important; }
-    .mat-mdc-row, .mat-mdc-header-row { border-bottom: 1px solid #f8fafc !important; }
-    .mat-mdc-cell, .mat-mdc-header-cell { border-bottom: none !important; }
-
-    @media (max-width: 1024px) {
-      .max-w-7xl { padding-left: 2rem; padding-right: 2rem; }
-    }
-
-    @media (max-width: 768px) {
-      .text-5xl { font-size: 2.75rem !important; }
-      .p-10 { padding: 2rem !important; }
-      
-      .mat-mdc-table { display: block !important; }
-      .mat-mdc-header-row { display: none !important; }
-      .mat-mdc-row {
-        display: block !important;
-        background: #fff;
-        margin-bottom: 1.5rem;
-        padding: 2rem !important;
-        border: 1px solid #f1f5f9 !important;
-        border-radius: 2.5rem !important;
-        height: auto !important;
-      }
-      .mat-mdc-cell {
-        display: block !important;
-        padding: 1rem 0 !important;
-        text-align: left !important;
-        width: 100% !important;
-        border: none !important;
-      }
-      .mat-mdc-cell::before {
-        content: attr(data-label);
-        display: block;
-        font-weight: 900;
-        text-transform: uppercase;
-        font-size: 10px;
-        color: #94a3b8;
-        letter-spacing: 0.1em;
-        margin-bottom: 0.75rem;
-      }
-      
-      .mat-column-status { text-align: left !important; }
-      .flex.items-center.justify-end { justify-content: flex-start !important; }
-    }
+    :host { display: block; background: #f8fafc; min-height: 100vh; }
   `]
 })
 export class WorkerHistoryPage {
