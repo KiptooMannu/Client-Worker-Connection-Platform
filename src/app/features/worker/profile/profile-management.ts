@@ -66,8 +66,8 @@ import { AuthService } from '../../../core/services/auth.service';
           <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
           
           @if (worker().image) {
-            <button (click)="removeProfilePicture()" class="absolute -top-2 -right-2 w-6 h-6 bg-error text-white rounded-lg flex items-center justify-center shadow-sm hover:scale-110 transition-transform">
-              <mat-icon class="!text-[14px]">close</mat-icon>
+            <button (click)="removeProfilePicture()" class="absolute -top-2 -right-2 w-7 h-7 bg-surface border border-outline-variant text-error rounded-full flex items-center justify-center shadow-md hover:bg-error-container transition-colors">
+              <mat-icon class="!text-[16px]">delete_outline</mat-icon>
             </button>
           }
         </div>
