@@ -131,6 +131,17 @@ export class AuthService {
     this.router.navigate(['/']);
   }
 
+  updateUser(updates: Partial<User>) {
+    const current = this.userSignal();
+    if (current) {
+      const updated = { ...current, ...updates };
+      this.userSignal.set(updated);
+      if (isPlatformBrowser(this.platformId)) {
+        sessionStorage.setItem('pro_user', JSON.stringify(updated));
+      }
+    }
+  }
+
   private redirectByRole(role: UserRole) {
     switch (role) {
       case 'Admin': this.router.navigate(['/admin']); break;

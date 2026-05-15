@@ -145,7 +145,8 @@ export class AdminLayout {
     { path: 'verification', label: 'Verify Users', icon: 'fact_check' },
     { path: 'users', label: 'Users', icon: 'people_alt' },
     { path: 'messages', label: 'Messages', icon: 'mail' },
-    { path: 'activity', label: 'Activity', icon: 'history_edu' }
+    { path: 'activity', label: 'Activity', icon: 'history_edu' },
+    { path: 'settings', label: 'Settings', icon: 'settings' }
   ];
 
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)

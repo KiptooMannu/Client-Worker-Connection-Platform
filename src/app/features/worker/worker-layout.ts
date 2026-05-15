@@ -48,6 +48,10 @@ import { NavbarComponent } from '../../shared/components/navbar';
               <mat-icon class="group-[.active-tab]:text-primary transition-colors">person_edit</mat-icon>
               Profile
             </a>
+            <a routerLink="settings" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
+              <mat-icon class="group-[.active-tab]:text-primary transition-colors">settings</mat-icon>
+              Settings
+            </a>
           </nav>
 
           <div class="mt-auto pt-8 border-t border-outline-variant/30 px-2 space-y-1">
@@ -60,7 +64,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
 
         <!-- Dynamic Content -->
         <main class="flex-1 overflow-y-auto bg-surface-container-lowest/30 pb-24 lg:pb-0">
-          <div class="max-w-[1400px] mx-auto p-6 md:p-10 lg:p-12">
+          <div class="max-w-[1400px] mx-auto p-4 md:p-10 lg:p-12">
             <router-outlet></router-outlet>
           </div>
         </main>
@@ -94,6 +98,10 @@ import { NavbarComponent } from '../../shared/components/navbar';
         <a routerLink="profile" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
           <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">person_outline</mat-icon>
           <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Profile</span>
+        </a>
+        <a routerLink="settings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">settings</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Settings</span>
         </a>
       </div>
     </div>

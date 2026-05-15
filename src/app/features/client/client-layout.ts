@@ -60,7 +60,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
 
         <!-- Dynamic Content -->
         <main class="flex-1 overflow-y-auto bg-surface-container-lowest/30 pb-24 lg:pb-0">
-          <div class="max-w-[1400px] mx-auto p-6 md:p-10 lg:p-12">
+          <div class="max-w-[1400px] mx-auto p-4 md:p-10 lg:p-12">
             <router-outlet></router-outlet>
           </div>
         </main>

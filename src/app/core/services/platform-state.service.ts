@@ -1541,4 +1541,17 @@ export class PlatformStateService {
       skills: updates.skills?.map((s: any) => typeof s === 'string' ? s : s.name)
     };
   }
+
+  // Account Settings
+  updateAccountProfile(name: string) {
+    return this.http.put(`${this.apiUrl}/settings/profile`, { name });
+  }
+
+  updateAccountPassword(newPassword: string) {
+    return this.http.put(`${this.apiUrl}/settings/password`, { newPassword });
+  }
+
+  liquidateAccount() {
+    return this.http.delete(`${this.apiUrl}/settings/account`);
+  }
 }

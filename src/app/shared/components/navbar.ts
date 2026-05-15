@@ -144,6 +144,11 @@ import { WebSocketService } from '../../core/services/websocket.service';
                  </button>
                }
 
+               <button mat-menu-item [routerLink]="getSettingsPath()" class="!h-12">
+                 <mat-icon class="text-slate-500">settings</mat-icon>
+                 <span class="text-xs font-bold text-slate-700">Account Settings</span>
+               </button>
+
                <div class="h-px bg-slate-50 my-1"></div>
                
                <button mat-menu-item (click)="auth.logout()" class="!h-12 !text-rose-600">
@@ -224,5 +229,12 @@ export class NavbarComponent {
 
   toggleMobileMenu() {
     this.isMobileMenuOpen.update(v => !v);
+  }
+
+  getSettingsPath(): string {
+    const role = this.auth.userRole();
+    if (role === 'Admin') return '/admin/settings';
+    if (role === 'Worker') return '/worker/settings';
+    return '/client/settings';
   }
 }
