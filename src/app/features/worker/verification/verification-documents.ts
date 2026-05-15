@@ -350,7 +350,8 @@ export class WorkerVerificationPage {
     }
     this.isSubmitting.set(true);
     if (this.state.currentWorker().status === 'Rejected') {
-      this.state.resubmitWorker(this.state.currentWorker().id);
+      const userId = this.state.currentWorker().userId;
+      if (userId) this.state.resubmitWorker(userId);
       setTimeout(() => this.isSubmitting.set(false), 2000);
     } else {
       this.state.submitForVerification();

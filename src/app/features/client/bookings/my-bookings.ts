@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -26,79 +26,61 @@ import { NotificationService } from '../../../core/services/notification.service
     MatDividerModule,
   ],
   template: `
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-in fade-in duration-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-700 font-manrope">
       <!-- Header -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+      <div class="flex justify-between items-center mb-8">
         <div>
-          <h1 class="text-4xl sm:text-5xl font-black text-slate-900 tracking-tight mb-3">My Bookings</h1>
-          <p class="text-slate-500 font-medium text-lg max-w-2xl">Manage your project lifecycle, track escrow status, and collaborate with your professionals.</p>
+          <h1 class="text-2xl font-black text-slate-900 tracking-tight">My Work History</h1>
+          <p class="text-slate-500 font-medium text-xs">Track your work and payments here.</p>
         </div>
-        <button (click)="showHistory()" class="group relative px-8 py-4 bg-white border-2 border-slate-200 rounded-2xl font-black text-xs uppercase tracking-widest text-slate-600 hover:border-indigo-600 hover:text-indigo-600 transition-all flex items-center gap-3 shadow-sm hover:shadow-md">
-          <mat-icon class="!w-5 !h-5 group-hover:rotate-12 transition-transform">history</mat-icon>
-          Export History
+        <button (click)="showHistory()" class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:border-primary transition-all flex items-center gap-2">
+          <mat-icon class="!w-4 !h-4">history</mat-icon>
+          Export
         </button>
       </div>
 
-      <!-- Stats Grid -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-            <div class="flex items-center gap-4 mb-4">
-              <div class="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:text-indigo-600 transition-colors"><mat-icon>engineering</mat-icon></div>
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Active Hires</p>
-            </div>
-            <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ activeCount }}</p>
-            <div class="mt-4 flex items-center gap-2">
-              <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
-              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Infrastructure Optimal</p>
-            </div>
+      <!-- Compact Stats Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400"><mat-icon class="!text-xl">engineering</mat-icon></div>
+          <div>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ongoing Work</p>
+            <p class="text-xl font-black text-slate-900">{{ activeCount }}</p>
+          </div>
         </div>
-        
-        <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group">
-            <div class="flex items-center gap-4 mb-4">
-              <div class="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:text-indigo-600 transition-colors"><mat-icon>payments</mat-icon></div>
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Net Investment</p>
-            </div>
-            <p class="text-4xl font-black text-slate-900 tracking-tighter">$\{{ totalSpent }}</p>
-            <p class="text-[10px] text-slate-400 font-bold mt-4 uppercase tracking-wider">Across {{ state.bookings().length }} connections</p>
+        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400"><mat-icon class="!text-xl">payments</mat-icon></div>
+          <div>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Paid</p>
+            <p class="text-xl font-black text-slate-900">$\{{ totalSpent }}</p>
+          </div>
         </div>
-
-        <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-md transition-all group border-b-4 border-b-indigo-500/20">
-            <div class="flex items-center gap-4 mb-4">
-              <div class="p-3 bg-slate-50 rounded-2xl text-slate-400 group-hover:text-indigo-600 transition-colors"><mat-icon>pending_actions</mat-icon></div>
-              <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Pending Response</p>
-            </div>
-            <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ pendingCount }}</p>
-            <p class="text-[10px] text-slate-400 font-bold mt-4 uppercase tracking-wider italic">Awaiting acceptance</p>
+        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
+          <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400"><mat-icon class="!text-xl">pending_actions</mat-icon></div>
+          <div>
+            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Pending</p>
+            <p class="text-xl font-black text-slate-900">{{ pendingCount }}</p>
+          </div>
         </div>
       </div>
 
       <!-- Bookings Section -->
-      <div class="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden mb-12">
-        <div class="p-8 border-b border-slate-50 bg-slate-50/50 flex justify-between items-center">
-          <div class="flex items-center gap-3">
-            <div class="w-2 h-8 bg-indigo-600 rounded-full"></div>
-            <h2 class="text-[12px] font-black text-slate-900 uppercase tracking-[0.2em]">Project Lifecycle Management</h2>
-          </div>
-        </div>
-        
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-12">
         <div class="overflow-x-auto">
-          <table mat-table [dataSource]="state.bookings()" class="w-full min-w-[900px]">
+          <table mat-table [dataSource]="paginatedBookings()" class="w-full min-w-[900px]">
             <!-- Worker Column -->
             <ng-container matColumnDef="worker">
-              <th mat-header-cell *matHeaderCellDef class="!px-8 !py-6 !bg-white !text-slate-400 !font-black !text-[11px] !uppercase !tracking-widest">Professional</th>
-              <td mat-cell *matCellDef="let booking" class="!px-8 !py-8">
-                <div class="flex items-center gap-5">
-                  <div class="relative h-14 w-14 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 font-black text-lg uppercase border border-slate-200 shadow-sm overflow-hidden group">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest">Worker</th>
+              <td mat-cell *matCellDef="let booking" class="!px-6 !py-4">
+                <div class="flex items-center gap-4">
+                  <div class="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-black text-xs uppercase border border-slate-200 overflow-hidden">
                     @if (booking.workerImage) { 
-                      <img [src]="booking.workerImage" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"> 
+                      <img [src]="booking.workerImage" class="w-full h-full object-cover"> 
                     } @else { {{ booking.workerInitials }} }
                   </div>
                   <div>
-                    <p class="text-lg font-black text-slate-900 tracking-tight leading-tight mb-1">{{ booking.workerName }}</p>
-                    <p class="text-[11px] text-slate-400 font-black uppercase tracking-wider flex items-center gap-2">
-                      <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full"></span>
-                      {{ booking.service }}
-                    </p>
+                    <p class="text-sm font-black text-slate-900 leading-tight mb-0.5">{{ booking.workerName }}</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{{ booking.service }}</p>
                   </div>
                 </div>
               </td>
@@ -106,80 +88,53 @@ import { NotificationService } from '../../../core/services/notification.service
 
             <!-- Date Column -->
             <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef class="!px-8 !py-6 !bg-white !text-slate-400 !font-black !text-[11px] !uppercase !tracking-widest text-center">Timeline</th>
-              <td mat-cell *matCellDef="let booking" class="!px-8 !py-8 text-center">
-                 <p class="text-[15px] font-black text-slate-900 mb-1">{{ booking.date }}</p>
-                 <span class="px-3 py-1 bg-slate-100 text-slate-500 text-[9px] font-black uppercase tracking-widest rounded-full">Requested</span>
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">Date</th>
+              <td mat-cell *matCellDef="let booking" class="!px-6 !py-4 text-center">
+                 <p class="text-[12px] font-bold text-slate-900">{{ booking.date }}</p>
               </td>
             </ng-container>
 
             <!-- Cost Column -->
             <ng-container matColumnDef="cost">
-              <th mat-header-cell *matHeaderCellDef class="!px-8 !py-6 !bg-white !text-slate-400 !font-black !text-[11px] !uppercase !tracking-widest text-center">Escrow Status</th>
-              <td mat-cell *matCellDef="let booking" class="!px-8 !py-8 text-center">
-                  <div class="flex flex-col items-center gap-2">
-                    <span class="text-xl font-black text-slate-900 tracking-tighter">$\{{ booking.earnings }}</span>
-                    <div [ngClass]="booking.status === 'Completed' ? 'text-emerald-500' : 'text-slate-400'" 
-                         class="px-3 py-1 bg-slate-50 rounded-lg border border-slate-100 text-[9px] font-black uppercase tracking-[0.1em] flex items-center gap-2">
-                       <mat-icon class="!text-[12px] !w-auto !h-auto">{{ booking.status === 'Completed' ? 'lock_open' : 'lock' }}</mat-icon>
-                       {{ booking.status === 'Completed' ? 'Released' : 'In Escrow' }}
-                    </div>
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">Cost</th>
+              <td mat-cell *matCellDef="let booking" class="!px-6 !py-4 text-center">
+                  <div class="flex flex-col items-center">
+                    <span class="text-sm font-black text-slate-900">$\{{ booking.earnings }}</span>
+                    <span class="text-[9px] font-black uppercase text-slate-400">{{ booking.status === 'Completed' ? 'Released' : 'Escrowed' }}</span>
                   </div>
               </td>
             </ng-container>
 
             <!-- Status Column -->
             <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef class="!px-8 !py-6 !bg-white !text-slate-400 !font-black !text-[11px] !uppercase !tracking-widest text-right">Lifecycle Management</th>
-              <td mat-cell *matCellDef="let booking" class="!px-8 !py-8">
-                <div class="flex flex-col items-end gap-3">
-                  <span [ngClass]="getStatusClasses(booking.status)">
+              <th mat-header-cell *matHeaderCellDef class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-right">Lifecycle</th>
+              <td mat-cell *matCellDef="let booking" class="!px-6 !py-4">
+                <div class="flex items-center justify-end gap-4">
+                  <span [ngClass]="getStatusClasses(booking.status)" class="min-w-[80px] text-center">
                     {{ booking.status }}
                   </span>
                   
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-2">
                     @if (state.updatingJobIds().has(booking.id)) {
-                      <div class="px-6 py-3"><mat-icon class="animate-spin text-indigo-600 !w-6 !h-6">sync</mat-icon></div>
+                      <mat-icon class="animate-spin text-primary !w-5 !h-5">sync</mat-icon>
                     } @else {
                       @if (booking.status === 'Pending') {
-                        <button (click)="state.updateJobStatus(booking.id, 'CANCELLED')" class="px-5 py-3 bg-white text-slate-400 rounded-xl text-[9px] font-black uppercase tracking-widest hover:text-rose-600 hover:bg-rose-50 transition-all border border-slate-200 hover:border-rose-100 flex items-center gap-2">
-                          <mat-icon class="!w-4 !h-4">close</mat-icon>
-                          Cancel Request
+                        <button (click)="state.updateJobStatus(booking.id, 'CANCELLED')" class="px-3 py-1.5 border border-slate-200 text-slate-400 rounded-lg text-[9px] font-black uppercase tracking-widest hover:text-rose-600 hover:border-rose-100 transition-all">
+                          Cancel
                         </button>
                       }
                       @if (booking.status === 'Submitted') {
-                        <div class="flex items-center gap-2">
-                          <button (click)="state.updateJobStatus(booking.id, 'APPROVED')" class="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition-all flex items-center gap-2 shadow-lg shadow-slate-900/10">
-                            <mat-icon class="!w-4 !h-4">check_circle</mat-icon>
-                            Release Funds
-                          </button>
-                          
-                          <div class="h-8 w-px bg-slate-100 mx-1"></div>
-                          
-                          <button (click)="state.updateJobStatus(booking.id, 'REVISION_REQUESTED')" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-amber-600 hover:border-amber-200 transition-all" title="Request Revision">
-                            <mat-icon class="!w-5 !h-5">rebase_edit</mat-icon>
-                          </button>
-                          
-                          <button (click)="state.updateJobStatus(booking.id, 'DISPUTED')" class="w-10 h-10 flex items-center justify-center bg-white border border-slate-200 text-slate-400 rounded-xl hover:text-rose-600 hover:border-rose-200 transition-all" title="Dispute">
-                            <mat-icon class="!w-5 !h-5">report</mat-icon>
-                          </button>
-                        </div>
-                      }
-                      @if (booking.status === 'Approved' && !booking.hasReview) {
-                        <button (click)="openReviewModal(booking)" class="px-10 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-xl shadow-slate-900/10 hover:bg-indigo-600 transition-all flex items-center gap-2 group">
-                          <mat-icon class="!w-4 !h-4 group-hover:rotate-12 transition-transform">star</mat-icon>
-                          Submit Feedback
+                        <button (click)="state.updateJobStatus(booking.id, 'APPROVED')" class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-primary transition-all shadow-sm">
+                          Release
+                        </button>
+                        <button (click)="state.updateJobStatus(booking.id, 'REVISION_REQUESTED')" class="w-8 h-8 flex items-center justify-center border border-slate-200 text-slate-400 rounded-lg hover:text-amber-600 transition-all">
+                          <mat-icon class="!text-lg">rebase_edit</mat-icon>
                         </button>
                       }
-                      @if (booking.status === 'Accepted' || booking.status === 'Revision Requested' || booking.status === 'In Progress') {
-                         <div class="px-6 py-3.5 bg-slate-50 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest italic flex items-center gap-3">
-                            <span class="flex gap-1">
-                              <span class="w-1 h-1 bg-slate-300 rounded-full animate-bounce"></span>
-                              <span class="w-1 h-1 bg-slate-300 rounded-full animate-bounce [animation-delay:0.2s]"></span>
-                              <span class="w-1 h-1 bg-slate-300 rounded-full animate-bounce [animation-delay:0.4s]"></span>
-                            </span>
-                            Awaiting delivery
-                         </div>
+                      @if (booking.status === 'Approved' && !booking.hasReview) {
+                        <button (click)="openReviewModal(booking)" class="px-4 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-primary transition-all">
+                          Feedback
+                        </button>
                       }
                     }
                   </div>
@@ -188,19 +143,32 @@ import { NotificationService } from '../../../core/services/notification.service
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="group hover:bg-slate-50/50 transition-colors"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-slate-50 transition-colors"></tr>
           </table>
         </div>
 
+        @if (totalPages() > 1) {
+          <div class="p-4 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              Page {{ currentPage() }} of {{ totalPages() }}
+            </span>
+            <div class="flex gap-2">
+              <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30 hover:text-primary transition-all">
+                <mat-icon class="!text-lg">chevron_left</mat-icon>
+              </button>
+              <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30 hover:text-primary transition-all">
+                <mat-icon class="!text-lg">chevron_right</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+
         @if (state.bookings().length === 0) {
-            <div class="p-32 text-center">
-                <div class="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 text-slate-200">
-                  <mat-icon class="!text-5xl !w-auto !h-auto">receipt_long</mat-icon>
-                </div>
-                <h3 class="text-3xl font-black text-slate-900 mb-3 tracking-tight">No project history yet</h3>
-                <p class="text-slate-400 font-medium max-w-sm mx-auto mb-10">Start your first project today with our vetted professionals from the marketplace.</p>
-                <button mat-flat-button class="!bg-indigo-600 !text-white !rounded-2xl !px-12 !py-7 !font-black !text-[12px] !uppercase !tracking-[0.2em] !shadow-2xl !shadow-indigo-600/30 hover:scale-105 transition-transform" routerLink="/client/marketplace">
-                  Browse Marketplace
+            <div class="p-20 text-center">
+                <h3 class="text-xl font-black text-slate-900 mb-2">No bookings yet</h3>
+                <p class="text-slate-400 text-xs mb-8">Start your first project from the marketplace.</p>
+                <button mat-flat-button class="!bg-primary !text-white !rounded-xl !px-8 !py-4 !font-black !text-[10px] !uppercase !tracking-widest" routerLink="/client/marketplace">
+                  Browse Professionals
                 </button>
             </div>
         }
@@ -312,6 +280,23 @@ export class ClientBookingsPage {
   private notification = inject(NotificationService);
   displayedColumns: string[] = ['worker', 'date', 'cost', 'status'];
 
+  // Pagination
+  currentPage = signal(1);
+  itemsPerPage = signal(8);
+
+  paginatedBookings = computed(() => {
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.state.bookings().slice(start, start + this.itemsPerPage());
+  });
+
+  totalPages = computed(() => Math.ceil(this.state.bookings().length / this.itemsPerPage()));
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
+
   // Review State
   reviewBooking: any = null;
   reviewRating: number = 0;
@@ -366,7 +351,7 @@ export class ClientBookingsPage {
 
   getStatusClasses(status: string) {
     const s = status ? status.toLowerCase() : '';
-    const base = 'px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider border transition-colors ';
+    const base = 'px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-wider border transition-colors ';
     switch (s) {
       case 'approved': return base + 'bg-slate-50 text-indigo-600 border-indigo-100';
       case 'submitted': return base + 'bg-emerald-50/50 text-emerald-600 border-emerald-100';

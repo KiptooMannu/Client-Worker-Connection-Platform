@@ -28,173 +28,143 @@ import { PlatformStateService } from '../../core/services/platform-state.service
     RouterLink,
   ],
   template: `
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 animate-in fade-in duration-700">
-      <!-- Hero Section -->
-      <section class="mb-16 relative">
-        <div class="max-w-3xl">
-          <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-50 text-slate-500 rounded-full text-[9px] font-black uppercase tracking-[0.2em] mb-6 border border-slate-100 shadow-sm">
-            <mat-icon class="!text-[14px] !w-auto !h-auto text-indigo-500">verified</mat-icon>
-            World-Class Professionals
+    <div class="max-w-[1400px] mx-auto animate-in fade-in duration-1000 pb-24 lg:pb-0 font-manrope">
+      
+      <!-- Premium Hero Section -->
+      <section class="mb-12 relative py-8 px-2 md:px-0">
+        <div class="max-w-4xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-[0.2em] mb-6 border border-blue-100">
+            <mat-icon class="!text-[14px]">verified_user</mat-icon>
+            Verified Workers
           </div>
-          <h1 class="text-5xl sm:text-6xl font-black text-slate-900 mb-6 tracking-tight leading-tight">Elite Marketplace for Local Talent</h1>
-          <p class="text-xl text-slate-500 font-medium leading-relaxed">Connect with vetted experts, track project milestones, and secure your transactions through our premium escrow system.</p>
-        </div>
-        
-        <!-- Filter Bar (Floating Glassmorphism) -->
-        <div class="mt-12 bg-white/80 backdrop-blur-xl p-8 rounded-[2.5rem] filter-card shadow-2xl shadow-slate-200/50 border border-white grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 relative z-20">
-          <div class="space-y-2">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Search Experts</label>
-            <div class="relative group">
-              <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-600 transition-colors">search</mat-icon>
-              <input type="text" class="w-full pl-12 pr-6 py-4 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-600 transition-all outline-none shadow-inner" 
-                     placeholder="Name or email..."
-                     [ngModel]="nameQuery()" (ngModelChange)="nameQuery.set($event)">
-            </div>
-          </div>
-          <div class="space-y-2">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Specialization</label>
-            <div class="relative">
-              <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">psychology</mat-icon>
-              <select class="w-full pl-12 pr-10 py-4 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-600 transition-all outline-none cursor-pointer appearance-none shadow-inner" 
-                      [ngModel]="selectedSkill()" (ngModelChange)="selectedSkill.set($event)">
-                <option [value]="null">All Skills</option>
-                @for (skill of state.availableSkills(); track skill) {
-                  <option [value]="skill">{{ skill }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Regional Location</label>
-            <div class="relative">
-              <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">location_on</mat-icon>
-              <select class="w-full pl-12 pr-10 py-4 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-600 transition-all outline-none cursor-pointer appearance-none shadow-inner" 
-                      [ngModel]="locationQuery()" (ngModelChange)="locationQuery.set($event)">
-                <option [value]="null">Global Access</option>
-                @for (loc of state.availableLocations(); track loc) {
-                  <option [value]="loc">{{ loc }}</option>
-                }
-              </select>
-            </div>
-          </div>
-          <div class="space-y-2">
-            <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Seniority Level</label>
-            <div class="relative">
-              <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300">verified_user</mat-icon>
-              <select class="w-full pl-12 pr-10 py-4 bg-slate-50 border-2 border-transparent rounded-2xl text-sm font-bold focus:bg-white focus:border-indigo-600 transition-all outline-none cursor-pointer appearance-none shadow-inner" 
-                      [ngModel]="selectedExperience()" (ngModelChange)="selectedExperience.set($event)">
-                <option [value]="null">Any Experience</option>
-                <option value="Senior">Senior (5+ yrs)</option>
-                <option value="Lead">Lead (8+ yrs)</option>
-                <option value="Master">Master (12+ yrs)</option>
-              </select>
-            </div>
-          </div>
-          <div class="flex items-end">
-            <button (click)="performSearch()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black text-[12px] uppercase tracking-[0.2em] hover:bg-indigo-600 active:scale-95 transition-all shadow-xl shadow-slate-900/10">
-              Apply Filters
-            </button>
-          </div>
+          <h1 class="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter leading-[1.1]">Find Professional <br> <span class="text-blue-600">Workers</span></h1>
+          <p class="text-lg text-slate-500 font-medium leading-relaxed max-w-2xl">Search for local experts, track your work, and pay safely through our escrow system.</p>
         </div>
       </section>
 
-      <!-- Main Content Layout -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-        <!-- Sidebar Insights -->
-        <aside class="hidden lg:block lg:col-span-3 space-y-8">
-          <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
-            <div class="flex items-center gap-3 mb-6">
-              <div class="w-1.5 h-6 bg-indigo-600 rounded-full"></div>
-              <h3 class="text-[11px] font-black text-slate-900 uppercase tracking-widest">Market Insights</h3>
-            </div>
-            <div class="space-y-4">
-              <div class="group">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-indigo-600 transition-colors">Verified Experts</p>
+      <!-- Advanced Filter Bar -->
+      <div class="mb-12 bg-white border border-outline-variant/30 p-6 rounded-3xl shadow-sm">
+        <div class="space-y-1 sm:space-y-0 sm:grid sm:grid-cols-4 gap-4">
+          <div class="relative group">
+            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors !text-base">search</mat-icon>
+            <input type="text" class="w-full pl-11 pr-4 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-primary transition-all outline-none" 
+                   placeholder="Name or email..."
+                   [ngModel]="nameQuery()" (ngModelChange)="nameQuery.set($event)">
+          </div>
+          
+          <div class="relative">
+            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 !text-base">work_outline</mat-icon>
+            <select class="w-full pl-11 pr-10 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-primary transition-all outline-none cursor-pointer appearance-none" 
+                    [ngModel]="selectedSkill()" (ngModelChange)="selectedSkill.set($event)">
+              <option [value]="null">All Categories</option>
+              @for (skill of state.availableSkills(); track skill) {
+                <option [value]="skill">{{ skill }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="relative">
+            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 !text-base">location_on</mat-icon>
+            <select class="w-full pl-11 pr-10 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-primary transition-all outline-none cursor-pointer appearance-none" 
+                    [ngModel]="locationQuery()" (ngModelChange)="locationQuery.set($event)">
+              <option [value]="null">All Locations</option>
+              @for (loc of state.availableLocations(); track loc) {
+                <option [value]="loc">{{ loc }}</option>
+              }
+            </select>
+          </div>
+
+          <button (click)="performSearch()" class="w-full bg-slate-900 text-white h-11 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary active:scale-95 transition-all shadow-xl shadow-slate-900/10">
+            Search
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- Sidebar Stats -->
+        <aside class="hidden lg:block lg:col-span-3 space-y-6">
+          <div class="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
+            <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+              <span class="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+              Market Stats
+            </h3>
+            <div class="space-y-6">
+              <div>
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Experts</p>
                 <p class="text-3xl font-black text-slate-900 tracking-tighter">{{ state.verifiedWorkers().length }}</p>
               </div>
-              <div class="group">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-indigo-600 transition-colors">Market Average</p>
-                <p class="text-3xl font-black text-slate-900 tracking-tighter">\${{ averageRate() }}<span class="text-xs text-slate-400 font-medium ml-1">/hr</span></p>
-              </div>
-              <div class="group">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 group-hover:text-indigo-600 transition-colors">Active Connections</p>
-                <div class="flex items-center gap-2">
-                  <span class="text-3xl font-black text-slate-900 tracking-tighter">{{ filteredWorkers().length }}</span>
-                  <span class="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[8px] font-black rounded uppercase tracking-tight">Real-time</span>
-                </div>
+              <div>
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg. Rate</p>
+                <p class="text-3xl font-black text-slate-900 tracking-tighter">\${{ averageRate() }}<span class="text-[10px] text-slate-400 font-medium ml-1">/hr</span></p>
               </div>
             </div>
           </div>
 
-          <div class="p-8 rounded-[2.5rem] engagement-card bg-indigo-950 text-white shadow-2xl relative overflow-hidden group">
-             <mat-icon class="!text-5xl mb-6 opacity-20 group-hover:scale-110 transition-transform duration-500">shield_with_heart</mat-icon>
-             <h4 class="text-xl font-black leading-tight mb-4 relative z-10">Uncompromising Security</h4>
-             <p class="text-xs text-indigo-200 leading-relaxed font-medium relative z-10 mb-8">Every professional in our ecosystem undergoes multi-stage document verification and background alignment.</p>
-             <div class="absolute -bottom-8 -right-8 opacity-5">
-               <mat-icon class="!text-[12rem] !w-auto !h-auto">gpp_maybe</mat-icon>
+          <div class="p-6 rounded-2xl bg-slate-900 text-white shadow-2xl relative overflow-hidden group">
+             <mat-icon class="!text-3xl mb-4 text-blue-400 opacity-80 group-hover:scale-110 transition-transform duration-500">verified_user</mat-icon>
+             <h4 class="text-base font-black leading-tight mb-3 relative z-10">Safe Payments</h4>
+             <p class="text-[10px] text-slate-400 leading-relaxed font-medium relative z-10">Money is held safely until you approve the work.</p>
+             <div class="absolute -bottom-6 -right-6 opacity-5">
+               <mat-icon class="!text-[8rem] !w-auto !h-auto">security</mat-icon>
              </div>
           </div>
         </aside>
 
-        <!-- Professional Grid -->
+        <!-- Experts Grid -->
         <section class="col-span-12 lg:col-span-9">
-          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
-            <div class="flex items-center gap-4">
-              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Discover Professionals</h2>
-              <span class="px-3 py-1 bg-slate-100 text-slate-400 text-[10px] font-black rounded-full uppercase tracking-widest">{{ filteredWorkers().length }} Available</span>
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-6 mb-8 px-2">
+            <div class="flex items-center gap-3">
+              <h2 class="text-xl font-black text-slate-900 tracking-tight">Workers for Hire</h2>
+              <span class="px-3 py-1 bg-slate-100 text-slate-500 text-[10px] font-black rounded-full uppercase tracking-widest">{{ filteredWorkers().length }} Found</span>
             </div>
-            <div class="flex items-center gap-3 bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
-              <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Order by:</span>
+            <div class="flex items-center gap-4 bg-white px-5 py-2.5 rounded-2xl border border-outline-variant/30">
+              <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Sort:</span>
               <select class="bg-transparent border-none font-black text-slate-900 text-[10px] focus:ring-0 cursor-pointer uppercase tracking-widest p-0 pr-6 appearance-none"
                       [ngModel]="selectedSort()" (ngModelChange)="selectedSort.set($event)">
-                <option value="Highest Rated">Top Rated</option>
-                <option value="Newest">Recently Joined</option>
-                <option value="Rate: Low to High">Affordability</option>
+                <option value="Highest Rated">Rating</option>
+                <option value="Newest">Newest</option>
+                <option value="Rate: Low to High">Price</option>
               </select>
-              <mat-icon class="!text-[14px] !w-auto !h-auto text-slate-300">expand_more</mat-icon>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div class="flex flex-col gap-3">
             @for (worker of paginatedWorkers(); track worker.id) {
-              <div class="bg-white border border-slate-100 rounded-3xl p-5 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-500 group flex flex-col h-full relative overflow-hidden">
-                <!-- Background Decoration -->
-                <div class="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 rounded-full -mr-12 -mt-12 group-hover:scale-150 transition-transform duration-700"></div>
-                
-                <div class="relative z-10 flex items-start justify-between mb-5">
-                  <div class="relative">
-                    <div class="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg bg-slate-50 flex items-center justify-center text-indigo-600 font-black text-lg uppercase group-hover:rotate-3 transition-transform duration-500">
-                      @if (worker.image) { 
-                        <img [src]="worker.image" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"> 
-                      } @else { {{ worker.initials }} }
+              <div class="bg-white border border-slate-100 rounded-xl p-3 shadow-sm hover:border-primary/30 transition-all group flex items-center gap-5">
+                <!-- Ultra Compact Avatar -->
+                <div class="relative shrink-0">
+                  <div class="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center text-primary font-black text-sm uppercase transition-transform group-hover:scale-105">
+                    @if (worker.image) { 
+                      <img [src]="worker.image" class="w-full h-full object-cover"> 
+                    } @else { {{ worker.initials }} }
+                  </div>
+                  <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+                </div>
+
+                <!-- Worker Info (Ultra Compact) -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2 mb-0.5">
+                    <h3 class="text-[13px] font-black text-slate-900 group-hover:text-primary transition-colors truncate tracking-tight">{{ worker.name }}</h3>
+                    <div class="flex items-center gap-1 bg-amber-50 px-1 py-0.5 rounded border border-amber-100 shrink-0">
+                      <mat-icon class="!text-amber-500 !text-[8px] !w-auto !h-auto" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
+                      <span class="text-[8px] font-black text-amber-700">{{ worker.reviews > 0 ? worker.rating.toFixed(1) : 'NEW' }}</span>
                     </div>
-                    <span class="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full shadow-sm"></span>
                   </div>
-                  <div class="flex items-center gap-1 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-100">
-                    <mat-icon class="!text-amber-400 !text-[12px] !w-auto !h-auto" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
-                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-tighter">{{ worker.reviews > 0 ? worker.rating.toFixed(1) : 'New' }}</span>
+                  <div class="flex items-center gap-3">
+                    <p class="text-[8px] font-black text-primary uppercase tracking-[0.1em]">{{ worker.category || 'Expert' }}</p>
+                    <span class="w-1 h-1 rounded-full bg-slate-200"></span>
+                    <p class="text-[10px] text-slate-500 font-medium truncate max-w-[400px]">{{ worker.bio || 'Professional expert dedicated to quality delivery.' }}</p>
                   </div>
                 </div>
 
-                <div class="relative z-10 min-w-0 mb-4">
-                  <h3 class="text-lg font-black text-slate-900 truncate group-hover:text-indigo-600 transition-colors mb-0.5 tracking-tight">{{ worker.name }}</h3>
-                  <p class="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] truncate mb-3">{{ worker.category }}</p>
-                  <p class="text-[11px] text-slate-400 font-medium leading-relaxed line-clamp-2">{{ worker.bio || 'Professional expert dedicated to excellence and quality delivery.' }}</p>
-                </div>
-
-                <div class="relative z-10 flex flex-wrap gap-1.5 mb-6 mt-auto">
-                  @for (skill of worker.skills.slice(0, 2); track skill) {
-                    <span class="bg-slate-50 text-slate-400 px-2.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border border-slate-100">{{ skill }}</span>
-                  }
-                </div>
-
-                <div class="relative z-10 flex items-center justify-between pt-4 border-t border-slate-50">
-                  <div class="flex flex-col">
-                    <span class="text-xl font-black text-slate-900 tracking-tighter">$\{{ worker.rate }}</span>
-                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Rate</span>
+                <!-- Price & Action (Ultra Compact) -->
+                <div class="flex items-center gap-6 shrink-0 border-l border-slate-50 pl-6">
+                  <div class="text-right">
+                    <span class="text-sm font-black text-slate-900 tracking-tighter">$\{{ worker.rate }}</span>
+                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">/hr</span>
                   </div>
                   <button [routerLink]="['/client/profile', worker.id]" 
-                          class="bg-slate-950 text-white px-6 py-3 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] shadow-lg shadow-slate-950/10 hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all">
+                          class="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-primary active:scale-95 transition-all shadow-sm">
                     View
                   </button>
                 </div>
@@ -202,24 +172,19 @@ import { PlatformStateService } from '../../core/services/platform-state.service
             }
           </div>
 
-          <!-- Pagination Bar -->
+          <!-- Modern Pagination -->
           @if (totalPages() > 1) {
-            <div class="mt-12 flex items-center justify-center gap-2">
+            <div class="mt-16 flex items-center justify-center gap-3">
               <button (click)="goToPage(currentPage() - 1)" 
                       [disabled]="currentPage() === 1"
-                      class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-indigo-600 hover:text-indigo-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:text-slate-400 transition-all bg-white shadow-sm">
-                <mat-icon>chevron_left</mat-icon>
+                      class="w-12 h-12 flex items-center justify-center rounded-2xl border border-outline-variant/30 bg-white text-slate-400 hover:text-primary hover:border-primary disabled:opacity-20 transition-all">
+                <mat-icon>west</mat-icon>
               </button>
               
-              <div class="flex items-center gap-1 bg-white p-1 rounded-2xl border border-slate-100 shadow-sm">
+              <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-outline-variant/30">
                 @for (page of [].constructor(totalPages()); track $index) {
                   <button (click)="goToPage($index + 1)"
-                          [class.bg-indigo-600]="$index + 1 === currentPage()"
-                          [class.text-white]="$index + 1 === currentPage()"
-                          [class.shadow-lg]="$index + 1 === currentPage()"
-                          [class.shadow-indigo-600/20]="$index + 1 === currentPage()"
-                          [class.text-slate-400]="$index + 1 !== currentPage()"
-                          [class.hover:bg-slate-50]="$index + 1 !== currentPage()"
+                          [class]="($index + 1 === currentPage()) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:bg-surface'"
                           class="w-10 h-10 rounded-xl font-black text-xs transition-all">
                     {{ $index + 1 }}
                   </button>
@@ -228,8 +193,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
               <button (click)="goToPage(currentPage() + 1)" 
                       [disabled]="currentPage() === totalPages()"
-                      class="w-10 h-10 flex items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:border-indigo-600 hover:text-indigo-600 disabled:opacity-30 disabled:hover:border-slate-200 disabled:hover:text-slate-400 transition-all bg-white shadow-sm">
-                <mat-icon>chevron_right</mat-icon>
+                      class="w-12 h-12 flex items-center justify-center rounded-2xl border border-outline-variant/30 bg-white text-slate-400 hover:text-primary hover:border-primary disabled:opacity-20 transition-all">
+                <mat-icon>east</mat-icon>
               </button>
             </div>
           }
@@ -238,23 +203,12 @@ import { PlatformStateService } from '../../core/services/platform-state.service
     </div>
   `,
   styles: [`
-    :host { display: block; min-height: 100vh; background: #fafafa; }
+    :host { display: block; background-color: var(--color-surface); }
     :ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
     
-    .animate-bounce-slow {
-      animation: bounce 3s infinite;
-    }
-    
-    @keyframes bounce {
-      0%, 100% { transform: translateY(-5%); animation-timing-function: cubic-bezier(0.8,0,1,1); }
-      50% { transform: translateY(0); animation-timing-function: cubic-bezier(0,0,0.2,1); }
-    }
-
-    @media (max-width: 768px) {
-      .text-5xl { font-size: 2.5rem !important; }
-      .text-6xl { font-size: 3rem !important; }
+    @media (max-width: 1024px) {
+      .text-7xl { font-size: 3.5rem !important; }
       .p-8 { padding: 1.5rem !important; }
-      .filter-card, .engagement-card { border-radius: 2rem !important; }
     }
   `]
 })

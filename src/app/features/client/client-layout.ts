@@ -1,6 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet } from '@angular/router';
+import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatButtonModule } from '@angular/material/button';
+import { PlatformStateService } from '../../core/services/platform-state.service';
+import { AuthService } from '../../core/services/auth.service';
 import { NavbarComponent } from '../../shared/components/navbar';
 
 @Component({
@@ -9,33 +13,99 @@ import { NavbarComponent } from '../../shared/components/navbar';
   imports: [
     CommonModule,
     RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    MatIconModule,
+    MatButtonModule,
     NavbarComponent
   ],
   template: `
-    <div class="min-h-screen bg-[#f7f9fb] flex flex-col">
-      <app-navbar></app-navbar>
+    <div class="min-h-screen bg-surface flex flex-col font-manrope">
+      <!-- Standard Navbar at Top -->
+      <app-navbar 
+        [showHireTalent]="false" 
+        pageTitle="Marketplace" 
+        badge="Client">
+      </app-navbar>
 
-      <!-- Main Content Area -->
-      <main class="flex-grow max-w-7xl mx-auto w-full px-6 md:px-12 py-12">
-        <router-outlet></router-outlet>
-      </main>
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Minimalist Sidebar (Desktop) -->
+        <aside class="hidden lg:flex flex-col w-72 border-r border-outline-variant/30 bg-surface px-4 py-8 space-y-6 shrink-0">
+          <nav class="space-y-1">
+            <a routerLink="marketplace" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
+              <mat-icon class="group-[.active-tab]:text-primary transition-colors">explore</mat-icon>
+              Explore
+            </a>
+            <a routerLink="bookings" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
+              <mat-icon class="group-[.active-tab]:text-primary transition-colors">event_note</mat-icon>
+              My Bookings
+            </a>
+            <a routerLink="messages" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
+              <mat-icon class="group-[.active-tab]:text-primary transition-colors">chat_bubble_outline</mat-icon>
+              Messages
+            </a>
+            <a routerLink="settings" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
+              <mat-icon class="group-[.active-tab]:text-primary transition-colors">settings</mat-icon>
+              Settings
+            </a>
+          </nav>
 
-      <!-- Footer -->
-      <footer class="bg-white border-t border-slate-100 mt-auto">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center py-12 px-12">
-          <div class="flex flex-col md:flex-row items-center gap-4">
-            <span class="text-lg font-black tracking-tighter text-[#041627]">Kazi Konnect</span>
-            <p class="text-xs font-medium text-slate-400">© 2024 Kazi Konnect. All rights reserved.</p>
+          <div class="mt-auto pt-8 border-t border-outline-variant/30 px-2 space-y-1">
+             <button (click)="auth.logout()" class="w-full flex items-center gap-4 px-5 py-4 rounded-xl text-error font-black text-[10px] uppercase tracking-widest hover:bg-error/5 transition-all">
+                <mat-icon class="!text-xl">logout</mat-icon>
+                Log Out
+             </button>
           </div>
-          <div class="flex gap-8 mt-6 md:mt-0">
-            <a class="text-xs font-black text-slate-400 hover:text-[#041627] transition-colors uppercase tracking-widest cursor-pointer" href="#">Legal</a>
-            <a class="text-xs font-black text-slate-400 hover:text-[#041627] transition-colors uppercase tracking-widest cursor-pointer" href="#">Privacy</a>
-            <a class="text-xs font-black text-slate-400 hover:text-[#041627] transition-colors uppercase tracking-widest cursor-pointer" href="#">Support</a>
+        </aside>
+
+        <!-- Dynamic Content -->
+        <main class="flex-1 overflow-y-auto bg-surface-container-lowest/30 pb-24 lg:pb-0">
+          <div class="max-w-[1400px] mx-auto p-6 md:p-10 lg:p-12">
+            <router-outlet></router-outlet>
           </div>
-        </div>
-      </footer>
+        </main>
+      </div>
+
+      <!-- Mobile Bottom Navigation Bar -->
+      <div class="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-4 z-[100] pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+        <a routerLink="marketplace" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">explore</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Find</span>
+        </a>
+        <a routerLink="bookings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">event_note</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Bookings</span>
+        </a>
+        <a routerLink="messages" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <div class="relative">
+            <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">chat_bubble_outline</mat-icon>
+            @if (state.unreadMessagesCount() > 0) {
+              <span class="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white font-black">
+                {{ state.unreadMessagesCount() }}
+              </span>
+            }
+          </div>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Chats</span>
+        </a>
+        <a routerLink="settings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">settings</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Settings</span>
+        </a>
+      </div>
     </div>
   `,
-  styles: [`:host { display: block; }`]
+  styles: [`
+    .active-tab {
+      background-color: var(--color-surface-container-low) !important;
+      color: var(--color-primary) !important;
+    }
+    .active-mobile-tab {
+      color: var(--color-primary) !important;
+    }
+    :host { display: block; height: 100vh; }
+  `]
 })
-export class ClientLayout { }
+export class ClientLayout {
+  state = inject(PlatformStateService);
+  auth = inject(AuthService);
+}

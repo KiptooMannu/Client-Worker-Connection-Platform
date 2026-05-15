@@ -152,20 +152,20 @@ mat-icon:empty {
 
 /* Calm brand palette override (reduce shouty accents) */
 :root {
-  --calm-primary: #1e293b;
-  --calm-primary-soft: #f1f5f9;
+  --calm-primary: #0f172a;
+  --calm-primary-soft: #f8fafc;
   --calm-accent: #64748b;
-  --calm-indigo: #4f46e5;
+  --calm-brand-blue: #2563eb;
 }
 
 .bg-indigo-600,
 .bg-blue-600 {
-  background-color: var(--calm-primary) !important;
+  background-color: var(--calm-brand-blue) !important;
 }
 
 .text-indigo-600,
 .text-blue-600 {
-  color: var(--calm-indigo) !important;
+  color: var(--calm-brand-blue) !important;
 }
 
 .bg-indigo-50,

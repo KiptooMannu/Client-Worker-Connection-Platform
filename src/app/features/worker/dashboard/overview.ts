@@ -86,7 +86,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
             
             <div class="space-y-1">
-              @for (req of pendingRequests(); track req.id) {
+              @for (req of paginatedPendingRequests(); track req.id) {
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-surface hover:bg-surface-container-low transition-all border-b border-outline-variant/30 group">
                   <div class="flex items-center gap-4 mb-4 sm:mb-0 min-w-0">
                     <div class="w-10 h-10 rounded-lg bg-surface-container-high flex items-center justify-center text-primary font-black text-xs shrink-0">
@@ -107,6 +107,22 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                       <button (click)="state.acceptBooking(req.id)" class="px-5 py-2 bg-primary text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">Accept</button>
                       <button (click)="state.deleteJobRequest(req.id)" class="px-4 py-2 border border-outline-variant text-on-surface-variant font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-error/10 hover:text-error hover:border-error/20 transition-all">Decline</button>
                     </div>
+                  </div>
+                </div>
+              }
+
+              @if (totalPages() > 1) {
+                <div class="p-4 flex items-center justify-between bg-surface-container-low/30 rounded-b-xl border-t border-outline-variant/10">
+                  <span class="text-[9px] font-black text-on-surface-variant/60 uppercase tracking-widest">
+                    Page {{ requestPage() }} of {{ totalPages() }}
+                  </span>
+                  <div class="flex gap-2">
+                    <button (click)="goToRequestPage(requestPage() - 1)" [disabled]="requestPage() === 1" class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover:bg-primary hover:text-white transition-all">
+                      <mat-icon class="!text-sm">chevron_left</mat-icon>
+                    </button>
+                    <button (click)="goToRequestPage(requestPage() + 1)" [disabled]="requestPage() === totalPages()" class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover:bg-primary hover:text-white transition-all">
+                      <mat-icon class="!text-sm">chevron_right</mat-icon>
+                    </button>
                   </div>
                 </div>
               }
@@ -240,6 +256,24 @@ export class WorkerDashboardOverviewPage {
   private notification = inject(NotificationService);
 
   worker = this.state.currentWorker;
+
+  // Pagination for Job Requests
+  requestPage = signal(1);
+  itemsPerPage = signal(5);
+
+  paginatedPendingRequests = computed(() => {
+    const requests = this.pendingRequests();
+    const start = (this.requestPage() - 1) * this.itemsPerPage();
+    return requests.slice(start, start + this.itemsPerPage());
+  });
+
+  totalPages = computed(() => Math.ceil(this.pendingRequests().length / this.itemsPerPage()));
+
+  goToRequestPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.requestPage.set(page);
+    }
+  }
 
   statusTitle = computed(() => {
     const s = this.worker().status;

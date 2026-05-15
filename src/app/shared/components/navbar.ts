@@ -96,16 +96,17 @@ import { WebSocketService } from '../../core/services/websocket.service';
       <div class="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
         @if (auth.isAuthenticated()) {
              <!-- Notifications & Messages Icons (Always Visible when logged in) -->
-             <div class="hidden sm:flex items-center gap-2 mr-2 border-r border-slate-100 pr-4">
-               <button class="relative p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
-                 <mat-icon>notifications_none</mat-icon>
+             <!-- Notifications & Messages Icons (Always Visible when logged in) -->
+             <div class="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2 border-r border-slate-100 pr-2 sm:pr-4">
+               <button class="relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
+                 <mat-icon class="!text-xl sm:!text-2xl">notifications_none</mat-icon>
                </button>
                
                <button [routerLink]="auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')" 
-                       class="relative p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
-                 <mat-icon>chat_bubble_outline</mat-icon>
+                       class="relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
+                 <mat-icon class="!text-xl sm:!text-2xl">chat_bubble_outline</mat-icon>
                  @if (state.unreadMessagesCount() > 0) {
-                   <span class="absolute top-1 right-1 w-4 h-4 bg-blue-600 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
+                   <span class="absolute top-1 right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-blue-600 text-white text-[8px] sm:text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
                      {{ state.unreadMessagesCount() }}
                    </span>
                  }

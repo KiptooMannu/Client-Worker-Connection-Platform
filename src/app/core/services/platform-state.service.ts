@@ -232,28 +232,8 @@ export class PlatformStateService {
   currentMessagePage = signal(0);
   private appRef = inject(ApplicationRef);
 
-  currentWorker = signal<WorkerProfile>({
-    id: '',
-    userId: '',
-    name: '',
-    initials: '',
-    email: '',
-    category: '',
-    status: 'Draft',
-    rate: 0,
-    rating: 0,
-    reviews: 0,
-    isAvailable: false,
-    skills: [],
-    bio: '',
-    location: '',
-    preferredLocations: [],
-    workHistory: [],
-    certifications: [],
-    availabilityDetails: { weekdays: true, weekends: false, evenings: false }
-  });
-
-  currentClient = signal<ClientProfile | null>(null);
+  currentWorker = signal<WorkerProfile>(this.getInitialWorkerState());
+  currentClient = signal<ClientProfile | null>(this.getInitialClientState());
 
   private auth = inject(AuthService);
   private http = inject(HttpClient);
@@ -262,6 +242,53 @@ export class PlatformStateService {
   private platformId = inject(PLATFORM_ID);
   private apiUrl = environment.apiUrl;
   private pollingInterval: any;
+
+  private getInitialWorkerState(): WorkerProfile {
+    const defaultState: WorkerProfile = {
+      id: '',
+      userId: '',
+      name: '',
+      initials: '',
+      email: '',
+      category: '',
+      status: 'Draft',
+      rate: 0,
+      rating: 0,
+      reviews: 0,
+      isAvailable: false,
+      skills: [],
+      bio: '',
+      location: '',
+      preferredLocations: [],
+      workHistory: [],
+      certifications: [],
+      availabilityDetails: { weekdays: true, weekends: false, evenings: false }
+    };
+
+    if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      const saved = sessionStorage.getItem('kazi_konnect_state');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          if (data.currentWorker) return data.currentWorker;
+        } catch (e) {}
+      }
+    }
+    return defaultState;
+  }
+
+  private getInitialClientState(): ClientProfile | null {
+    if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      const saved = sessionStorage.getItem('kazi_konnect_state');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          if (data.currentClient) return data.currentClient;
+        } catch (e) {}
+      }
+    }
+    return null;
+  }
 
   // Typing indicators
   typingUsers = signal<Record<string, boolean>>({});
@@ -303,6 +330,7 @@ export class PlatformStateService {
   }
 
   constructor() {
+    // State is now partially loaded in signal initializers to prevent flicker
     if (isPlatformBrowser(this.platformId)) {
       this.loadState();
     }
@@ -376,13 +404,13 @@ export class PlatformStateService {
       setTimeout(() => this.fetchAllJobs(), 2500);
     } else if (role === 'Client') {
       this.fetchClientProfile(userId);
-      this.fetchClientJobs(userId);
-      this.fetchMarketplaceWorkers(); // Load initial workers
-      this.fetchMarketplaceMetadata(); // Load skills and locations
+      setTimeout(() => this.fetchClientJobs(userId), 200);
+      setTimeout(() => this.fetchMarketplaceWorkers(), 400);
+      setTimeout(() => this.fetchMarketplaceMetadata(), 600);
     }
     // Load common data for all roles
-    this.fetchNotifications(userId);
-    this.fetchChats(userId);
+    setTimeout(() => this.fetchNotifications(userId), 800);
+    setTimeout(() => this.fetchChats(userId), 1000);
   }
 
   public fetchWorkerProfile(userId: string) {
@@ -458,6 +486,10 @@ export class PlatformStateService {
     const formData = new FormData();
     formData.append('file', file);
     return this.http.post(`${this.apiUrl}/workers/profile/${userId}/profile-picture`, formData);
+  }
+
+  updateClientProfile(userId: string, updates: any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/clients/profile/user/${userId}`, updates);
   }
 
   submitProfile(userId: string): Observable<any> {
@@ -605,20 +637,7 @@ export class PlatformStateService {
     return this.http.put(`${this.apiUrl}/admin/users/${userId}/name?fullName=${encodeURIComponent(fullName)}`, {});
   }
 
-  updateClientProfile(profileId: string, updates: Partial<ClientProfile>): Observable<any> {
-    const backendPayload = {
-      fullName: updates.name,
-      phoneNumber: (updates as any).phoneNumber
-    };
 
-    return this.http.put(`${this.apiUrl}/clients/profile/${profileId}`, backendPayload).pipe(
-      tap(() => this.notification.success('Profile updated successfully!')),
-      catchError((err: HttpErrorResponse) => {
-        this.notification.error('Failed to update profile.');
-        return throwError(() => err);
-      })
-    );
-  }
 
   fetchNotifications(userId: string) {
     console.log('[PlatformState] Fetching notifications for userId:', userId);

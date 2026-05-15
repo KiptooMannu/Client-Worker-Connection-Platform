@@ -14,6 +14,7 @@ export interface User {
   email: string;
   role: UserRole;
   name: string;
+  avatarUrl?: string;
   token?: string;
 }
 
@@ -67,6 +68,7 @@ export class AuthService {
           email: response.email,
           role: this.mapRole(response.role),
           name: response.name || response.username || 'User',
+          avatarUrl: response.profilePictureUrl || response.image,
           token: response.accessToken
         };
 

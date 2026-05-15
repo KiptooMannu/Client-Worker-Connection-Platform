@@ -59,55 +59,51 @@ import { NavbarComponent } from '../../shared/components/navbar';
         </aside>
 
         <!-- Dynamic Content -->
-        <main class="flex-1 overflow-y-auto bg-surface-container-lowest/30">
+        <main class="flex-1 overflow-y-auto bg-surface-container-lowest/30 pb-24 lg:pb-0">
           <div class="max-w-[1400px] mx-auto p-6 md:p-10 lg:p-12">
             <router-outlet></router-outlet>
           </div>
         </main>
       </div>
 
-      <!-- Mobile Navigation Overlay (Drawer) -->
-      @if (isHandsetMenuOpen()) {
-        <div class="lg:hidden fixed inset-0 z-[100] flex">
-          <div class="fixed inset-0 bg-on-surface/40 backdrop-blur-sm" (click)="isHandsetMenuOpen.set(false)"></div>
-          <div class="relative w-80 bg-surface h-full shadow-2xl p-8 flex flex-col animate-in slide-in-from-left duration-300">
-            <div class="flex items-center gap-3 mb-12">
-              <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white">
-                <mat-icon>corporate_fare</mat-icon>
-              </div>
-              <span class="text-xl font-black tracking-tighter text-primary uppercase">KaziKonnect</span>
-            </div>
-            <nav class="space-y-2 flex-1">
-              <a routerLink="dashboard" (click)="isHandsetMenuOpen.set(false)" class="flex items-center gap-4 px-6 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low">
-                <mat-icon>grid_view</mat-icon> Dashboard
-              </a>
-              <a routerLink="history" (click)="isHandsetMenuOpen.set(false)" class="flex items-center gap-4 px-6 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low">
-                <mat-icon>receipt_long</mat-icon> My Jobs
-              </a>
-              <a routerLink="verification" (click)="isHandsetMenuOpen.set(false)" class="flex items-center gap-4 px-6 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low">
-                <mat-icon>verified_user</mat-icon> Documents
-              </a>
-              <a routerLink="profile" (click)="isHandsetMenuOpen.set(false)" class="flex items-center gap-4 px-6 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low">
-                <mat-icon>person_edit</mat-icon> Profile
-              </a>
-            </nav>
-            <button (click)="auth.logout()" class="flex items-center gap-4 px-6 py-4 text-error font-black text-xs uppercase tracking-widest">
-              <mat-icon>logout</mat-icon> Log Out
-            </button>
+      <!-- Mobile Bottom Navigation Bar -->
+      <div class="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-4 z-[100] pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+        <a routerLink="dashboard" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">grid_view</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Home</span>
+        </a>
+        <a routerLink="history" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">receipt_long</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Jobs</span>
+        </a>
+        <a routerLink="verification" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">verified_user</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Docs</span>
+        </a>
+        <a routerLink="messages" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <div class="relative">
+            <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">chat_bubble_outline</mat-icon>
+            @if (state.unreadMessagesCount() > 0) {
+              <span class="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white font-black">
+                {{ state.unreadMessagesCount() }}
+              </span>
+            }
           </div>
-        </div>
-      }
-
-      <!-- Floating Mobile Trigger -->
-      <button (click)="isHandsetMenuOpen.set(true)" 
-              class="lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl z-50 active:scale-90 transition-all">
-         <mat-icon>menu</mat-icon>
-      </button>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Chats</span>
+        </a>
+        <a routerLink="profile" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">person_outline</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Profile</span>
+        </a>
+      </div>
     </div>
   `,
   styles: [`
     .active-tab {
       background-color: var(--color-surface-container-low) !important;
+      color: var(--color-primary) !important;
+    }
+    .active-mobile-tab {
       color: var(--color-primary) !important;
     }
     :host { display: block; height: 100vh; }

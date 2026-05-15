@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -203,39 +203,56 @@ import { NotificationService } from '../../../core/services/notification.service
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-900 text-white">
-                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Professional</th>
-                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Client</th>
-                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Service</th>
-                <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-right">Status</th>
+                <th class="px-6 py-3 text-[9px] font-black uppercase tracking-widest">Professional</th>
+                <th class="px-6 py-3 text-[9px] font-black uppercase tracking-widest">Client</th>
+                <th class="px-6 py-3 text-[9px] font-black uppercase tracking-widest">Service</th>
+                <th class="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-right">Status</th>
               </tr>
             </thead>
             <tbody>
-              @for (job of state.allBookings().slice(0, 5); track job.id) {
+              @for (job of paginatedAllBookings(); track job.id) {
                 <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                  <td class="px-6 py-4">
+                  <td class="px-6 py-3">
                     <div class="flex items-center gap-3">
-                      <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-[10px] uppercase">{{ job.workerInitials }}</div>
-                      <span class="text-xs font-black text-slate-900">{{ job.workerName }}</span>
+                      <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-[9px] uppercase border border-white">{{ job.workerInitials }}</div>
+                      <span class="text-[11px] font-black text-slate-900">{{ job.workerName }}</span>
                     </div>
                   </td>
-                  <td class="px-6 py-4 text-xs font-bold text-slate-600">{{ job.clientName }}</td>
-                  <td class="px-6 py-4 text-xs font-medium text-slate-500">{{ job.service }}</td>
-                  <td class="px-6 py-4 text-right">
-                    <span class="inline-block px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest" 
+                  <td class="px-6 py-3 text-[11px] font-bold text-slate-600">{{ job.clientName }}</td>
+                  <td class="px-6 py-3 text-[10px] font-medium text-slate-500">{{ job.service }}</td>
+                  <td class="px-6 py-3 text-right">
+                    <span class="inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest" 
                           [ngClass]="job.status === 'Approved' ? 'bg-teal-50 text-teal-700' : 'bg-blue-50 text-blue-700'">
                       {{ job.status }}
                     </span>
                   </td>
                 </tr>
               }
-              @if (state.allBookings().length === 0) {
-                <tr>
-                  <td colspan="4" class="px-6 py-12 text-center text-[10px] text-slate-400 font-black uppercase tracking-widest">No active marketplace connections</td>
-                </tr>
-              }
             </tbody>
           </table>
         </div>
+
+        @if (totalPages() > 1) {
+          <div class="p-4 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+              Page {{ currentPage() }} of {{ totalPages() }}
+            </span>
+            <div class="flex gap-2">
+              <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30 hover:text-indigo-600 transition-all">
+                <mat-icon class="!text-lg">chevron_left</mat-icon>
+              </button>
+              <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30 hover:text-indigo-600 transition-all">
+                <mat-icon class="!text-lg">chevron_right</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (state.allBookings().length === 0) {
+            <div class="p-12 text-center">
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No active marketplace connections</p>
+            </div>
+        }
       </mat-card>
     </div>
   `,
@@ -247,7 +264,22 @@ export class AdminOverviewPage {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
 
-  constructor() {}
+  // Pagination for Hires Ledger
+  currentPage = signal(1);
+  itemsPerPage = signal(10);
+
+  paginatedAllBookings = computed(() => {
+    const start = (this.currentPage() - 1) * this.itemsPerPage();
+    return this.state.allBookings().slice(start, start + this.itemsPerPage());
+  });
+
+  totalPages = computed(() => Math.ceil(this.state.allBookings().length / this.itemsPerPage()));
+
+  goToPage(page: number) {
+    if (page >= 1 && page <= this.totalPages()) {
+      this.currentPage.set(page);
+    }
+  }
 
   get stats() {
     const totalUsers = this.state.clients().length + this.state.workers().length;
