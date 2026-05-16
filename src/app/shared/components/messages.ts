@@ -1,5 +1,5 @@
 import {
-  Component, inject, computed, signal, effect,
+  Component, inject, computed, signal, effect, HostListener,
   OnDestroy, AfterViewInit, ViewChild, ElementRef, ChangeDetectionStrategy, PLATFORM_ID, SecurityContext
 } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
@@ -1183,6 +1183,13 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     });
 
     this.state.isMessagingActive.set(true);
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    if (isPlatformBrowser(this.platformId)) {
+      this.isMobile.set(window.innerWidth < 768);
+    }
   }
 
   ngAfterViewInit() {

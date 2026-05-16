@@ -32,7 +32,9 @@ import { PlatformStateService } from '../../core/services/platform-state.service
         
         <div class="relative group z-10">
           <div class="w-24 h-24 md:w-32 md:h-32 rounded-[2rem] md:rounded-[2.5rem] border-4 border-white/10 bg-white/5 backdrop-blur-xl overflow-hidden shadow-2xl transition-transform group-hover:scale-105 duration-500 flex items-center justify-center">
-            @if (auth.currentUser()?.avatarUrl) {
+            @if (isUploadingAvatar()) {
+              <div class="w-8 h-8 md:w-10 md:h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+            } @else if (auth.currentUser()?.avatarUrl) {
               <img [src]="auth.currentUser()?.avatarUrl" alt="Profile" class="w-full h-full object-cover">
             } @else {
               <div class="text-3xl md:text-4xl font-black text-white/40 uppercase">
@@ -40,10 +42,10 @@ import { PlatformStateService } from '../../core/services/platform-state.service
               </div>
             }
           </div>
-          <button (click)="avatarInput.click()" class="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 bg-white text-slate-950 p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl active:scale-95 transition-all hover:bg-primary hover:text-white">
+          <button (click)="avatarInput.click()" [disabled]="isUploadingAvatar()" class="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 bg-white text-slate-950 p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl active:scale-95 transition-all hover:bg-primary hover:text-white disabled:opacity-50">
             <mat-icon class="!text-[16px] md:!text-[20px]">photo_camera</mat-icon>
           </button>
-          <input #avatarInput type="file" accept="image/*" class="hidden">
+          <input #avatarInput type="file" accept="image/*" class="hidden" (change)="onAvatarSelected($event)">
         </div>
 
         <div class="text-center mt-6 md:mt-8 z-10">
@@ -126,11 +128,41 @@ export class SharedSettingsPage {
   state = inject(PlatformStateService);
 
   isSaving = signal(false);
+  isUploadingAvatar = signal(false);
   form = {
     name: this.auth.currentUser()?.name || '',
     newPassword: '',
     confirmPassword: ''
   };
+
+  onAvatarSelected(event: any) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    this.isUploadingAvatar.set(true);
+    
+    if (this.auth.currentUser()?.role === 'Worker') {
+      this.state.uploadProfilePicture(this.auth.currentUser()!.id, file).subscribe({
+        next: (res: any) => {
+          this.auth.updateUser({ avatarUrl: res.profilePictureUrl });
+          this.notification.success('Profile picture updated');
+          this.isUploadingAvatar.set(false);
+        },
+        error: (err) => {
+          this.notification.error('Failed to upload profile picture');
+          this.isUploadingAvatar.set(false);
+        }
+      });
+    } else {
+      // Preview for Admin/Clients
+      setTimeout(() => {
+        const objectUrl = URL.createObjectURL(file);
+        this.auth.updateUser({ avatarUrl: objectUrl });
+        this.notification.success('Profile picture updated');
+        this.isUploadingAvatar.set(false);
+      }, 1500);
+    }
+  }
 
   resetForm() {
     this.form.name = this.auth.currentUser()?.name || '';

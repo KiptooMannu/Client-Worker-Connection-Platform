@@ -31,8 +31,11 @@ export class WebSocketService {
 
     // Use SockJS for compatibility
     const socket = new SockJS(`${environment.apiUrl.replace('/api', '')}/ws`);
+    const token = this.auth.currentUser()?.token;
+    
     this.stompClient = new Client({
       webSocketFactory: () => socket as any,
+      connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
       debug: () => {}, // suppress noisy internal STOMP frame logs
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,

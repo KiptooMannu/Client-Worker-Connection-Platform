@@ -37,6 +37,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
       console.warn('[AuthInterceptor] 401 Unauthorized, logging out');
       authService.logout();
+    } else if (error.status === 404 && req.url.includes('/profile/')) {
+      console.warn('[AuthInterceptor] 404 Profile not found, logging out to clear invalid session');
+      authService.logout();
     } else if (error.status === 403) {
       console.warn('[AuthInterceptor] 403 Forbidden - Access denied', {
         url: req.url,

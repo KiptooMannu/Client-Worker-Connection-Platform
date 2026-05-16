@@ -6,6 +6,7 @@ import { environment } from '../../../environments/environment';
 import { Observable, throwError, filter, take, timeout } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { NotificationService } from './notification.service';
+import { Client } from '@stomp/stompjs';
 
 export interface WorkHistory {
   company: string;
@@ -238,10 +239,8 @@ export class PlatformStateService {
   private auth = inject(AuthService);
   private http = inject(HttpClient);
   private notification = inject(NotificationService);
-  private ngZone = inject(NgZone);
   private platformId = inject(PLATFORM_ID);
   private apiUrl = environment.apiUrl;
-  private pollingInterval: any;
 
   private getInitialWorkerState(): WorkerProfile {
     const defaultState: WorkerProfile = {
@@ -319,10 +318,6 @@ export class PlatformStateService {
       certifications: [],
       availabilityDetails: { weekdays: true, weekends: false, evenings: false }
     });
-    if (this.pollingInterval) {
-      clearInterval(this.pollingInterval);
-      this.pollingInterval = null;
-    }
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.removeItem('kazi_konnect_state');
       localStorage.removeItem('kazi_konnect_state'); // Also clear old localStorage if it exists
@@ -356,34 +351,6 @@ export class PlatformStateService {
             // Start background data fetching without blocking stability
             this.initializeUserData(u.id, u.role);
           }
-
-          // Start polling for real-time updates after initial load
-          this.ngZone.runOutsideAngular(() => {
-            if (this.pollingInterval) clearInterval(this.pollingInterval);
-            this.pollingInterval = setInterval(() => {
-              const u = this.auth.currentUser();
-              this.ngZone.run(() => {
-                if (u && u.id) {
-                  // FIX BUG 3: Always fetch notifications and chats for ALL dashboards.
-                  this.fetchNotifications(u.id);
-                  this.fetchChats(u.id);
-
-                  // Periodically refresh jobs to ensure reviews/status changes reflect
-                  if (u.role === 'Worker') {
-                    const userId = this.currentWorker().userId || u.id;
-                    this.fetchWorkerJobs(userId);
-                  } else if (u.role === 'Client') {
-                    this.fetchClientJobs(u.id);
-                  }
-                }
-
-                if (u && u.role === 'Admin') {
-                  // Stop background polling for heavy admin data to prevent network congestion.
-                  // These will still be fetched once on initialization and when pages are visited.
-                }
-              });
-            }, 60000); // Increased interval to 60s to significantly reduce server load
-          });
         }, 500);
       } else {
         this.clearState();

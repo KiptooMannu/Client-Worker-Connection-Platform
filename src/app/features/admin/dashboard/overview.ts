@@ -85,7 +85,7 @@ import { NotificationService } from '../../../core/services/notification.service
           </mat-card>
 
           <!-- Governance Metrics (Fills the gap) -->
-          <div class="grid grid-cols-2 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm">
               <div class="flex items-center gap-3 mb-4">
                 <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
