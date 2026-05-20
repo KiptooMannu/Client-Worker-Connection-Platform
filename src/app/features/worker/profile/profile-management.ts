@@ -373,7 +373,6 @@ export class WorkerProfilePage {
       { label: 'Professional Bio', done: !!w.bio && w.bio.length > 20 },
       { label: 'Work History', done: w.workHistory && w.workHistory.length > 0 },
       { label: 'Skills Added', done: w.skills && w.skills.length > 0 },
-      { label: 'Certifications Added', done: w.certifications && w.certifications.length > 0 },
       { label: 'ID Front Uploaded', done: (w.uploadedDocuments || []).some((d: any) => d.type === 'ID-Front') },
       { label: 'ID Back Uploaded', done: (w.uploadedDocuments || []).some((d: any) => d.type === 'ID-Back') }
     ];

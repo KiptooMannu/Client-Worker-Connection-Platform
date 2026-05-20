@@ -818,9 +818,11 @@ export class PlatformStateService {
     const docs = w.uploadedDocuments || [];
     const hasIDFront = docs.some(d => d.type === 'ID-Front');
     const hasIDBack = docs.some(d => d.type === 'ID-Back');
+    const hasCertificationDocs = docs.some(d => d.type === 'Certification');
 
     if (hasIDFront) score += 10;
     if (hasIDBack) score += 10;
+    if (hasCertificationDocs) score += 20;
 
     return Math.min(score, 100);
   });

@@ -205,7 +205,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                  <div class="flex items-start gap-2 p-3 bg-surface-container rounded-lg border border-outline-variant/30">
                     <mat-icon class="text-primary !text-[16px]">info_outline</mat-icon>
                     <p class="text-[10px] text-on-surface-variant font-medium leading-normal">
-                      Profile requires 100% completion: bio, skills, work history, certifications, and ID documents (front & back) before transmission to compliance.
+                      Profile requires 100% completion: bio, skills, work history, certifications, ID documents (front & back), and trade certification proof before transmission to compliance.
                     </p>
                  </div>
                }
