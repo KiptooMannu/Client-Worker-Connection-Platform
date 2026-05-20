@@ -98,9 +98,33 @@
 }
 
 .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined' !important;
+  font-style: normal;
+  font-weight: normal;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'liga';
+  
   font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  display: inline-block;
   vertical-align: middle;
+
+  /* Hard fix for text leak: if the font fails, squash the text */
+  overflow: hidden !important;
+  line-height: 1 !important;
+  letter-spacing: -1em !important;
+  text-indent: 0;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
 }
 
 mat-icon {
@@ -132,7 +156,7 @@ mat-icon {
 }
 
 /* Material Symbols specifically */
-.material-symbols-outlined {
+.material-symbols-outlined.no-squash {
   letter-spacing: normal !important;
 }
 

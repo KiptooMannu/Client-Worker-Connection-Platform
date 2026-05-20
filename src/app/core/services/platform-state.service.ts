@@ -455,6 +455,12 @@ export class PlatformStateService {
     return this.http.post(`${this.apiUrl}/workers/profile/${userId}/profile-picture`, formData);
   }
 
+  uploadMedia(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post(`${this.apiUrl}/media/upload`, formData);
+  }
+
   updateClientProfile(userId: string, updates: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/clients/profile/user/${userId}`, updates);
   }
@@ -1510,8 +1516,8 @@ export class PlatformStateService {
   }
 
   // Account Settings
-  updateAccountProfile(name: string) {
-    return this.http.put(`${this.apiUrl}/settings/profile`, { name });
+  updateAccountProfile(name: string, profilePictureUrl?: string) {
+    return this.http.put(`${this.apiUrl}/settings/profile`, { name, profilePictureUrl });
   }
 
   updateAccountPassword(newPassword: string) {

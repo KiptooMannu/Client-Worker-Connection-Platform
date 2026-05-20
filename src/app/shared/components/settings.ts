@@ -154,13 +154,27 @@ export class SharedSettingsPage {
         }
       });
     } else {
-      // Preview for Admin/Clients
-      setTimeout(() => {
-        const objectUrl = URL.createObjectURL(file);
-        this.auth.updateUser({ avatarUrl: objectUrl });
-        this.notification.success('Profile picture updated');
-        this.isUploadingAvatar.set(false);
-      }, 1500);
+      // Real upload to Cloudinary and persistence for Admin/Clients
+      this.state.uploadMedia(file).subscribe({
+        next: (res: any) => {
+          const uploadedUrl = res.url;
+          this.state.updateAccountProfile(this.form.name, uploadedUrl).subscribe({
+            next: () => {
+              this.auth.updateUser({ avatarUrl: uploadedUrl });
+              this.notification.success('Profile picture updated');
+              this.isUploadingAvatar.set(false);
+            },
+            error: (err) => {
+              this.notification.error('Failed to save profile picture');
+              this.isUploadingAvatar.set(false);
+            }
+          });
+        },
+        error: (err) => {
+          this.notification.error('Failed to upload profile picture');
+          this.isUploadingAvatar.set(false);
+        }
+      });
     }
   }
 

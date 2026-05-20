@@ -69,14 +69,16 @@ import { WebSocketService } from '../../core/services/websocket.service';
                 How it Works
               </a>
             }
-            <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
-               routerLinkActive="active-link"
-               class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
-              Messages
-              @if (state.unreadMessagesCount() > 0) {
-                <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
-              }
-            </a>
+            @if (showMessages) {
+              <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
+                 routerLinkActive="active-link"
+                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
+                Messages
+                @if (state.unreadMessagesCount() > 0) {
+                  <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
+                }
+              </a>
+            }
             
             @if (auth.userRole() === 'Client') {
               <a routerLink="/client/bookings" routerLinkActive="active-link"
@@ -102,15 +104,17 @@ import { WebSocketService } from '../../core/services/websocket.service';
                  <mat-icon class="!text-xl sm:!text-2xl">notifications_none</mat-icon>
                </button>
                
-               <button [routerLink]="auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')" 
-                       class="relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
-                 <mat-icon class="!text-xl sm:!text-2xl">chat_bubble_outline</mat-icon>
-                 @if (state.unreadMessagesCount() > 0) {
-                   <span class="absolute top-1 right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-blue-600 text-white text-[8px] sm:text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
-                     {{ state.unreadMessagesCount() }}
-                   </span>
-                 }
-               </button>
+               @if (showMessages) {
+                 <button [routerLink]="auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')" 
+                         class="relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
+                   <mat-icon class="!text-xl sm:!text-2xl">chat_bubble_outline</mat-icon>
+                   @if (state.unreadMessagesCount() > 0) {
+                     <span class="absolute top-1 right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-blue-600 text-white text-[8px] sm:text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
+                       {{ state.unreadMessagesCount() }}
+                     </span>
+                   }
+                 </button>
+               }
              </div>
 
              <!-- Unified Profile Menu -->
@@ -120,8 +124,13 @@ import { WebSocketService } from '../../core/services/websocket.service';
                   <span class="text-xs font-bold text-slate-900 leading-none">{{ auth.currentUser()?.name }}</span>
                </div>
                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
-                 <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop" 
-                      class="w-full h-full object-cover">
+                 @if (auth.currentUser()?.avatarUrl) {
+                   <img [src]="auth.currentUser()?.avatarUrl" class="w-full h-full object-cover">
+                 } @else {
+                   <div class="w-full h-full bg-[#0f172a] text-white text-xs font-black flex items-center justify-center uppercase">
+                     {{ auth.currentUser()?.name?.charAt(0) }}
+                   </div>
+                 }
                </div>
                <mat-icon class="text-slate-400 !text-sm !w-auto !h-auto">expand_more</mat-icon>
              </button>
@@ -187,14 +196,16 @@ import { WebSocketService } from '../../core/services/websocket.service';
             <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">How it Works</a>
           }
 
-          <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
-             (click)="toggleMobileMenu()"
-             class="text-lg font-black text-slate-900 py-3 border-b border-slate-50 flex justify-between items-center">
-            Messages
-            @if (state.unreadMessagesCount() > 0) {
-              <span class="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">{{ state.unreadMessagesCount() }}</span>
-            }
-          </a>
+          @if (showMessages) {
+            <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
+               (click)="toggleMobileMenu()"
+               class="text-lg font-black text-slate-900 py-3 border-b border-slate-50 flex justify-between items-center">
+              Messages
+              @if (state.unreadMessagesCount() > 0) {
+                <span class="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">{{ state.unreadMessagesCount() }}</span>
+              }
+            </a>
+          }
 
           @if (auth.userRole() === 'Client') {
             <a routerLink="/client/bookings" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">My Bookings</a>

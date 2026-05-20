@@ -10,7 +10,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
   imports: [CommonModule, MatIconModule, MatButtonModule, NavbarComponent],
   template: `
     <div class="min-h-screen bg-surface font-manrope">
-      <app-navbar></app-navbar>
+      <app-navbar [showMessages]="false"></app-navbar>
 
       <main class="animate-in fade-in duration-1000">
         <!-- Hero Section -->
