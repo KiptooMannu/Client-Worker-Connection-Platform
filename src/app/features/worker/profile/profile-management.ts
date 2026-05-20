@@ -105,21 +105,35 @@ import { AuthService } from '../../../core/services/auth.service';
         <!-- Identity Tab -->
         @if (activeTab() === 'identity') {
           <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div class="space-y-2">
-              <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name</label>
-              <input [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" 
-                     class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors" 
-                     placeholder="Julian Thorne">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name</label>
+                <input [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" 
+                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors" 
+                       placeholder="Julian Thorne">
+              </div>
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Phone Number</label>
+                <input [ngModel]="form.phoneNumber()" (ngModelChange)="form.phoneNumber.set($event)" 
+                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors" 
+                       placeholder="e.g. +254 700 000000">
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div class="space-y-2">
                 <label class="font-label-md text-label-md text-on-surface-variant ml-1">Craft Category</label>
                 <div class="relative">
                   <select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)"
                           class="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors">
-                    <option value="Plumber">Plumber</option>
-                    <option value="Electrician">Electrician</option>
+                    <option value="Plumbing">Plumber</option>
+                    <option value="Electrical Wiring">Electrician</option>
+                    <option value="Carpentry">Carpenter</option>
+                    <option value="Masonry">Mason</option>
+                    <option value="Painting">Painter</option>
+                    <option value="Interior Design">Interior Designer</option>
+                    <option value="HVAC Installation">HVAC Installer</option>
+                    <option value="General Repairs">General Repairs</option>
                     <option value="Farm Worker">Farm Worker</option>
                     <option value="Cleaner">Cleaner</option>
                     <option value="Mechanic">Mechanic</option>
@@ -136,6 +150,12 @@ import { AuthService } from '../../../core/services/auth.service';
                          class="w-full bg-surface border border-outline-variant rounded-lg pl-8 pr-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors">
                 </div>
               </div>
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Base Location</label>
+                <input [ngModel]="form.location()" (ngModelChange)="form.location.set($event)" 
+                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors" 
+                       placeholder="e.g. Nairobi, Kenya">
+              </div>
             </div>
 
             <div class="space-y-2">
@@ -145,11 +165,19 @@ import { AuthService } from '../../../core/services/auth.service';
                         placeholder="Detail your expertise and operational background..."></textarea>
             </div>
 
-            <div class="space-y-2">
-              <label class="font-label-md text-label-md text-on-surface-variant ml-1">Core Skills (Comma separated)</label>
-              <input [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)"
-                     class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors"
-                     placeholder="e.g. Irrigation, Safety Audits, Harvesting">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Core Skills (Comma separated)</label>
+                <input [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)"
+                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors"
+                       placeholder="e.g. Irrigation, Safety Audits, Harvesting">
+              </div>
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Preferred Locations (Comma separated)</label>
+                <input [ngModel]="form.preferredLocations()" (ngModelChange)="form.preferredLocations.set($event)"
+                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors"
+                       placeholder="e.g. Westlands, Kilimani, Karen">
+              </div>
             </div>
 
             <div class="pt-4">
@@ -345,6 +373,7 @@ export class WorkerProfilePage {
       { label: 'Professional Bio', done: !!w.bio && w.bio.length > 20 },
       { label: 'Work History', done: w.workHistory && w.workHistory.length > 0 },
       { label: 'Skills Added', done: w.skills && w.skills.length > 0 },
+      { label: 'Certifications Added', done: w.certifications && w.certifications.length > 0 },
       { label: 'ID Front Uploaded', done: (w.uploadedDocuments || []).some((d: any) => d.type === 'ID-Front') },
       { label: 'ID Back Uploaded', done: (w.uploadedDocuments || []).some((d: any) => d.type === 'ID-Back') }
     ];
