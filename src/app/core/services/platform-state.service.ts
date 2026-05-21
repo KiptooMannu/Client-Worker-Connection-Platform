@@ -270,7 +270,7 @@ export class PlatformStateService {
         try {
           const data = JSON.parse(saved);
           if (data.currentWorker) return data.currentWorker;
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     return defaultState;
@@ -283,7 +283,7 @@ export class PlatformStateService {
         try {
           const data = JSON.parse(saved);
           if (data.currentClient) return data.currentClient;
-        } catch (e) {}
+        } catch (e) { }
       }
     }
     return null;

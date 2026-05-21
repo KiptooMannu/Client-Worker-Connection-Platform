@@ -31,6 +31,7 @@ export class AuthService {
 
   private users: User[] = [];
   private apiUrl = environment.apiUrl + '/auth';
+  private authUrl = environment.authUrl; // kazi_konnect auth backend
 
   private platformId = inject(PLATFORM_ID);
   private http = inject(HttpClient);
@@ -61,7 +62,7 @@ export class AuthService {
   }
 
   login(email: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
+    return this.http.post<any>(`${this.authUrl}/login`, { email, password }).pipe(
       tap(response => {
         const user: User = {
           id: response.userId,
@@ -101,7 +102,7 @@ export class AuthService {
       role: role?.toUpperCase()
     };
 
-    return this.http.post(`${this.apiUrl}/register`, registrationData, { responseType: 'text' }).pipe(
+    return this.http.post(`${this.authUrl}/register`, registrationData, { responseType: 'text' }).pipe(
       tap(() => this.notification.success('Account created! Please log in.')),
       catchError(error => {
         const errorMsg = typeof error.error === 'string' ? error.error : 'Registration failed';
