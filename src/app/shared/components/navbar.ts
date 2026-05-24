@@ -69,17 +69,6 @@ import { WebSocketService } from '../../core/services/websocket.service';
                 How it Works
               </a>
             }
-            @if (showMessages) {
-              <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
-                 routerLinkActive="active-link"
-                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-2">
-                Messages
-                @if (state.unreadMessagesCount() > 0) {
-                  <span class="px-2 py-0.5 bg-blue-600 text-white text-[9px] rounded-full">{{ state.unreadMessagesCount() }}</span>
-                }
-              </a>
-            }
-            
             @if (auth.userRole() === 'Client') {
               <a routerLink="/client/bookings" routerLinkActive="active-link"
                  class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
@@ -106,7 +95,8 @@ import { WebSocketService } from '../../core/services/websocket.service';
                
                @if (showMessages) {
                  <button [routerLink]="auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')" 
-                         class="relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer">
+                         class="hidden lg:inline-flex relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-colors rounded-full hover:bg-slate-50 cursor-pointer"
+                         aria-label="Messages">
                    <mat-icon class="!text-xl sm:!text-2xl">chat_bubble_outline</mat-icon>
                    @if (state.unreadMessagesCount() > 0) {
                      <span class="absolute top-1 right-1 w-3.5 h-3.5 sm:w-4 sm:h-4 bg-blue-600 text-white text-[8px] sm:text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
@@ -179,9 +169,32 @@ import { WebSocketService } from '../../core/services/websocket.service';
       </div>
     </header>
 
+    @if (auth.isAuthenticated()) {
+      <nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-2 shadow-[0_-8px_40px_-24px_rgba(15,23,42,0.45)]" [style.--bottom-nav-height.px]="bottomNavHeight">
+        <div class="flex items-center justify-between">
+          <button [routerLink]="auth.userRole() === 'Admin' ? '/admin' : (auth.userRole() === 'Worker' ? '/worker/dashboard' : '/client/marketplace')" class="flex flex-col items-center justify-center text-slate-600 hover:text-slate-900 transition-colors">
+            <mat-icon class="!text-lg">home</mat-icon>
+            <span class="text-[9px] font-black uppercase tracking-[0.22em] mt-1">Home</span>
+          </button>
+          <button [routerLink]="auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')" 
+                  class="flex flex-col items-center justify-center text-slate-600 hover:text-slate-900 transition-colors relative">
+            <mat-icon class="!text-lg">chat_bubble_outline</mat-icon>
+            @if (state.unreadMessagesCount() > 0) {
+              <span class="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">{{ state.unreadMessagesCount() }}</span>
+            }
+            <span class="text-[9px] font-black uppercase tracking-[0.22em] mt-1">Chat</span>
+          </button>
+          <button [routerLink]="getSettingsPath()" class="flex flex-col items-center justify-center text-slate-600 hover:text-slate-900 transition-colors">
+            <mat-icon class="!text-lg">account_circle</mat-icon>
+            <span class="text-[9px] font-black uppercase tracking-[0.22em] mt-1">Profile</span>
+          </button>
+        </div>
+      </nav>
+    }
+
     <!-- Mobile Menu Overlay -->
     @if (isMobileMenuOpen()) {
-      <div class="fixed inset-0 top-20 z-40 lg:hidden animate-in slide-in-from-top duration-300">
+      <div class="fixed inset-0 top-20 z-50 lg:hidden animate-in slide-in-from-top duration-300">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="toggleMobileMenu()"></div>
         <nav class="relative bg-white border-t border-slate-100 flex flex-col p-6 gap-4 shadow-2xl">
           @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
@@ -194,17 +207,6 @@ import { WebSocketService } from '../../core/services/websocket.service';
           @if (router.url === '/' && !auth.isAuthenticated()) {
             <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">For Business</a>
             <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">How it Works</a>
-          }
-
-          @if (showMessages) {
-            <a [routerLink]="auth.isAuthenticated() ? (auth.userRole() === 'Admin' ? '/admin/messages' : (auth.userRole() === 'Worker' ? '/worker/messages' : '/client/messages')) : '/login'"
-               (click)="toggleMobileMenu()"
-               class="text-lg font-black text-slate-900 py-3 border-b border-slate-50 flex justify-between items-center">
-              Messages
-              @if (state.unreadMessagesCount() > 0) {
-                <span class="px-3 py-1 bg-blue-600 text-white text-xs rounded-full">{{ state.unreadMessagesCount() }}</span>
-              }
-            </a>
           }
 
           @if (auth.userRole() === 'Client') {
@@ -230,10 +232,11 @@ export class NavbarComponent {
   @Input() showHireTalent = true;
   @Input() showMessages = true;
   @Input() pageTitle = '';
+  @Input() bottomNavHeight = 64; // pixels - configurable for other components
   @Input() badge = '';
   auth = inject(AuthService);
   state = inject(PlatformStateService);
-  ws = inject(WebSocketService); // Initialize WebSocket connection
+  ws = inject(WebSocketService); 
   router = inject(Router);
   
   isMobileMenuOpen = signal(false);

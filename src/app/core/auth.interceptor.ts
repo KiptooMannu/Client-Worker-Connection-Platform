@@ -66,20 +66,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     
     const cloned = req.clone({ setHeaders: headers });
     
-    console.debug(`[AuthInterceptor] ${req.method} ${req.url}`, {
-      userRole: userRole || 'role-not-cached',
-      isFormData,
-      hasToken: true
-    });
-    
     return next(cloned).pipe(catchError(handleAuthError));
   }
   
   // No token - still pass request through (for public endpoints like login, register)
-  console.debug('[AuthInterceptor] No auth token available for:', {
-    url: req.url,
-    isPublicEndpoint: req.url.includes('/auth/')
-  });
-  
   return next(req).pipe(catchError(handleAuthError));
 };

@@ -17,83 +17,78 @@ import { NavbarComponent } from '../../shared/components/navbar';
     MatSidenavModule, MatListModule, MatIconModule, MatButtonModule, NavbarComponent
   ],
   template: `
-    <div class="min-h-screen bg-slate-50 flex flex-col font-sans">
+    <div class="min-h-screen bg-surface flex flex-col font-manrope">
       <app-navbar></app-navbar>
-      <mat-sidenav-container class="flex-grow !bg-transparent min-h-0" autosize [hasBackdrop]="(isHandset$ | async) === true">
-        <mat-sidenav #sidenav 
-                     [mode]="(isHandset$ | async) ? 'over' : 'side'" 
-                     [opened]="(isHandset$ | async) === false"
-                     class="admin-sidenav">
-          
-          <div class="flex flex-col h-full p-8 overflow-x-hidden">
-            <!-- Branding -->
-            <div class="flex items-center gap-3 mb-10">
+
+      <div class="flex flex-1 overflow-hidden">
+        <mat-sidenav-container class="flex-1 min-h-0 bg-surface-container-lowest">
+          <mat-sidenav #sidenav
+                       [mode]="(isHandset$ | async) ? 'over' : 'side'"
+                       [opened]="(isHandset$ | async) === false"
+                       class="admin-sidenav">
+            <div class="flex flex-col h-full px-4 py-6">
+              <div class="px-4 py-4 mb-8 rounded-3xl bg-slate-900 text-white shadow-lg border border-slate-800/60">
+                <p class="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Admin Center</p>
+                <h2 class="mt-3 text-lg font-black tracking-tight">Kazi Konnect</h2>
+              </div>
+
+              <nav class="space-y-2">
+                @for (item of menuItems; track item.path) {
+                  <a [routerLink]="item.path"
+                     routerLinkActive="active-link"
+                     class="admin-nav-item flex items-center gap-4 px-4 py-4 rounded-2xl text-slate-700 hover:bg-slate-100 transition-all group">
+                    <mat-icon class="!text-slate-400 group-[.active-link]:!text-indigo-600 transition-colors">{{ item.icon }}</mat-icon>
+                    <span class="text-[11px] font-black uppercase tracking-[0.18em] group-[.active-link]:!text-indigo-700">{{ item.label }}</span>
+                  </a>
+                }
+              </nav>
+
+              <div class="mt-auto pt-8 border-t border-slate-200/80">
+                <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400 font-black mb-3">Admin tools</p>
+                <div class="space-y-3">
+                  <a routerLink="../settings" class="block px-4 py-3 rounded-2xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 transition-all text-[11px] font-black uppercase tracking-[0.18em]">Settings</a>
+                </div>
+              </div>
             </div>
-            
-            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Management Modules</p>
-            
-            <!-- Navigation -->
-             <mat-nav-list class="!p-0 space-y-2">
-               @for (item of menuItems; track item.path) {
-                 <a mat-list-item 
-                    [routerLink]="item.path" 
-                    routerLinkActive="active-link" 
-                    class="admin-nav-item group transition-all duration-200">
-                   <mat-icon matListItemIcon 
-                     class="group-[.active-link]:!text-indigo-600 !text-slate-400 transition-colors">
-                     {{ item.icon }}
-                   </mat-icon>
-                   <span matListItemTitle 
-                     class="text-[11px] font-bold text-slate-600 group-[.active-link]:!text-indigo-700">
-                     {{ item.label }}
-                   </span>
-                 </a>
-               }
-             </mat-nav-list>
+          </mat-sidenav>
 
-
-          </div>
-        </mat-sidenav>
-
-        <mat-sidenav-content class="!bg-slate-50 relative overflow-y-auto overflow-x-hidden">
-          <!-- Background Decoration -->
-          <div class="absolute top-0 left-0 right-0 h-96 bg-gradient-to-b from-indigo-50/50 to-transparent -z-10 pointer-events-none"></div>
-          
-          <div class="p-4 sm:p-6 md:p-8 lg:p-10 max-w-[1600px] mx-auto">
-            <!-- Dynamic Header -->
-            <header class="admin-content-header mb-8 md:mb-10">
-              <div class="flex items-center gap-3 sm:gap-4 md:gap-6">
+          <mat-sidenav-content class="overflow-y-auto">
+            <div class="max-w-[1400px] mx-auto flex-1 p-4 md:p-8 lg:p-10">
+              <div class="flex items-center justify-between gap-4 mb-8">
+                <div>
+                  <h1 class="text-2xl md:text-3xl font-black text-slate-950 tracking-tight">Admin Workspace</h1>
+                  <p class="mt-2 text-sm text-slate-500 max-w-2xl">Manage users, review verifications, and monitor platform activity in a polished admin experience.</p>
+                </div>
                 @if (isHandset$ | async) {
-                  <button (click)="sidenav.toggle()" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center shadow-sm">
+                  <button (click)="sidenav.toggle()" class="w-11 h-11 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center">
                     <mat-icon class="!text-lg">menu</mat-icon>
                   </button>
                 }
-
               </div>
-            </header>
 
-            <main class="animate-in fade-in slide-in-from-bottom-4 duration-700">
-              <router-outlet></router-outlet>
-            </main>
+              <main class="animate-in fade-in slide-in-from-bottom-4 duration-700">
+                <router-outlet></router-outlet>
+              </main>
 
-            <footer class="py-12 flex justify-center items-center">
-              <p class="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
-                &copy; 2024 Kazi Konnect. All rights reserved.
-              </p>
-            </footer>
-          </div>
-        </mat-sidenav-content>
-      </mat-sidenav-container>
+              <footer class="py-12 flex justify-center items-center">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
+                  &copy; 2024 Kazi Konnect. All rights reserved.
+                </p>
+              </footer>
+            </div>
+          </mat-sidenav-content>
+        </mat-sidenav-container>
+      </div>
     </div>
   `,
   styles: [`
     :host { display: block; min-height: 100vh; }
-    
+
     .admin-sidenav {
-      width: 320px !important;
-      border-right: 1px solid rgba(226, 232, 240, 0.6) !important;
-      background-color: rgba(255, 255, 255, 0.8) !important;
-      backdrop-filter: blur(20px);
+      width: 280px !important;
+      background-color: #f8fafc !important;
+      border-right: 1px solid rgba(226, 232, 240, 0.9) !important;
+      box-shadow: inset -1px 0 0 rgba(148, 163, 184, 0.1);
     }
 
     ::ng-deep .mat-drawer-inner-container {
@@ -102,38 +97,33 @@ import { NavbarComponent } from '../../shared/components/navbar';
       flex-direction: column !important;
     }
 
-    ::ng-deep .admin-nav-item {
-      --mdc-list-item-container-shape: 16px;
-      --mdc-list-item-leading-icon-size: 20px;
-      border-radius: 16px !important;
-      margin-bottom: 8px !important;
-      height: 56px !important;
+    .admin-nav-item {
+      border-radius: 1.5rem !important;
+      padding: 1rem 1rem !important;
+      margin-bottom: 0.5rem !important;
+      background-color: transparent !important;
+      min-height: auto !important;
     }
 
-    ::ng-deep .admin-nav-item .mdc-list-item__content {
-      display: flex !important;
-      align-items: center !important;
+    .admin-nav-item:hover {
+      background-color: rgba(248, 250, 252, 1) !important;
     }
 
-    ::ng-deep .admin-nav-item .mat-mdc-list-item-icon {
-      margin-right: 16px !important;
+    .admin-nav-item mat-icon {
+      min-width: 1.5rem !important;
+      min-height: 1.5rem !important;
     }
 
-    .active-link { 
-      background: white !important; 
-      box-shadow: 0 4px 20px -5px rgba(0,0,0,0.05) !important;
-      border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    .active-link {
+      background: white !important;
+      border: 1px solid rgba(226, 232, 240, 0.9) !important;
+      color: #1d4ed8 !important;
+      box-shadow: 0 12px 40px -20px rgba(15, 23, 42, 0.2) !important;
     }
 
-    /* Guard against accidentally duplicated top-right admin header controls. */
-    .admin-content-header > div + div {
-      display: none !important;
-    }
-
-    /* Custom backdrop style */
-    ::ng-deep .mat-drawer-backdrop.mat-drawer-shown { 
-      background-color: rgba(15, 23, 42, 0.4) !important; 
-      backdrop-filter: blur(4px); 
+    ::ng-deep .mat-drawer-backdrop.mat-drawer-shown {
+      background-color: rgba(15, 23, 42, 0.16) !important;
+      backdrop-filter: blur(4px);
     }
   `]
 })
@@ -144,14 +134,14 @@ export class AdminLayout {
     { path: 'dashboard', label: 'Overview', icon: 'grid_view' },
     { path: 'verification', label: 'Verify Users', icon: 'fact_check' },
     { path: 'users', label: 'Users', icon: 'people_alt' },
-    { path: 'messages', label: 'Messages', icon: 'mail' },
-    { path: 'activity', label: 'Activity', icon: 'history_edu' },
+    { path: 'activity', label: 'Activity', icon: 'insights' },
+    { path: 'messages', label: 'Messages', icon: 'forum' },
     { path: 'settings', label: 'Settings', icon: 'settings' }
   ];
 
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
     .pipe(
       map(result => result.matches),
-      shareReplay()
+      shareReplay({ bufferSize: 1, refCount: true })
     );
 }

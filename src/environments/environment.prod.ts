@@ -1,4 +1,7 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://client-search-backend.onrender.com/api'
+  frontendUrl: 'https://client-search-backend.onrender.com',
+  backendUrl: 'https://client-search-backend.onrender.com',
+  apiUrl: 'https://client-search-backend.onrender.com/api',
+  authUrl: 'https://client-search-backend.onrender.com/api/auth'
 };

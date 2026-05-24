@@ -125,28 +125,23 @@ import { NotificationService } from '../../../core/services/notification.service
 
         <!-- Insights (Right) -->
         <div class="col-span-12 lg:col-span-5 space-y-6">
-           <!-- Communications -->
+           <!-- Activity Summary -->
            <mat-card class="!rounded-[24px] !border !border-slate-200/60 !shadow-sm !p-6 bg-white overflow-hidden">
               <div class="flex justify-between items-center mb-6">
                 <div class="flex items-center gap-3">
-                  <h3 class="text-base font-black text-slate-900 tracking-tight">Messaging Overview</h3>
+                  <h3 class="text-base font-black text-slate-900 tracking-tight">Platform Signals</h3>
                 </div>
-                <button routerLink="../messages" class="text-[9px] font-black uppercase text-blue-600 hover:underline">Inbox</button>
+                <button routerLink="../activity" class="text-[9px] font-black uppercase text-blue-600 hover:underline">View activity</button>
               </div>
               <div class="space-y-4">
-                 @for (chat of state.chats().slice(0, 3); track chat.id) {
-                    <div class="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-all cursor-pointer" routerLink="../messages">
-                       <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-xs uppercase overflow-hidden border border-white">
-                          @if (chat.image) { <img [src]="chat.image" class="w-full h-full object-cover"> } @else { {{ chat.initials }} }
-                       </div>
-                       <div class="flex-1 min-w-0">
-                          <p class="text-xs font-black text-slate-900 truncate">{{ chat.name }}</p>
-                          <p class="text-[10px] text-slate-500 truncate">{{ chat.lastMessage }}</p>
-                       </div>
+                 @for (signal of state.activityLogs().slice(0, 3); track signal.id) {
+                    <div class="p-4 rounded-2xl border border-slate-100 hover:border-indigo-100 hover:bg-slate-50 transition-all">
+                       <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400 font-black mb-2">{{ signal.action | uppercase }}</p>
+                       <p class="text-sm font-black text-slate-900 truncate">{{ signal.reason || signal.action }}</p>
                     </div>
                  }
-                 @if (state.chats().length === 0) {
-                    <p class="py-8 text-center text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">No recent messages</p>
+                 @if (state.activityLogs().length === 0) {
+                    <p class="py-8 text-center text-[10px] text-slate-400 font-black uppercase tracking-widest bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">No activity yet</p>
                  }
               </div>
            </mat-card>

@@ -60,7 +60,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <div class="space-y-1.5">
                 <div class="flex justify-between items-center px-1">
                   <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider" for="password">Password</label>
-                  <a class="font-label-sm text-[11px] font-bold text-primary hover:underline cursor-pointer">Forgot?</a>
+                  <a routerLink="/reset-password" class="font-label-sm text-[11px] font-bold text-primary hover:underline cursor-pointer">Forgot?</a>
                 </div>
                 <div class="relative group">
                   <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">

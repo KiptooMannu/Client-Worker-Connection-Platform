@@ -17,6 +17,11 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/register/register').then(m => m.RegisterPage)
   },
+  {
+    path: 'reset-password',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/password-reset/password-reset.component').then(m => m.PasswordResetComponent)
+  },
 
   { path: 'workers', redirectTo: 'client/marketplace', pathMatch: 'full' },
   { path: 'clients', redirectTo: 'client', pathMatch: 'full' },

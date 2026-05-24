@@ -72,6 +72,15 @@ import { NotificationService } from '../../../core/services/notification.service
               </div>
 
               <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Username <span class="text-rose-500">*</span></label>
+                <div class="relative group">
+                  <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path></svg>
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                         placeholder="username" type="text" name="username" [(ngModel)]="username" required/>
+                </div>
+              </div>
+
+              <div class="space-y-1.5">
                 <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Account Type <span class="text-rose-500">*</span></label>
                 <div class="flex p-1 bg-slate-50 border border-slate-100 rounded-full gap-1 h-11">
                   <button (click)="role = 'Client'" 
@@ -156,6 +165,7 @@ export class RegisterPage implements OnInit {
   firstName = '';
   secondName = '';
   email = '';
+  username = '';
   password = '';
   confirmPassword = '';
   role: UserRole = 'Client';
@@ -172,7 +182,7 @@ export class RegisterPage implements OnInit {
   }
 
   onSubmit() {
-    if (!this.firstName.trim() || !this.secondName.trim() || !this.email.trim() || !this.password.trim()) {
+    if (!this.firstName.trim() || !this.secondName.trim() || !this.email.trim() || !this.username.trim() || !this.password.trim()) {
       this.notification.error('Please fill in all mandatory fields.');
       return;
     }
@@ -183,7 +193,7 @@ export class RegisterPage implements OnInit {
     }
     
     this.loading.set(true);
-    this.auth.register(this.firstName, this.secondName, this.email, this.role, this.password).subscribe({
+    this.auth.register(this.firstName, this.secondName, this.email, this.role, this.password, this.username).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/login']);

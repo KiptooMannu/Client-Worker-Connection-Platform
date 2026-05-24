@@ -30,8 +30,7 @@ export class AuthService {
   userRole = computed(() => this.userSignal()?.role || null);
 
   private users: User[] = [];
-  private apiUrl = environment.apiUrl + '/auth';
-  // private authUrl = environment.authUrl; // kazi_konnect auth backend
+  private apiUrl = environment.authUrl;
 
   private platformId = inject(PLATFORM_ID);
   private http = inject(HttpClient);
@@ -151,4 +150,38 @@ export class AuthService {
       default: this.router.navigate(['/']);
     }
   }
+
+  /**
+   * Request a password reset token by email
+   */
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/password-reset/request`, { email }, { responseType: 'text' }).pipe(
+      tap(() => this.notification.success('Password reset link sent to your email!')),
+      catchError(error => {
+        const errorMsg = typeof error.error === 'string'
+          ? error.error
+          : error.error?.message || 'Failed to send reset link. Please try again.';
+        this.notification.error(errorMsg);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Confirm password reset with token and new password
+   */
+  confirmPasswordReset(resetToken: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/password-reset/confirm`, { 
+      token: resetToken, 
+      newPassword: newPassword 
+    }, { responseType: 'text' }).pipe(
+      tap(() => this.notification.success('Password reset successfully! You can now log in with your new password.')),
+      catchError(error => {
+        const errorMsg = error.error?.message || 'Failed to reset password. Please try again.';
+        this.notification.error(errorMsg);
+        return throwError(() => error);
+      })
+    );
+  }
 }
+
