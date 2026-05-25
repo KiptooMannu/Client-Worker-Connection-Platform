@@ -1,9 +1,9 @@
   export const environment = {
     production: false,
-    frontendUrl: 'http://localhost:4200',
-    backendUrl: 'http://localhost:8080',
+    frontendUrl: 'https://client-worker-connection-platform.vercel.app/',
+    backendUrl: 'https://client-search-backend.onrender.com/api',
     apiUrl: 'https://client-search-backend.onrender.com/api',
 
-    authUrl: 'http://localhost:8080/api/auth'
+    authUrl: 'https://client-search-backend.onrender.com/api/auth'
   };
 

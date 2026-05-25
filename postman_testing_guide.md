@@ -8,7 +8,7 @@ This guide follows the "Client Connection Platform" workflow from registration t
 
 ### 1. Register a new Worker
 - **Method:** `POST`
-- **URL:** `http://localhost:8080/api/auth/register`
+- **URL:** `https://client-search-backend.onrender.com/api/auth/register`
 - **Body (JSON):**
   ```json
   {
@@ -22,7 +22,7 @@ This guide follows the "Client Connection Platform" workflow from registration t
 
 ### 2. Login as Worker (Get Token)
 - **Method:** `POST`
-- **URL:** `http://localhost:8080/api/auth/login`
+- **URL:** `https://client-search-backend.onrender.com/api/auth/login`
 - **Body (JSON):**
   ```json
   {
@@ -39,7 +39,7 @@ This guide follows the "Client Connection Platform" workflow from registration t
 ### 3. Create Worker Profile
 - **Setup:** Go to **Authorization** tab -> **Bearer Token** -> Paste Worker Token.
 - **Method:** `POST`
-- **URL:** `http://localhost:8080/api/workers/profile?email=kevin@worker.com`
+- **URL:** `https://client-search-backend.onrender.com/api/workers/profile?email=kevin@worker.com`
 - **Body (JSON):**
   ```json
   {
@@ -55,7 +55,7 @@ This guide follows the "Client Connection Platform" workflow from registration t
 ### 4. Upload Verification Documents
 - **Setup:** Authorization: Bearer Token.
 - **Method:** `POST`
-- **URL:** `http://localhost:8080/api/documents?workerProfileId={{worker_id}}&type=ID_CARD&name=National_ID`
+- **URL:** `https://client-search-backend.onrender.com/api/documents?workerProfileId={{worker_id}}&type=ID_CARD&name=National_ID`
 - **Body (form-data):** `file` (Select an image)
 - **Expected Response:** `200 OK` - Document URL.
 
@@ -65,7 +65,7 @@ This guide follows the "Client Connection Platform" workflow from registration t
 
 ### 5. Login as Admin
 - **Method:** `POST`
-- **URL:** `http://localhost:8080/api/auth/login`
+- **URL:** `https://client-search-backend.onrender.com/api/auth/login`
 - **Body (JSON):**
   ```json
   {
@@ -78,13 +78,13 @@ This guide follows the "Client Connection Platform" workflow from registration t
 ### 6. View Pending Workers
 - **Setup:** Authorization: Bearer Admin Token.
 - **Method:** `GET`
-- **URL:** `http://localhost:8080/api/admin/workers/pending`
+- **URL:** `https://client-search-backend.onrender.com/api/admin/workers/pending`
 - **Expected Response:** List containing Kevin's profile.
 
 ### 7. Approve Worker
 - **Setup:** Authorization: Bearer Admin Token.
 - **Method:** `PUT`
-- **URL:** `http://localhost:8080/api/admin/workers/{{worker_id}}/approve?adminId={{admin_user_id}}`
+- **URL:** `https://client-search-backend.onrender.com/api/admin/workers/{{worker_id}}/approve?adminId={{admin_user_id}}`
 - **Expected Response:** `"Worker verified and is now live!"`
 
 ---
@@ -98,13 +98,13 @@ This guide follows the "Client Connection Platform" workflow from registration t
 ### 9. Search for Verified Workers
 - **Setup:** No Auth needed (Public Search).
 - **Method:** `GET`
-- **URL:** `http://localhost:8080/api/marketplace/search?location=Nairobi`
+- **URL:** `https://client-search-backend.onrender.com/api/marketplace/search?location=Nairobi`
 - **Expected Response:** List containing Kevin (since he is now approved).
 
 ### 10. Initiate Job Request
 - **Setup:** Authorization: Bearer Client Token.
 - **Method:** `POST`
-- **URL:** `http://localhost:8080/api/jobs/request?clientId={{client_user_id}}&workerProfileId={{worker_id}}`
+- **URL:** `https://client-search-backend.onrender.com/api/jobs/request?clientId={{client_user_id}}&workerProfileId={{worker_id}}`
 - **Body (JSON):**
   ```json
   {
@@ -122,14 +122,14 @@ This guide follows the "Client Connection Platform" workflow from registration t
 ### 11. Send Message to Worker
 - **Setup:** Authorization: Bearer Client Token.
 - **Method:** `POST`
-- **URL:** `http://localhost:8080/api/messages?senderId={{client_id}}&receiverId={{worker_id}}`
+- **URL:** `https://client-search-backend.onrender.com/api/messages?senderId={{client_id}}&receiverId={{worker_id}}`
 - **Body (JSON):** `{ "content": "I've sent a request, please check." }`
 - **Expected Response:** `200 OK`.
 
 ### 12. Complete Job & Leave Review
 - **Setup:** Authorization: Bearer Client Token.
 - **Method:** `POST`
-- **URL:** `http://localhost:8080/api/reviews?clientId={{client_id}}&workerProfileId={{worker_id}}`
+- **URL:** `https://client-search-backend.onrender.com/api/reviews?clientId={{client_id}}&workerProfileId={{worker_id}}`
 - **Body (JSON):**
   ```json
   {
