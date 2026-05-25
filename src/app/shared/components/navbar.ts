@@ -169,6 +169,9 @@ import { WebSocketService } from '../../core/services/websocket.service';
       </div>
     </header>
 
+    <!-- Spacer for fixed header so page content starts below the top navbar -->
+    <div class="h-20"></div>
+
     @if (auth.isAuthenticated()) {
       <nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-2 shadow-[0_-8px_40px_-24px_rgba(15,23,42,0.45)]" [style.--bottom-nav-height.px]="bottomNavHeight">
         <div class="flex items-center justify-between">
