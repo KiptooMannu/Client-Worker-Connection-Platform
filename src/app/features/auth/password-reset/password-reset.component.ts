@@ -108,7 +108,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
                 <strong>✅ Reset link sent</strong>
                 <p class="mt-2 text-sm">A link has been sent to <strong>{{ requestForm.get('email')?.value }}</strong>.</p>
               </div>
-              <p class="text-sm text-secondary">Click the link in your email to reset your password. The link expires in 1 hour.</p>
+              <p class="text-sm text-secondary">Click the link in your email to reset your password. The link expires in 15 minutes.</p>
               <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98]"
                       type="button"
                       (click)="onBackToRequest()"

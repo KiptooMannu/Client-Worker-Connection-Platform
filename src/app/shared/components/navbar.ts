@@ -59,7 +59,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
                 Hire Workers
               </a>
             }
-            @if (router.url === '/' && !auth.isAuthenticated()) {
+            @if (!auth.isAuthenticated()) {
               <a routerLink="/enterprise" routerLinkActive="active-link" 
                  class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
                 For Business
@@ -204,7 +204,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
             <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Hire Workers</a>
           }
           
-          @if (router.url === '/' && !auth.isAuthenticated()) {
+          @if (!auth.isAuthenticated()) {
             <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">For Business</a>
             <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">How it Works</a>
           }
