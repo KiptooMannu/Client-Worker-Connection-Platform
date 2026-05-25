@@ -118,20 +118,21 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
             </div>
 
             <div *ngIf="resetToken" class="space-y-4 text-left">
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="newPassword">New Password</label>
-                <div class="relative group">
-                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+              <form [formGroup]="confirmForm" (ngSubmit)="onConfirmSubmit()" class="space-y-4 text-left">
+                <div class="space-y-1.5">
+                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="newPassword">New Password</label>
+                  <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <input id="newPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                           type="password"
+                           formControlName="newPassword"
+                           placeholder="Enter new password (min 8 characters)"
+                      />
                   </div>
-                  <input id="newPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
-                         type="password"
-                         formControlName="newPassword"
-                         placeholder="Enter new password (min 8 characters)"
-                    />
+                  <p *ngIf="confirmForm.get('newPassword')?.invalid && confirmForm.get('newPassword')?.touched" class="text-sm text-rose-600">Password must be at least 8 characters.</p>
                 </div>
-                <p *ngIf="confirmForm.get('newPassword')?.invalid && confirmForm.get('newPassword')?.touched" class="text-sm text-rose-600">Password must be at least 8 characters.</p>
-              </div>
 
               <div class="space-y-1.5">
                 <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="confirmPassword">Confirm Password</label>
@@ -162,6 +163,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
                 </span>
                 <span *ngIf="!confirmLoading">Reset Password</span>
               </button>
+              </form>
             </div>
 
             <div *ngIf="resetSuccess" class="space-y-6 text-left">
