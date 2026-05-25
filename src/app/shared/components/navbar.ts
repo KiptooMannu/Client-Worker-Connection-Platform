@@ -232,7 +232,7 @@ export class NavbarComponent {
   @Input() showHireTalent = true;
   @Input() showMessages = true;
   @Input() pageTitle = '';
-  @Input() bottomNavHeight = 64; // pixels - configurable for other components
+  @Input() bottomNavHeight = 64; 
   @Input() badge = '';
   auth = inject(AuthService);
   state = inject(PlatformStateService);
