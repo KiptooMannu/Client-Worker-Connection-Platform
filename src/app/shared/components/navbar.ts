@@ -193,6 +193,8 @@ import { WebSocketService } from '../../core/services/websocket.service';
           </button>
         </div>
       </nav>
+
+      <div class="lg:hidden" [style.height.px]="bottomNavHeight"></div>
     }
 
     <!-- Mobile Menu Overlay -->

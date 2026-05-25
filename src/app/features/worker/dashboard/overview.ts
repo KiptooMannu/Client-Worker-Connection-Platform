@@ -182,10 +182,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <h2 class="text-[10px] font-black text-primary mb-6 uppercase tracking-[0.25em]">Profile Completion</h2>
             
             <div class="space-y-6 relative">
-              <div class="absolute left-3 top-2 bottom-2 w-px bg-outline-variant/30"></div>
+              <div class="absolute left-4 top-3 bottom-3 w-px bg-outline-variant/30"></div>
               
               @for (step of steps; track step.id; let i = $index) {
-                <div class="flex gap-4 relative z-10">
+                <div class="flex gap-4 relative z-10 items-start">
                   <div class="w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0"
                        [ngClass]="currentStep() > i + 1 ? 'bg-primary text-white' : (currentStep() === i + 1 ? 'bg-white border border-primary text-primary' : 'bg-white border border-outline-variant text-outline')">
                       @if (currentStep() > i + 1) {
@@ -290,10 +290,10 @@ export class WorkerDashboardOverviewPage {
   });
 
   steps = [
-    { id: 'profile', label: 'Professional Profile', desc: 'Bio & Skills', icon: 'person' },
-    { id: 'documents', label: 'ID Verification', desc: 'Upload Credentials', icon: 'badge' },
-    { id: 'review', label: 'Admin Approval', desc: 'Trust Audit', icon: 'security' }
-  ];
+    { id: 'profile', order: 1, label: 'Professional Profile', desc: 'Bio & Skills', icon: 'person' },
+    { id: 'documents', order: 2, label: 'ID Verification', desc: 'Upload Credentials', icon: 'badge' },
+    { id: 'review', order: 3, label: 'Admin Approval', desc: 'Trust Audit', icon: 'security' }
+  ].sort((a, b) => a.order - b.order);
 
   currentStep = computed(() => {
     const s = this.worker().status;

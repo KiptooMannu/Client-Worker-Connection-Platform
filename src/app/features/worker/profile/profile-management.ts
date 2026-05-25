@@ -60,13 +60,13 @@ import { AuthService } from '../../../core/services/auth.service';
               </div>
             }
           </div>
-          <button (click)="avatarInput.click()" class="absolute -bottom-2 -right-2 bg-primary text-white p-2.5 rounded-lg shadow-lg active:scale-95 transition-transform hover:bg-primary-container">
+          <button (click)="avatarInput.click()" class="absolute -bottom-5 -right-5 z-20 bg-white text-slate-900 p-3 rounded-2xl shadow-2xl active:scale-95 transition-transform hover:bg-slate-100 border border-slate-200">
             <span class="material-symbols-outlined text-[20px]">photo_camera</span>
           </button>
           <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
           
           @if (worker().image) {
-            <button (click)="removeProfilePicture()" class="absolute -top-2 -right-2 w-7 h-7 bg-surface border border-outline-variant text-error rounded-full flex items-center justify-center shadow-md hover:bg-error-container transition-colors">
+            <button (click)="removeProfilePicture()" class="absolute -top-5 -right-5 z-20 w-8 h-8 bg-white border border-outline-variant text-error rounded-full flex items-center justify-center shadow-2xl hover:bg-error/10 transition-colors">
               <mat-icon class="!text-[16px]">delete_outline</mat-icon>
             </button>
           }
