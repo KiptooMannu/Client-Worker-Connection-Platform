@@ -37,15 +37,11 @@ import { NavbarComponent } from '../../shared/components/navbar';
             
             <div class="relative group">
               <div class="w-full aspect-square bg-white rounded-[3rem] shadow-2xl border border-white relative overflow-hidden group-hover:rotate-1 transition-transform duration-700">
-                <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-indigo-500/10"></div>
-                <div class="p-12 space-y-8 relative z-10">
-                  <div class="w-full h-12 bg-slate-50 rounded-xl animate-pulse"></div>
-                  <div class="grid grid-cols-2 gap-4">
-                    <div class="h-32 bg-slate-50 rounded-3xl animate-pulse"></div>
-                    <div class="h-32 bg-slate-50 rounded-3xl animate-pulse delay-75"></div>
-                  </div>
-                  <div class="h-48 bg-slate-100/50 rounded-[2.5rem] animate-pulse delay-150"></div>
-                </div>
+                <img 
+                  src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=600&fit=crop" 
+                  alt="Professional team collaborating" 
+                  class="w-full h-full object-cover"
+                />
               </div>
               <!-- Floating Badge -->
               <div class="absolute -top-8 -right-8 w-32 h-32 bg-indigo-600 rounded-full flex flex-col items-center justify-center text-white text-center p-4 shadow-2xl animate-bounce-slow">

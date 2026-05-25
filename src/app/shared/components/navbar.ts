@@ -20,7 +20,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
     MatMenuModule
   ],
   template: `
-    <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm flex justify-between items-center px-4 sm:px-6 md:px-12 h-20 w-full sticky top-0 z-50 backdrop-blur-md bg-white/90 gap-8">
+    <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm flex justify-between items-center px-4 sm:px-6 md:px-12 h-20 w-full fixed top-0 left-0 right-0 z-[99999] backdrop-blur-md bg-white/90 gap-8">
       <div class="flex items-center gap-4 md:gap-8 min-w-0 flex-1">
         <div class="flex items-center gap-3 cursor-pointer group shrink-0" routerLink="/">
           <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
