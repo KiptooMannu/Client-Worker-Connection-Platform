@@ -97,6 +97,27 @@
   animation: bounce-subtle 3s infinite ease-in-out;
 }
 
+/* Hero mockup styles */
+.hero-image-panel { position: relative; display: block; }
+.hero-image-bg { position: absolute; inset: 0; border-radius: 3rem; background: rgba(255,255,255,0.96); box-shadow: 0 40px 120px rgba(15,23,42,0.08); }
+.phone-mockup { position: absolute; border-radius: 2rem; box-shadow: 0 40px 90px rgba(15,23,42,0.14), 0 14px 40px rgba(15,23,42,0.08); width: 320px; height: 650px; object-fit: cover; transform-origin: center center; background: #fff; border: 18px solid #fff; }
+.phone-mockup-1 { left: 38%; top: 50%; z-index: 30; transform: translate(-50%, -50%) rotate(-10deg); width: 340px; height: 700px; }
+.phone-mockup-2 { left: 62%; top: 50%; z-index: 20; transform: translate(-50%, -50%) rotate(10deg); width: 280px; height: 580px; border-radius: 2rem; box-shadow: 0 30px 80px rgba(15,23,42,0.10); }
+.trust-card { min-width: 220px; }
+
+/* Hero typography scale improvements */
+.hero-cta-large { padding-left: 3rem !important; padding-right: 3rem !important; padding-top: 1.25rem !important; padding-bottom: 1.25rem !important; border-radius: 2rem !important; }
+
+/* Slightly larger heading - keep responsive */
+h1.text-4xl { font-size: 2.75rem !important; }
+h1.text-4xl sm\:text-6xl { font-size: 3.5rem !important; }
+
+@media (min-width: 1024px) {
+  .phone-mockup { width: 360px; height: 720px; border-width: 18px; }
+  .phone-mockup-1 { left: 40%; top: 48%; width: 380px; height: 780px; transform: translate(-50%, -50%) rotate(-10deg); }
+  .phone-mockup-2 { left: 62%; top: 52%; width: 300px; height: 620px; transform: translate(-50%, -50%) rotate(10deg); }
+}
+
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined' !important;
   font-style: normal;
@@ -180,6 +201,94 @@ mat-icon:empty {
   --calm-primary-soft: #f8fafc;
   --calm-accent: #64748b;
   --calm-brand-blue: #2563eb;
+  --brand-teal: #32B3C2;
+  --brand-teal-dark: #279ca5;
+  --brand-teal-soft: #def3f4;
+  --brand-text: #0f172a;
+}
+
+.btn-brand {
+  background-color: var(--brand-teal);
+  color: white;
+  border: 1px solid transparent;
+}
+
+.btn-brand:hover,
+.btn-brand:focus-visible {
+  background-color: var(--brand-teal-dark);
+}
+
+.btn-brand-outline {
+  background-color: transparent;
+  color: var(--brand-teal);
+  border: 1px solid var(--brand-teal);
+}
+
+.hero-pill {
+  background-color: rgba(50, 179, 194, 0.12);
+  color: var(--brand-text);
+  border: 1px solid rgba(50, 179, 194, 0.24);
+}
+
+.text-brand-teal {
+  color: var(--brand-teal) !important;
+}
+
+.text-brand-text {
+  color: var(--brand-text) !important;
+}
+
+.bg-brand-teal {
+  background-color: var(--brand-teal) !important;
+}
+
+.bg-brand-teal-dark {
+  background-color: var(--brand-teal-dark) !important;
+}
+
+.bg-brand-teal-soft {
+  background-color: var(--brand-teal-soft) !important;
+}
+
+.bg-brand-teal-10 {
+  background-color: rgba(50, 179, 194, 0.1) !important;
+}
+
+.border-brand-teal {
+  border-color: var(--brand-teal) !important;
+}
+
+.hover-text-brand-teal:hover {
+  color: var(--brand-teal) !important;
+}
+
+.hover-border-brand-teal:hover {
+  border-color: var(--brand-teal) !important;
+}
+
+.hover-bg-brand-teal:hover {
+  background-color: var(--brand-teal) !important;
+}
+
+.hover-bg-brand-teal-dark:hover {
+  background-color: var(--brand-teal-dark) !important;
+}
+
+.hover-bg-brand-teal-soft:hover {
+  background-color: var(--brand-teal-soft) !important;
+}
+
+.shadow-brand-teal {
+  box-shadow: 0 25px 50px -25px rgba(50, 179, 194, 0.25) !important;
+}
+
+.mobile-menu-nav {
+  color: white;
+}
+
+.mobile-menu-nav a,
+.mobile-menu-nav button {
+  color: white;
 }
 
 .bg-indigo-600,

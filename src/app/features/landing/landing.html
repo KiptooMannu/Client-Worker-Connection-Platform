@@ -5,21 +5,21 @@
     <section class="relative pt-24 pb-32 lg:pt-40 lg:pb-56">
         <!-- Background Decoration -->
         <div class="absolute top-0 right-0 -z-10 w-full h-full opacity-30">
-            <div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-indigo-100 rounded-full blur-[120px]"></div>
-            <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-50 rounded-full blur-[100px]">
+            <div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-teal-soft rounded-full blur-[120px]"></div>
+            <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-brand-teal-soft rounded-full blur-[100px]">
             </div>
         </div>
 
         <div class="max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-12 gap-20 items-center">
             <div class="lg:col-span-7 z-10">
                 <div
-                    class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest mb-10 border border-indigo-100">
+                    class="inline-flex items-center gap-2 px-4 py-1.5 hero-pill rounded-full text-[10px] font-black uppercase tracking-widest mb-10">
                     <mat-icon class="!text-[14px] !w-auto !h-auto">verified</mat-icon>
                     Verified Professional Ecosystem
                 </div>
                 <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-slate-900 mb-6 lg:mb-8 tracking-tighter leading-[1.1] lg:leading-[0.95]">
                     Elite Talent. <br>
-                    <span class="text-indigo-600">Absolute Trust.</span>
+                    <span class="text-brand-teal">Absolute Trust.</span>
                 </h1>
                 <p class="text-lg lg:text-xl text-slate-500 mb-8 lg:mb-12 max-w-xl font-medium leading-relaxed">
                     The premium marketplace for verified local professionals. Secure your high-stakes projects with our
@@ -27,11 +27,11 @@
                 </p>
                 <div class="flex flex-col sm:flex-row gap-4">
                     <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
-                        class="bg-slate-900 text-white font-black text-xs uppercase tracking-[0.2em] px-10 py-6 rounded-[1.5rem] shadow-2xl hover:bg-indigo-600 hover:-translate-y-1 transition-all active:scale-95">
+                        class="btn-brand hero-cta-large text-xs font-black uppercase tracking-[0.18em] shadow-2xl transform-gpu transition-all hover:translate-y-[-2px]">
                         Discover Experts
                     </button>
                     <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
-                        class="bg-white text-slate-900 border-2 border-slate-100 font-black text-xs uppercase tracking-[0.2em] px-10 py-6 rounded-[1.5rem] hover:border-indigo-600 hover:text-indigo-600 transition-all active:scale-95">
+                        class="btn-brand-outline hero-cta-large text-xs font-black uppercase tracking-[0.18em]">
                         Apply to Join
                     </button>
                 </div>
@@ -56,25 +56,24 @@
                 </div>
             </div>
 
-            <div class="lg:col-span-5 relative">
-                <div
-                    class="aspect-[4/5] rounded-[4rem] overflow-hidden shadow-2xl border-[12px] border-white relative group">
-                    <img alt="Professional Team"
-                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                        src="https://images.unsplash.com/photo-1552664730-d307ca884978?w=600&h=800&fit=crop" />
-                    <div class="absolute inset-0 bg-indigo-600/10 mix-blend-overlay"></div>
-                </div>
-                <!-- Floating Trust Card -->
-                <div
-                    class="absolute -bottom-10 -left-10 bg-white p-6 rounded-[2.5rem] shadow-2xl border border-slate-50 flex items-center gap-6 animate-bounce-slow">
-                    <div
-                        class="w-12 h-12 lg:w-16 lg:h-16 rounded-[1rem] lg:rounded-3xl bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
-                        <mat-icon class="!text-3xl">verified_user</mat-icon>
-                    </div>
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Trust Status
-                        </p>
-                        <p class="text-lg font-black text-slate-900 tracking-tight">Fully Verified</p>
+            <div class="lg:col-span-5 relative flex items-center justify-center">
+                <div class="relative w-full max-w-[520px] lg:max-w-[620px] py-6 lg:py-0">
+                    <div class="hero-image-panel relative mx-auto w-full min-h-[520px] lg:min-h-[700px] flex items-center justify-center">
+                        <div class="hero-image-bg absolute inset-0 rounded-[3rem] bg-white/90 shadow-2xl"></div>
+                        <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80" alt="App interface mockup"
+                            class="phone-mockup phone-mockup-2" />
+                        <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=800&q=80" alt="Professional team collaboration"
+                            class="phone-mockup phone-mockup-1" />
+                        <div
+                            class="trust-card absolute right-4 bottom-10 lg:right-[-24px] lg:bottom-14 bg-white p-5 rounded-[2rem] shadow-2xl border border-slate-100 flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-xl bg-brand-teal flex items-center justify-center text-white shadow-lg">
+                                <mat-icon class="!text-2xl">verified_user</mat-icon>
+                            </div>
+                            <div>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Trust Status</p>
+                                <p class="text-lg font-black text-slate-900 tracking-tight">Fully Verified</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -100,7 +99,7 @@
     <section class="py-32 bg-[#fafafa]">
         <div class="max-w-7xl mx-auto px-6 lg:px-12 mb-24">
             <div class="flex flex-col items-center text-center">
-                <div class="w-2 h-12 bg-indigo-600 rounded-full mb-8"></div>
+                <div class="w-2 h-12 bg-brand-teal rounded-full mb-8"></div>
                 <h2 class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight mb-6 leading-tight">Uncompromising
                     Standards</h2>
                 <p class="text-xl text-slate-500 max-w-2xl font-medium leading-relaxed">We've engineered Kazi Konnect to
@@ -112,7 +111,7 @@
             <div
                 class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
                 <div
-                    class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center text-indigo-600 mb-8 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                    class="w-14 h-14 bg-brand-teal-soft rounded-2xl flex items-center justify-center text-brand-teal mb-8 group-hover:bg-brand-teal group-hover:text-white transition-colors">
                     <mat-icon>shield</mat-icon>
                 </div>
                 <h3 class="text-xl font-black text-slate-900 mb-4 tracking-tight">Strict Vetting</h3>
@@ -122,7 +121,7 @@
             <div
                 class="bg-white p-12 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
                 <div
-                    class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                    class="w-14 h-14 bg-brand-teal-soft rounded-2xl flex items-center justify-center text-brand-teal mb-8 group-hover:bg-brand-teal group-hover:text-white transition-colors">
                     <mat-icon>location_searching</mat-icon>
                 </div>
                 <h3 class="text-xl font-black text-slate-900 mb-4 tracking-tight">Hyper-Local</h3>
@@ -142,7 +141,7 @@
             <div
                 class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
                 <div
-                    class="w-14 h-14 bg-rose-50 rounded-2xl flex items-center justify-center text-rose-600 mb-8 group-hover:bg-rose-600 group-hover:text-white transition-colors">
+                    class="w-14 h-14 bg-brand-teal-soft rounded-2xl flex items-center justify-center text-brand-teal mb-8 group-hover:bg-brand-teal group-hover:text-white transition-colors">
                     <mat-icon>gavel</mat-icon>
                 </div>
                 <h3 class="text-xl font-black text-slate-900 mb-4 tracking-tight">Governance</h3>
@@ -156,25 +155,24 @@
     <section class="py-40 bg-white">
         <div class="max-w-7xl mx-auto px-6 lg:px-12">
             <div class="flex justify-center gap-12 mb-24 overflow-x-auto pb-4 scrollbar-hide">
-                <button (click)="selectedOverview.set('trust')" [class.text-indigo-600]="selectedOverview() === 'trust'"
-                    [class.border-indigo-600]="selectedOverview() === 'trust'"
-                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover:text-indigo-600">
+                <button (click)="selectedOverview.set('trust')"
+                    [ngClass]="{ 'text-brand-teal border-brand-teal': selectedOverview() === 'trust' }"
+                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover-text-brand-teal">
                     Trust & Safety
                 </button>
-                <button (click)="selectedOverview.set('scale')" [class.text-indigo-600]="selectedOverview() === 'scale'"
-                    [class.border-indigo-600]="selectedOverview() === 'scale'"
-                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover:text-indigo-600">
+                <button (click)="selectedOverview.set('scale')"
+                    [ngClass]="{ 'text-brand-teal border-brand-teal': selectedOverview() === 'scale' }"
+                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover-text-brand-teal">
                     Marketplace Scale
                 </button>
                 <button (click)="selectedOverview.set('settlement')"
-                    [class.text-indigo-600]="selectedOverview() === 'settlement'"
-                    [class.border-indigo-600]="selectedOverview() === 'settlement'"
-                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover:text-indigo-600">
+                    [ngClass]="{ 'text-brand-teal border-brand-teal': selectedOverview() === 'settlement' }"
+                    class="whitespace-nowrap text-[11px] font-black uppercase tracking-[0.3em] pb-6 border-b-4 border-transparent transition-all hover-text-brand-teal">
                     Secure Settlement
                 </button>
             </div>
 
-            <div class="bg-indigo-950 rounded-[4rem] p-10 lg:p-16 text-white relative overflow-hidden group shadow-2xl">
+            <div class="bg-brand-teal-dark rounded-[4rem] p-10 lg:p-16 text-white relative overflow-hidden group shadow-2xl">
                 <!-- Background visual -->
                 <div
                     class="absolute inset-0 opacity-20 grayscale group-hover:scale-105 transition-transform duration-[2s]">
@@ -192,12 +190,12 @@
                         </h3>
                     </div>
                     <div>
-                        <p class="text-xl text-indigo-100 font-medium leading-relaxed mb-16">
+                        <p class="text-xl text-[rgba(255,255,255,0.85)] font-medium leading-relaxed mb-16">
                             {{ overviews[selectedOverview()].description }}
                         </p>
                         <div
                             class="flex items-center gap-6 p-6 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-md">
-                            <div class="w-12 h-12 bg-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
+                            <div class="w-12 h-12 bg-brand-teal rounded-2xl flex items-center justify-center shadow-lg">
                                 <mat-icon>analytics</mat-icon>
                             </div>
                             <span class="text-xs font-black uppercase tracking-[0.2em] text-white">
@@ -216,27 +214,27 @@
             <div class="bg-slate-900 rounded-[4rem] p-16 lg:p-32 text-center relative overflow-hidden shadow-2xl">
                 <div class="relative z-10">
                     <h2 class="text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tighter mb-8 lg:mb-10 leading-tight lg:leading-none">Elevate
-                        Your Standard. <br class="hidden sm:block"> <span class="text-indigo-400">Join Kazi Konnect.</span></h2>
+                        Your Standard. <br class="hidden sm:block"> <span class="text-brand-teal">Join Kazi Konnect.</span></h2>
                     <p class="text-lg md:text-xl text-slate-400 mb-16 max-w-2xl mx-auto font-medium">Join the community where
                         professional integrity is the ultimate currency. Start your journey today.</p>
 
                     <div class="flex flex-col sm:flex-row gap-8 justify-center">
                         <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
-                            class="bg-indigo-600 text-white px-12 py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-indigo-600/20 hover:bg-indigo-700 hover:scale-105 transition-all active:scale-95">
+                            class="bg-brand-teal text-white px-12 py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-brand-teal hover-bg-brand-teal-dark hover:scale-105 transition-all active:scale-95">
                             Hire Workers
                         </button>
                         <button [routerLink]="['/register']" [queryParams]="{role: 'worker'}"
-                            class="bg-white text-slate-900 px-12 py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-slate-50 hover:scale-105 transition-all active:scale-95">
+                            class="bg-white text-brand-text px-12 py-6 rounded-[1.5rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl hover-bg-brand-teal-soft hover:scale-105 transition-all active:scale-95">
                             Join as a Worker
                         </button>
                     </div>
                 </div>
                 <!-- Abstract Glows -->
                 <div
-                    class="absolute top-0 left-0 w-96 h-96 bg-indigo-600 rounded-full -translate-x-1/2 -translate-y-1/2 blur-[150px] opacity-20">
+                    class="absolute top-0 left-0 w-96 h-96 bg-brand-teal rounded-full -translate-x-1/2 -translate-y-1/2 blur-[150px] opacity-20">
                 </div>
                 <div
-                    class="absolute bottom-0 right-0 w-96 h-96 bg-emerald-500 rounded-full translate-x-1/2 translate-y-1/2 blur-[150px] opacity-10">
+                    class="absolute bottom-0 right-0 w-96 h-96 bg-brand-teal-dark rounded-full translate-x-1/2 translate-y-1/2 blur-[150px] opacity-10">
                 </div>
             </div>
         </div>
@@ -249,7 +247,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-20 mb-24">
             <div class="lg:col-span-2">
                 <div class="flex items-center gap-3 mb-8">
-                    <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white">
+                    <div class="w-8 h-8 bg-brand-teal rounded-lg flex items-center justify-center text-white">
                         <mat-icon class="!text-sm">hub</mat-icon>
                     </div>
                     <span class="text-2xl font-black text-white tracking-tighter">Kazi Konnect</span>
@@ -259,7 +257,7 @@
                 <div class="flex gap-6">
                     @for (icon of ['facebook', 'twitter', 'linkedin', 'instagram']; track icon) {
                     <a href="#"
-                        class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white hover:bg-indigo-600 transition-all">
+                        class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white hover-bg-brand-teal transition-all">
                         <mat-icon class="!text-lg">{{ icon }}</mat-icon>
                     </a>
                     }
@@ -268,22 +266,22 @@
             <div>
                 <h6 class="text-white font-black text-[11px] uppercase tracking-[0.2em] mb-10">Marketplace</h6>
                 <ul class="space-y-6">
-                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                    <li><a class="text-slate-500 hover-text-brand-teal transition-colors text-sm font-bold"
                             href="#">Find Jobs</a></li>
-                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                    <li><a class="text-slate-500 hover-text-brand-teal transition-colors text-sm font-bold"
                             href="#">Hire Workers</a></li>
-                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                    <li><a class="text-slate-500 hover-text-brand-teal transition-colors text-sm font-bold"
                             href="#">For Business</a></li>
                 </ul>
             </div>
             <div>
                 <h6 class="text-white font-black text-[11px] uppercase tracking-[0.2em] mb-10">Company</h6>
                 <ul class="space-y-6">
-                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                    <li><a class="text-slate-500 hover-text-brand-teal transition-colors text-sm font-bold"
                             href="#">About Us</a></li>
-                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                    <li><a class="text-slate-500 hover-text-brand-teal transition-colors text-sm font-bold"
                             href="#">Careers</a></li>
-                    <li><a class="text-slate-500 hover:text-indigo-400 transition-colors text-sm font-bold"
+                    <li><a class="text-slate-500 hover-text-brand-teal transition-colors text-sm font-bold"
                             href="#">Security</a></li>
                 </ul>
             </div>
@@ -292,7 +290,7 @@
                 <p class="text-xs text-slate-600 font-bold leading-relaxed mb-6">Access restricted to authorized
                     personnel only.</p>
                 <button [routerLink]="['/admin']"
-                    class="text-[10px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors">Admin
+                    class="text-[10px] font-black text-brand-teal uppercase tracking-widest hover:text-white transition-colors">Admin
                     Console →</button>
             </div>
         </div>

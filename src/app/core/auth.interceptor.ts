@@ -9,6 +9,32 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const platformId = inject(PLATFORM_ID);
   
+  const handleAuthError = (error: HttpErrorResponse) => {
+    if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
+      console.warn('[AuthInterceptor] 401 Unauthorized, logging out');
+      authService.logout();
+    } else if (error.status === 404 && req.url.includes('/profile/')) {
+      console.warn('[AuthInterceptor] 404 Profile not found, logging out to clear invalid session');
+      authService.logout();
+    } else if (error.status === 403) {
+      console.warn('[AuthInterceptor] 403 Forbidden - Access denied', {
+        url: req.url,
+        userRole: 'unknown',
+        hasToken: false,
+        endpoint: req.url.split('/').pop()
+      });
+    }
+    return throwError(() => error);
+  };
+
+  // Skip adding token to public auth endpoints
+  const publicEndpoints = ['/auth/register', '/auth/login', '/auth/verify-email', '/auth/password-reset'];
+  const isPublicEndpoint = publicEndpoints.some(endpoint => req.url.includes(endpoint));
+  
+  if (isPublicEndpoint) {
+    return next(req).pipe(catchError(handleAuthError));
+  }
+  
   let token: string | null = null;
   let userRole: string | null = null;
   
@@ -33,24 +59,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     }
   }
 
-  const handleAuthError = (error: HttpErrorResponse) => {
-    if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
-      console.warn('[AuthInterceptor] 401 Unauthorized, logging out');
-      authService.logout();
-    } else if (error.status === 404 && req.url.includes('/profile/')) {
-      console.warn('[AuthInterceptor] 404 Profile not found, logging out to clear invalid session');
-      authService.logout();
-    } else if (error.status === 403) {
-      console.warn('[AuthInterceptor] 403 Forbidden - Access denied', {
-        url: req.url,
-        userRole: userRole || 'unknown',
-        hasToken: !!token,
-        endpoint: req.url.split('/').pop()
-      });
-    }
-    return throwError(() => error);
-  };
-
   if (token) {
     const isFormData = req.body instanceof FormData;
     const isGetOrDelete = req.method === 'GET' || req.method === 'DELETE';
@@ -72,3 +80,4 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // No token - still pass request through (for public endpoints like login, register)
   return next(req).pipe(catchError(handleAuthError));
 };
+

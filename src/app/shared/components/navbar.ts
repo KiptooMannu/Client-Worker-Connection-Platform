@@ -20,17 +20,18 @@ import { WebSocketService } from '../../core/services/websocket.service';
     MatMenuModule
   ],
   template: `
-    <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm flex justify-between items-center px-4 sm:px-6 md:px-12 h-20 w-full fixed top-0 left-0 right-0 z-[99999] backdrop-blur-md bg-white/90 gap-8">
-      <div class="flex items-center gap-4 md:gap-8 min-w-0 flex-1">
-        <div class="flex items-center gap-3 cursor-pointer group shrink-0" routerLink="/">
-          <div class="w-10 h-10 bg-[#0f172a] rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
-            <mat-icon>corporate_fare</mat-icon>
-          </div>
-          <span class="text-xl font-black tracking-tighter text-[#0f172a] hidden xl:block">KaziKonnect</span>
-        </div>
+    <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm fixed top-0 left-0 right-0 z-[99999] backdrop-blur-md bg-white/90">
+      <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 md:px-12 h-20 gap-8">
+        <div class="flex items-center gap-4 md:gap-8 shrink-0">
+          <a routerLink="/" class="flex items-center gap-3 group shrink-0">
+            <div class="w-10 h-10 bg-brand-teal rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
+              <mat-icon>corporate_fare</mat-icon>
+            </div>
+            <span class="text-xl font-black tracking-tighter text-brand-teal hidden xl:block">KaziKonnect</span>
+          </a>
 
-        <!-- Dynamic Context Title & Badge -->
-        @if (pageTitle) {
+          <!-- Dynamic Context Title & Badge -->
+          @if (pageTitle) {
           <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
           <div class="flex items-center gap-3 min-w-0">
             <h1 class="text-sm font-black text-slate-900 uppercase tracking-widest truncate">{{ pageTitle }}</h1>
@@ -44,45 +45,46 @@ import { WebSocketService } from '../../core/services/websocket.service';
         }
       </div>
 
-      <!-- Desktop Nav (Hidden when in specific workspace mode) -->
-      @if (!pageTitle) {
-        <nav class="hidden lg:flex items-center gap-8 shrink-0">
-            @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
-              <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
-                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                Find Jobs
-              </a>
-            }
-            @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
-              <a routerLink="/client/marketplace" routerLinkActive="active-link" 
-                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                Hire Workers
-              </a>
-            }
-            @if (!auth.isAuthenticated()) {
-              <a routerLink="/enterprise" routerLinkActive="active-link" 
-                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                For Business
-              </a>
-              <a routerLink="/solutions" routerLinkActive="active-link" 
-                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
-                How it Works
-              </a>
-            }
-            @if (auth.userRole() === 'Client') {
-              <a routerLink="/client/bookings" routerLinkActive="active-link"
-                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
-                My Bookings
-              </a>
-            }
-            @if (auth.userRole() === 'Worker') {
-              <a routerLink="/worker/history" routerLinkActive="active-link"
-                 class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
-                My Jobs
-              </a>
-            }
-        </nav>
-      }
+      <div class="flex-1 hidden lg:flex justify-center">
+        @if (!pageTitle) {
+          <nav class="flex items-center gap-10">
+              @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
+                <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                  Find Jobs
+                </a>
+              }
+              @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
+                <a routerLink="/client/marketplace" routerLinkActive="active-link" 
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 border-b-2 border-transparent hover:border-slate-200 cursor-pointer">
+                  Hire Workers
+                </a>
+              }
+              @if (!auth.isAuthenticated()) {
+                <a routerLink="/enterprise" routerLinkActive="active-link" 
+                   class="text-sm font-black text-slate-500 hover-text-brand-teal transition-all py-2 border-b-2 border-transparent hover-border-brand-teal cursor-pointer">
+                  For Business
+                </a>
+                <a routerLink="/solutions" routerLinkActive="active-link" 
+                   class="text-sm font-black text-slate-500 hover-text-brand-teal transition-all py-2 border-b-2 border-transparent hover-border-brand-teal cursor-pointer">
+                  How it Works
+                </a>
+              }
+              @if (auth.userRole() === 'Client') {
+                <a routerLink="/client/bookings" routerLinkActive="active-link"
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
+                  My Bookings
+                </a>
+              }
+              @if (auth.userRole() === 'Worker') {
+                <a routerLink="/worker/history" routerLinkActive="active-link"
+                   class="text-sm font-black text-slate-500 hover:text-[#041627] transition-all py-2 cursor-pointer">
+                  My Jobs
+                </a>
+              }
+          </nav>
+        }
+      </div>
 
       <div class="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
         @if (auth.isAuthenticated()) {
@@ -157,8 +159,8 @@ import { WebSocketService } from '../../core/services/websocket.service';
              </mat-menu>
         } @else {
           <div class="flex items-center gap-2 sm:gap-4">
-            <button routerLink="/login" class="text-slate-600 font-black text-[10px] uppercase tracking-widest px-4 py-2 hover:text-[#041627] transition-colors cursor-pointer">Log In</button>
-            <button routerLink="/register" class="bg-[#0f172a] text-white px-6 sm:px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-slate-900/10 cursor-pointer">Sign Up</button>
+            <button routerLink="/login" class="text-brand-teal font-black text-[10px] uppercase tracking-widest px-4 py-2 border border-brand-teal rounded-xl hover-bg-brand-teal-soft transition-colors cursor-pointer">Log In</button>
+            <button routerLink="/register" class="bg-brand-teal text-white px-6 sm:px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-brand-teal cursor-pointer">Sign Up</button>
           </div>
         }
 
@@ -167,13 +169,14 @@ import { WebSocketService } from '../../core/services/websocket.service';
           <mat-icon>{{ isMobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
         </button>
       </div>
+      </div>
     </header>
 
     <!-- Spacer for fixed header so page content starts below the top navbar -->
     <div class="h-20"></div>
 
     @if (auth.isAuthenticated()) {
-      <nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-2 shadow-[0_-8px_40px_-24px_rgba(15,23,42,0.45)]" [style.--bottom-nav-height.px]="bottomNavHeight">
+      <nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-2 shadow-[0_-8px_40px_-24px_rgba(15,23,42,0.45)]" [style.--bottom-nav-height]="bottomNavHeight + 'px'">
         <div class="flex items-center justify-between">
           <button [routerLink]="auth.userRole() === 'Admin' ? '/admin' : (auth.userRole() === 'Worker' ? '/worker/dashboard' : '/client/marketplace')" class="flex flex-col items-center justify-center text-slate-600 hover:text-slate-900 transition-colors">
             <mat-icon class="!text-lg">home</mat-icon>
@@ -201,24 +204,24 @@ import { WebSocketService } from '../../core/services/websocket.service';
     @if (isMobileMenuOpen()) {
       <div class="fixed inset-0 top-20 z-50 lg:hidden animate-in slide-in-from-top duration-300">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="toggleMobileMenu()"></div>
-        <nav class="relative bg-white border-t border-slate-100 flex flex-col p-6 gap-4 shadow-2xl">
+        <nav class="relative bg-brand-teal border-t border-brand-teal flex flex-col p-6 gap-4 shadow-2xl mobile-menu-nav">
           @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
-            <a routerLink="/worker/dashboard" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Find Jobs</a>
+            <a routerLink="/worker/dashboard" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">Find Jobs</a>
           }
           @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
-            <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">Hire Workers</a>
+            <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">Hire Workers</a>
           }
           
           @if (!auth.isAuthenticated()) {
-            <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">For Business</a>
-            <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">How it Works</a>
+            <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">For Business</a>
+            <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">How it Works</a>
           }
 
           @if (auth.userRole() === 'Client') {
-            <a routerLink="/client/bookings" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">My Bookings</a>
+            <a routerLink="/client/bookings" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">My Bookings</a>
           }
           @if (auth.userRole() === 'Worker') {
-            <a routerLink="/worker/history" (click)="toggleMobileMenu()" class="text-lg font-black text-slate-900 py-3 border-b border-slate-50">My Jobs</a>
+            <a routerLink="/worker/history" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">My Jobs</a>
           }
 
           @if (auth.isAuthenticated()) {
@@ -229,7 +232,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
     }
   `,
   styles: [`
-    .active-link { color: #0f172a !important; border-bottom-color: #0f172a !important; }
+    .active-link { color: var(--brand-teal) !important; border-bottom-color: var(--brand-teal) !important; }
     :host { display: block; width: 100%; }
   `]
 })
@@ -257,3 +260,13 @@ export class NavbarComponent {
     return '/client/settings';
   }
 }
+
+
+
+
+
+
+
+
+
+

@@ -15,6 +15,7 @@ export interface User {
   role: UserRole;
   name: string;
   avatarUrl?: string;
+  phoneNumber?: string;
   token?: string;
 }
 
@@ -69,6 +70,7 @@ export class AuthService {
           role: this.mapRole(response.role),
           name: response.name || response.username || 'User',
           avatarUrl: response.profilePictureUrl || response.image,
+          phoneNumber: response.phoneNumber,
           token: response.accessToken
         };
 
@@ -85,7 +87,10 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('[AuthService] Login error:', error);
-        this.notification.error('Login failed. Please check your credentials.');
+        const message = typeof error.error === 'string'
+          ? error.error
+          : error.error?.message || 'Login failed. Please check your credentials.';
+        this.notification.error(message);
         return throwError(() => error);
       })
     );
@@ -102,9 +107,16 @@ export class AuthService {
     };
 
     return this.http.post(`${this.apiUrl}/register`, registrationData, { responseType: 'text' }).pipe(
-      tap(() => this.notification.success('Account created! Please log in.')),
+      tap(() => this.notification.success('Account created! Please verify your email before logging in.')),
       catchError(error => {
-        const errorMsg = typeof error.error === 'string' ? error.error : 'Registration failed';
+        const validationErrors = error?.error?.validationErrors;
+        if (validationErrors && typeof validationErrors === 'object') {
+          return throwError(() => error);
+        }
+
+        const errorMsg = typeof error.error === 'string'
+          ? error.error
+          : error.error?.message || 'Registration failed';
         this.notification.error(errorMsg);
         return throwError(() => error);
       })
@@ -178,6 +190,33 @@ export class AuthService {
       tap(() => this.notification.success('Password reset successfully! You can now log in with your new password.')),
       catchError(error => {
         const errorMsg = error.error?.message || 'Failed to reset password. Please try again.';
+        this.notification.error(errorMsg);
+        return throwError(() => error);
+      })
+    );
+  }
+
+  /**
+   * Verify email with verification token
+   */
+  verifyEmail(token: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/verify-email?token=${token}`, {}).pipe(
+      catchError(error => {
+        const errorMsg = typeof error.error === 'string'
+          ? error.error
+          : error.error?.message || error.message || 'Email verification failed. The link may have expired.';
+        return throwError(() => ({ ...error, message: errorMsg }));
+      })
+    );
+  }
+
+  resendVerificationEmail(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/resend-verification`, { email }, { responseType: 'text' }).pipe(
+      tap(() => this.notification.success('Verification link resent. Please check your email.')),
+      catchError(error => {
+        const errorMsg = typeof error.error === 'string'
+          ? error.error
+          : error.error?.message || error.message || 'Failed to resend verification link. Please try again.';
         this.notification.error(errorMsg);
         return throwError(() => error);
       })

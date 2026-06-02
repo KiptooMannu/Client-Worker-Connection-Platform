@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
@@ -50,7 +50,12 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
         <div class="text-center mt-6 md:mt-8 z-10">
           <h1 class="text-xl md:text-3xl font-black text-white tracking-tighter mb-1 md:mb-2">{{ auth.currentUser()?.name }}</h1>
-          <p class="text-white/50 text-[10px] md:text-xs font-black uppercase tracking-widest">{{ auth.currentUser()?.email }} | {{ auth.currentUser()?.role }}</p>
+          <p class="text-white/50 text-[10px] md:text-xs font-black uppercase tracking-widest">
+            {{ auth.currentUser()?.email }} | {{ auth.currentUser()?.role }}
+          </p>
+          <p class="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] mt-2">
+            {{ form.phoneNumber || auth.currentUser()?.phoneNumber || state.currentClient()?.phoneNumber || state.currentWorker().phoneNumber || 'Phone not set' }}
+          </p>
         </div>
       </section>
 
@@ -73,6 +78,10 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                 {{ auth.currentUser()?.email }}
                 <mat-icon class="!text-sm">lock</mat-icon>
               </div>
+            </div>
+            <div class="space-y-3">
+              <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
+              <input [(ngModel)]="form.phoneNumber" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 md:px-5 md:py-4 text-sm font-bold text-slate-900 focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all outline-none" placeholder="Enter your phone number">
             </div>
           </div>
         </mat-card>
@@ -131,9 +140,23 @@ export class SharedSettingsPage {
   isUploadingAvatar = signal(false);
   form = {
     name: this.auth.currentUser()?.name || '',
+    phoneNumber: this.auth.currentUser()?.phoneNumber || this.state.currentClient()?.phoneNumber || this.state.currentWorker()?.phoneNumber || '',
     newPassword: '',
     confirmPassword: ''
   };
+
+  syncPhone = effect(() => {
+    const currentUser = this.auth.currentUser();
+    const worker = this.state.currentWorker();
+
+    if (currentUser?.name && !this.form.name) {
+      this.form.name = currentUser.name;
+    }
+
+    if (!this.form.phoneNumber) {
+      this.form.phoneNumber = currentUser?.phoneNumber || this.state.currentClient()?.phoneNumber || worker?.phoneNumber || '';
+    }
+  });
 
   onAvatarSelected(event: any) {
     const file = event.target.files?.[0];
@@ -158,7 +181,7 @@ export class SharedSettingsPage {
       this.state.uploadMedia(file).subscribe({
         next: (res: any) => {
           const uploadedUrl = res.url;
-          this.state.updateAccountProfile(this.form.name, uploadedUrl).subscribe({
+          this.state.updateAccountProfile(this.form.name, undefined, uploadedUrl).subscribe({
             next: () => {
               this.auth.updateUser({ avatarUrl: uploadedUrl });
               this.notification.success('Profile picture updated');
@@ -180,6 +203,7 @@ export class SharedSettingsPage {
 
   resetForm() {
     this.form.name = this.auth.currentUser()?.name || '';
+    this.form.phoneNumber = this.auth.currentUser()?.phoneNumber || this.state.currentClient()?.phoneNumber || this.state.currentWorker()?.phoneNumber || '';
     this.form.newPassword = '';
     this.form.confirmPassword = '';
   }
@@ -192,15 +216,23 @@ export class SharedSettingsPage {
 
     this.isSaving.set(true);
     
-    // 1. Update Profile Name if changed
-    if (this.form.name !== this.auth.currentUser()?.name) {
-      this.state.updateAccountProfile(this.form.name).subscribe({
+    // 1. Update Profile Name / Phone if changed
+    const profilePayload = {
+      name: this.form.name,
+      phoneNumber: this.form.phoneNumber
+    };
+
+    if (this.form.name !== this.auth.currentUser()?.name || this.form.phoneNumber !== this.auth.currentUser()?.phoneNumber) {
+      this.state.updateAccountProfile(profilePayload.name, profilePayload.phoneNumber).subscribe({
         next: (res: any) => {
-          this.auth.updateUser({ name: res.name });
-          this.notification.success('Profile name updated');
+          this.auth.updateUser({ name: res.name || profilePayload.name, phoneNumber: res.phoneNumber || profilePayload.phoneNumber });
+          this.notification.success('Profile details updated');
+          if (!this.form.newPassword) {
+            this.isSaving.set(false);
+          }
         },
         error: (err) => {
-          this.notification.error('Failed to update profile name');
+          this.notification.error('Failed to update profile details');
           this.isSaving.set(false);
         }
       });

@@ -25,8 +25,28 @@ import { NotificationService } from '../../../core/services/notification.service
             <p class="font-body-lg text-sm text-secondary">Join the community</p>
           </div>
 
-          <!-- Form -->
-          <form (submit)="onSubmit()" class="space-y-4">
+          <!-- Verification Message (shown after registration) -->
+          <div *ngIf="registrationComplete()" class="space-y-4">
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+              <div class="flex items-start gap-3">
+                <svg class="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <h3 class="font-bold text-emerald-900 mb-1">Check Your Email</h3>
+                  <p class="text-sm text-emerald-800 mb-3">We've sent a verification link to <strong>{{ email }}</strong></p>
+                  <p class="text-sm text-emerald-800">Click the link in the email to verify your account and activate your access to Kazi Konnect.</p>
+                </div>
+              </div>
+            </div>
+            <div class="pt-4 text-center">
+              <p class="text-sm text-secondary mb-4">Didn't receive the email? Check your spam folder or</p>
+              <button (click)="backToRegister()" class="text-primary font-bold hover:underline">Try registering again</button>
+            </div>
+          </div>
+
+          <!-- Registration Form (shown when not complete) -->
+          <form *ngIf="!registrationComplete()" (submit)="onSubmit()" class="space-y-4">
             <!-- Name Row -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="space-y-1.5">
@@ -57,6 +77,7 @@ import { NotificationService } from '../../../core/services/notification.service
                   <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="john@example.com" type="email" name="email" [(ngModel)]="email" required/>
                 </div>
+                <p *ngIf="validationErrors()['email']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['email'] }}</p>
               </div>
 
               <div class="space-y-1.5">
@@ -66,6 +87,7 @@ import { NotificationService } from '../../../core/services/notification.service
                   <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="username" type="text" name="username" [(ngModel)]="username" required/>
                 </div>
+                <p *ngIf="validationErrors()['username']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['username'] }}</p>
               </div>
 
               <div class="space-y-1.5">
@@ -100,6 +122,7 @@ import { NotificationService } from '../../../core/services/notification.service
                   <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="••••••••" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" required/>
                 </div>
+                <p *ngIf="validationErrors()['password']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['password'] }}</p>
               </div>
 
               <div class="space-y-1.5">
@@ -159,6 +182,8 @@ export class RegisterPage implements OnInit {
   role: UserRole = 'Client';
   loading = signal(false);
   showPassword = false;
+  registrationComplete = signal(false);
+  validationErrors = signal<Record<string, string>>({});
 
   ngOnInit() {
     const roleParam = this.route.snapshot.queryParamMap.get('role');
@@ -175,20 +200,63 @@ export class RegisterPage implements OnInit {
       return;
     }
 
+    if (this.firstName.trim().length < 2 || this.firstName.trim().length > 50) {
+      this.notification.error('First name must be 2-50 characters.');
+      return;
+    }
+
+    if (this.secondName.trim().length < 2 || this.secondName.trim().length > 50) {
+      this.notification.error('Second name must be 2-50 characters.');
+      return;
+    }
+
+    if (this.username.trim().length < 3 || this.username.trim().length > 50) {
+      this.notification.error('Username must be 3-50 characters.');
+      return;
+    }
+
+    if (this.password.length < 8) {
+      this.notification.error('Password must be at least 8 characters.');
+      return;
+    }
+
     if (this.password !== this.confirmPassword) {
       this.notification.error('Passwords do not match.');
       return;
     }
     
     this.loading.set(true);
+    this.validationErrors.set({});
     this.auth.register(this.firstName, this.secondName, this.email, this.role, this.password, this.username).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/login']);
+        this.registrationComplete.set(true);
       },
-      error: () => {
+      error: (error: any) => {
         this.loading.set(false);
+
+        const validationErrors = error?.error?.validationErrors;
+        if (validationErrors && typeof validationErrors === 'object') {
+          this.validationErrors.set(validationErrors as Record<string, string>);
+          return;
+        }
+
+        const message = error?.error?.message || error?.message;
+        if (message) {
+          this.notification.error(message);
+        }
       }
     });
+  }
+
+  backToRegister() {
+    this.registrationComplete.set(false);
+    this.firstName = '';
+    this.secondName = '';
+    this.email = '';
+    this.username = '';
+    this.password = '';
+    this.confirmPassword = '';
+    this.validationErrors.set({});
   }
 }

@@ -22,6 +22,11 @@ export const routes: Routes = [
     canActivate: [guestGuard],
     loadComponent: () => import('./features/auth/password-reset/password-reset.component').then(m => m.PasswordResetComponent)
   },
+  {
+    path: 'verify-email',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/verify-email/verify-email').then(m => m.VerifyEmailPage)
+  },
 
   { path: 'workers', redirectTo: 'client/marketplace', pathMatch: 'full' },
   { path: 'clients', redirectTo: 'client', pathMatch: 'full' },

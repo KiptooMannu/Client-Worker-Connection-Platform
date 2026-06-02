@@ -123,6 +123,7 @@ export interface ClientProfile {
   userId?: string;
   name: string;
   email: string;
+  phoneNumber?: string;
   status: 'Active' | 'Suspended';
   tier: string;
   progress: number;
@@ -683,6 +684,7 @@ export class PlatformStateService {
       userId: data.userId,
       name: data.fullName,
       email: data.email,
+      phoneNumber: data.phoneNumber || data.phone || data.mobileNumber || '',
       status: 'Active',
       tier: 'Standard',
       progress: 0
@@ -1518,8 +1520,8 @@ export class PlatformStateService {
   }
 
   // Account Settings
-  updateAccountProfile(name: string, profilePictureUrl?: string) {
-    return this.http.put(`${this.apiUrl}/settings/profile`, { name, profilePictureUrl });
+  updateAccountProfile(name: string, phoneNumber?: string, profilePictureUrl?: string) {
+    return this.http.put(`${this.apiUrl}/settings/profile`, { name, phoneNumber, profilePictureUrl });
   }
 
   updateAccountPassword(newPassword: string) {
