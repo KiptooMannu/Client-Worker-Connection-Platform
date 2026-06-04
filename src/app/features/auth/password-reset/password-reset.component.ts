@@ -36,16 +36,16 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                 <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><circle cx="6" cy="18" r="2"></circle><line x1="8" y1="8" x2="10" y2="10"></line><line x1="16" y1="8" x2="14" y2="10"></line><line x1="16" y1="16" x2="14" y2="14"></line><line x1="8" y1="16" x2="10" y2="14"></line></svg>
               </div>
               <h1 class="font-headline-md text-xl md:text-2xl text-on-surface mb-1 leading-tight">Reset Password</h1>
-              <p class="font-body-md text-sm text-secondary">Enter your email address to receive a reset link</p>
+              <p class="font-body-md text-sm text-secondary">Enter your email address to receive a verification code</p>
             </div>
 
-            <div *ngIf="!resetToken && !requestSubmitted">
+            <div *ngIf="!requestSubmitted">
               <form [formGroup]="requestForm" (ngSubmit)="onRequestSubmit()" class="space-y-4 text-left">
                 <div class="space-y-1.5">
                   <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="email">Email Address</label>
                   <div class="relative group">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002-2.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     </div>
                     <input id="email" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
                            type="email"
@@ -79,11 +79,11 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                         type="submit"
                         [disabled]="requestForm.invalid || requestLoading"
                 >
-                  <span *ngIf="requestLoading" class="spinner-wrapper">
+                  <span *ngIf="requestLoading" class="spinner-wrapper flex items-center justify-center gap-2">
                     <mat-spinner diameter="20"></mat-spinner>
                     Sending...
                   </span>
-                  <span *ngIf="!requestLoading">Send Reset Link</span>
+                  <span *ngIf="!requestLoading">Send Reset Code</span>
                 </button>
               </form>
 
@@ -95,22 +95,31 @@ import { NavbarComponent } from '../../../shared/components/navbar';
               </div>
             </div>
 
-            <div *ngIf="!resetToken && requestSubmitted" class="space-y-6 text-left">
-              <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 text-emerald-900">
-                <strong>✅ Reset link sent</strong>
-                <p class="mt-2 text-sm">A link has been sent to <strong>{{ requestForm.get('email')?.value }}</strong>.</p>
+            <div *ngIf="requestSubmitted && !resetSuccess" class="space-y-4 text-left">
+              <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 text-emerald-900 mb-6">
+                <strong>✅ Verification code sent</strong>
+                <p class="mt-2 text-sm">A 6-digit verification code has been sent to <strong>{{ requestForm.get('email')?.value }}</strong>.</p>
               </div>
-              <p class="text-sm text-secondary">Click the link in your email to reset your password. The link expires in 15 minutes.</p>
-              <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98]"
-                      type="button"
-                      (click)="onBackToRequest()"
-              >
-                Try Different Email
-              </button>
-            </div>
 
-            <div *ngIf="resetToken" class="space-y-4 text-left">
               <form [formGroup]="confirmForm" (ngSubmit)="onConfirmSubmit()" class="space-y-4 text-left">
+                <div class="space-y-1.5">
+                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="otpCode">6-Digit Reset Code</label>
+                  <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                      </svg>
+                    </div>
+                    <input id="otpCode" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface text-center font-bold tracking-[0.5em] focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                           type="text"
+                           maxlength="6"
+                           formControlName="token"
+                           placeholder="000000"
+                      />
+                  </div>
+                  <p *ngIf="confirmForm.get('token')?.invalid && confirmForm.get('token')?.touched" class="text-sm text-rose-600">Please enter the 6-digit code.</p>
+                </div>
+
                 <div class="space-y-1.5">
                   <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="newPassword">New Password</label>
                   <div class="relative group">
@@ -126,36 +135,43 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                   <p *ngIf="confirmForm.get('newPassword')?.invalid && confirmForm.get('newPassword')?.touched" class="text-sm text-rose-600">Password must be at least 8 characters.</p>
                 </div>
 
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="confirmPassword">Confirm Password</label>
-                <div class="relative group">
-                  <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                <div class="space-y-1.5">
+                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="confirmPassword">Confirm Password</label>
+                  <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <input id="confirmPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                           type="password"
+                           formControlName="confirmPassword"
+                           placeholder="Confirm your password"
+                      />
                   </div>
-                  <input id="confirmPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
-                         type="password"
-                         formControlName="confirmPassword"
-                         placeholder="Confirm your password"
-                    />
+                  <p *ngIf="confirmForm.hasError('passwordMismatch') && confirmForm.get('confirmPassword')?.touched" class="text-sm text-rose-600">Passwords do not match.</p>
                 </div>
-                <p *ngIf="confirmForm.hasError('passwordMismatch') && confirmForm.get('confirmPassword')?.touched" class="text-sm text-rose-600">Passwords do not match.</p>
-              </div>
 
-              <div class="error-message" *ngIf="confirmError">
-                {{ confirmError }}
-              </div>
+                <div class="error-message" *ngIf="confirmError">
+                  {{ confirmError }}
+                </div>
 
-              <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98]"
-                      type="submit"
-                      [disabled]="confirmForm.invalid || confirmLoading"
-              >
-                <span *ngIf="confirmLoading" class="spinner-wrapper">
-                  <mat-spinner diameter="20"></mat-spinner>
-                  Resetting...
-                </span>
-                <span *ngIf="!confirmLoading">Reset Password</span>
-              </button>
+                <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98]"
+                        type="submit"
+                        [disabled]="confirmForm.invalid || confirmLoading"
+                >
+                  <span *ngIf="confirmLoading" class="spinner-wrapper flex items-center justify-center gap-2">
+                    <mat-spinner diameter="20"></mat-spinner>
+                    Resetting...
+                  </span>
+                  <span *ngIf="!confirmLoading">Reset Password</span>
+                </button>
               </form>
+
+              <button class="w-full py-4 bg-slate-100 text-on-surface rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg hover:bg-slate-200 transition-all active:scale-[0.98] mt-4"
+                      type="button"
+                      (click)="onBackToRequest()"
+              >
+                Try Different Email
+              </button>
             </div>
 
             <div *ngIf="resetSuccess" class="space-y-6 text-left">
@@ -403,6 +419,7 @@ export class PasswordResetComponent implements OnInit {
 
     this.confirmForm = this.formBuilder.group(
       {
+        token: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
         newPassword: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', Validators.required]
       },
@@ -413,7 +430,12 @@ export class PasswordResetComponent implements OnInit {
   ngOnInit() {
     // Check if token is in URL query params
     this.route.queryParams.subscribe(params => {
-      this.resetToken = params['token'] || null;
+      const urlToken = params['token'] || null;
+      if (urlToken) {
+        this.resetToken = urlToken;
+        this.confirmForm.patchValue({ token: urlToken });
+        this.requestSubmitted = true;
+      }
     });
   }
 
@@ -442,7 +464,7 @@ export class PasswordResetComponent implements OnInit {
         this.requestLoading = false;
         this.requestError = typeof error.error === 'string'
           ? error.error
-          : error.error?.message || 'Failed to send reset link. Please try again.';
+          : error.error?.message || 'Failed to send reset code. Please try again.';
       }
     });
   }
@@ -450,19 +472,22 @@ export class PasswordResetComponent implements OnInit {
   onBackToRequest() {
     this.requestSubmitted = false;
     this.requestForm.reset();
+    this.confirmForm.reset();
     this.requestError = null;
+    this.confirmError = null;
   }
 
   onConfirmSubmit() {
-    if (!this.resetToken || this.confirmForm.invalid) {
+    if (this.confirmForm.invalid) {
       return;
     }
 
     this.confirmLoading = true;
     this.confirmError = null;
+    const token = this.confirmForm.get('token')?.value;
     const newPassword = this.confirmForm.get('newPassword')?.value;
 
-    this.authService.confirmPasswordReset(this.resetToken, newPassword).subscribe({
+    this.authService.confirmPasswordReset(token, newPassword).subscribe({
       next: () => {
         this.confirmLoading = false;
         this.resetSuccess = true;

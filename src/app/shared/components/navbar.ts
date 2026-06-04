@@ -38,7 +38,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
             @if (badge) {
               <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-[9px] font-black uppercase tracking-widest rounded-full shrink-0 border border-blue-100/50">
                 <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                {{ badge }}
+                {{ badge === 'Client' || badge === 'client' ? 'Employer' : badge }}
               </span>
             }
           </div>
@@ -112,7 +112,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
              <!-- Unified Profile Menu -->
              <button [matMenuTriggerFor]="profileMenu" class="flex items-center gap-3 p-1.5 hover:bg-slate-50 rounded-xl transition-all cursor-pointer">
                <div class="hidden xl:flex flex-col items-end">
-                  <span class="text-[9px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1">{{ auth.userRole() }}</span>
+                  <span class="text-[9px] font-black text-blue-600 uppercase tracking-widest leading-none mb-1">{{ auth.userRole() === 'Client' ? 'Employer' : auth.userRole() }}</span>
                   <span class="text-xs font-bold text-slate-900 leading-none">{{ auth.currentUser()?.name }}</span>
                </div>
                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm">
@@ -157,12 +157,12 @@ import { WebSocketService } from '../../core/services/websocket.service';
                  <span class="text-xs font-bold">Log Out</span>
                </button>
              </mat-menu>
-        } @else {
-          <div class="flex items-center gap-2 sm:gap-4">
-            <button routerLink="/login" class="text-brand-teal font-black text-[10px] uppercase tracking-widest px-4 py-2 border border-brand-teal rounded-xl hover-bg-brand-teal-soft transition-colors cursor-pointer">Log In</button>
-            <button routerLink="/register" class="bg-brand-teal text-white px-6 sm:px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-brand-teal cursor-pointer">Sign Up</button>
-          </div>
-        }
+         } @else {
+           <div class="hidden lg:flex items-center gap-2 sm:gap-4">
+             <button routerLink="/login" class="text-brand-teal font-black text-[10px] uppercase tracking-widest px-4 py-2 border border-brand-teal rounded-xl hover-bg-brand-teal-soft transition-colors cursor-pointer">Log In</button>
+             <button routerLink="/register" class="bg-brand-teal text-white px-6 sm:px-8 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl shadow-brand-teal cursor-pointer">Sign Up</button>
+           </div>
+         }
 
         <!-- Mobile Menu Toggle -->
         <button (click)="toggleMobileMenu()" class="lg:hidden p-2 text-slate-600 hover:text-slate-900 transition-colors">
@@ -215,6 +215,8 @@ import { WebSocketService } from '../../core/services/websocket.service';
           @if (!auth.isAuthenticated()) {
             <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">For Business</a>
             <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">How it Works</a>
+            <a routerLink="/login" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">Log In</a>
+            <a routerLink="/register" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">Sign Up</a>
           }
 
           @if (auth.userRole() === 'Client') {

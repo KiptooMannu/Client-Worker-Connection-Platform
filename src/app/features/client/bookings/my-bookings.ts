@@ -517,7 +517,7 @@ private refreshBookings() {
   showHistory() {
     const rows = this.state.bookings().map((b: any) =>
       `${b.clientName},${b.workerName},${b.status},${b.date},${b.earnings}`);
-    const csv  = ['Client,Worker,Status,Date,Amount (KES)', ...rows].join('\n');
+    const csv  = ['Employer,Worker,Status,Date,Amount (KES)', ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');

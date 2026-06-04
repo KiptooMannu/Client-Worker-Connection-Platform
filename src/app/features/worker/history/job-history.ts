@@ -306,7 +306,7 @@ export class WorkerHistoryPage {
   }
 
   exportHistory() {
-    const header = 'client,service,date,earnings,status';
+    const header = 'employer,service,date,earnings,status';
     const rows = this.jobs().map(j => `${j.client},${j.service},${j.date},${j.earnings},${j.status}`);
     const csv = [header, ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });

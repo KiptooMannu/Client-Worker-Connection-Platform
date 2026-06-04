@@ -106,7 +106,7 @@ export class AuthService {
       role: role?.toUpperCase()
     };
 
-    return this.http.post(`${this.apiUrl}/register`, registrationData, { responseType: 'text' }).pipe(
+    return this.http.post<any>(`${this.apiUrl}/register`, registrationData).pipe(
       tap(() => this.notification.success('Account created! Please verify your email before logging in.')),
       catchError(error => {
         const validationErrors = error?.error?.validationErrors;
@@ -114,13 +114,32 @@ export class AuthService {
           return throwError(() => error);
         }
 
-        const errorMsg = typeof error.error === 'string'
-          ? error.error
-          : error.error?.message || 'Registration failed';
+        const errorMsg = this.getErrorMessage(error, 'Registration failed. Please try again.');
         this.notification.error(errorMsg);
         return throwError(() => error);
       })
     );
+  }
+
+  private getErrorMessage(error: any, fallback: string): string {
+    if (!error) {
+      return fallback;
+    }
+
+    if (typeof error.error === 'string') {
+      try {
+        const parsed = JSON.parse(error.error);
+        return parsed?.message || parsed?.error || error.error || fallback;
+      } catch {
+        return error.error || fallback;
+      }
+    }
+
+    if (error.error && typeof error.error === 'object') {
+      return error.error?.message || error.error?.error || fallback;
+    }
+
+    return error.message || fallback;
   }
 
   private mapRole(backendRole: string): UserRole {
@@ -167,12 +186,22 @@ export class AuthService {
    * Request a password reset token by email
    */
   requestPasswordReset(email: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/password-reset/request`, { email }, { responseType: 'text' }).pipe(
+    return this.http.post<any>(`${this.apiUrl}/password-reset/request`, { email }).pipe(
       tap(() => this.notification.success('Password reset link sent to your email!')),
       catchError(error => {
-        const errorMsg = typeof error.error === 'string'
-          ? error.error
-          : error.error?.message || 'Failed to send reset link. Please try again.';
+        let errorMsg = 'Failed to send reset link. Please try again.';
+        if (error.error) {
+          if (typeof error.error === 'string') {
+            try {
+              const parsed = JSON.parse(error.error);
+              errorMsg = parsed?.message || parsed?.error || errorMsg;
+            } catch {
+              errorMsg = error.error;
+            }
+          } else {
+            errorMsg = error.error?.message || errorMsg;
+          }
+        }
         this.notification.error(errorMsg);
         return throwError(() => error);
       })
@@ -183,13 +212,25 @@ export class AuthService {
    * Confirm password reset with token and new password
    */
   confirmPasswordReset(resetToken: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/password-reset/confirm`, { 
+    return this.http.post<any>(`${this.apiUrl}/password-reset/confirm`, { 
       token: resetToken, 
       newPassword: newPassword 
-    }, { responseType: 'text' }).pipe(
+    }).pipe(
       tap(() => this.notification.success('Password reset successfully! You can now log in with your new password.')),
       catchError(error => {
-        const errorMsg = error.error?.message || 'Failed to reset password. Please try again.';
+        let errorMsg = 'Failed to reset password. Please try again.';
+        if (error.error) {
+          if (typeof error.error === 'string') {
+            try {
+              const parsed = JSON.parse(error.error);
+              errorMsg = parsed?.message || parsed?.error || errorMsg;
+            } catch {
+              errorMsg = error.error;
+            }
+          } else {
+            errorMsg = error.error?.message || errorMsg;
+          }
+        }
         this.notification.error(errorMsg);
         return throwError(() => error);
       })
@@ -199,12 +240,15 @@ export class AuthService {
   /**
    * Verify email with verification token
    */
-  verifyEmail(token: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/verify-email?token=${token}`, {}).pipe(
+  verifyEmail(token: string, email?: string): Observable<any> {
+    const url = email 
+      ? `${this.apiUrl}/verify-email?token=${token}&email=${encodeURIComponent(email)}`
+      : `${this.apiUrl}/verify-email?token=${token}`;
+    return this.http.post(url, {}).pipe(
       catchError(error => {
         const errorMsg = typeof error.error === 'string'
           ? error.error
-          : error.error?.message || error.message || 'Email verification failed. The link may have expired.';
+          : error.error?.message || error.message || 'Email verification failed. The link or code may have expired.';
         return throwError(() => ({ ...error, message: errorMsg }));
       })
     );

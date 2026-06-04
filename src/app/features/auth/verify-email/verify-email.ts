@@ -21,7 +21,7 @@ import { NotificationService } from '../../../core/services/notification.service
         <div class="w-full max-w-[500px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(46,49,146,0.05)] border border-slate-200 p-6 md:p-8">
           
           <!-- Success State -->
-          <div *ngIf="verificationComplete() && verificationSuccess()">
+          <div *ngIf="verificationSuccess()">
             <div class="text-center mb-6">
               <div class="bg-emerald-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,8 +46,8 @@ import { NotificationService } from '../../../core/services/notification.service
             </div>
           </div>
 
-          <!-- Error State -->
-          <div *ngIf="verificationComplete() && !verificationSuccess()">
+          <!-- Error State (when route had a token and it failed) -->
+          <div *ngIf="verificationComplete() && routeHasToken() && !verificationSuccess()">
             <div class="text-center mb-6">
               <div class="bg-rose-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg class="w-8 h-8 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,7 +61,7 @@ import { NotificationService } from '../../../core/services/notification.service
             <div class="bg-rose-50 border border-rose-200 rounded-lg p-4 mb-6">
               <p class="text-sm text-rose-900 mb-3">{{ errorMessage }}</p>
               <div class="grid gap-3">
-                <label class="block text-sm text-slate-700">Enter your email to resend a verification link</label>
+                <label class="block text-sm text-slate-700">Enter your email to resend verification code</label>
                 <input
                   type="email"
                   [(ngModel)]="resendEmail"
@@ -73,7 +73,7 @@ import { NotificationService } from '../../../core/services/notification.service
                   [disabled]="resendLoading() || !resendEmail.trim()"
                   (click)="resendVerification()"
                 >
-                  {{ resendLoading() ? 'Sending...' : 'Resend Verification Email' }}
+                  {{ resendLoading() ? 'Sending...' : 'Resend Verification Code' }}
                 </button>
                 <p *ngIf="resendMessage()" class="text-sm text-emerald-900">{{ resendMessage() }}</p>
                 <p *ngIf="resendError()" class="text-sm text-rose-900">{{ resendError() }}</p>
@@ -86,6 +86,88 @@ import { NotificationService } from '../../../core/services/notification.service
               </a>
               <a routerLink="/login" class="w-full h-12 bg-slate-100 text-on-surface font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-slate-100/10 hover:bg-slate-200 transition-all active:scale-[0.98] flex items-center justify-center">
                 GO TO LOGIN
+              </a>
+            </div>
+          </div>
+
+          <!-- OTP Manual Verification State -->
+          <div *ngIf="verificationComplete() && !routeHasToken() && !verificationSuccess()">
+            <div class="text-center mb-6">
+              <div class="bg-primary-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-white text-3xl">domain_verification</span>
+              </div>
+              <h1 class="font-headline-lg text-2xl md:text-3xl text-primary mb-2">Verify Your Account</h1>
+              <p class="font-body-lg text-sm text-secondary">Enter your email and the 6-digit verification code</p>
+            </div>
+
+            <form (submit)="onSubmitOtp()" class="space-y-4 text-left">
+              <div *ngIf="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 text-rose-900 px-4 py-3 text-sm">
+                {{ errorMessage }}
+              </div>
+              <div *ngIf="successMessage" class="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 px-4 py-3 text-sm">
+                {{ successMessage }}
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider block ml-1">Email Address</label>
+                <input
+                  type="email"
+                  [(ngModel)]="manualEmail"
+                  name="manualEmail"
+                  placeholder="name@example.com"
+                  class="w-full px-4 py-3 border border-slate-200 rounded-full text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  required
+                />
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider block ml-1">6-Digit Verification Code</label>
+                <input
+                  type="text"
+                  [(ngModel)]="manualOtp"
+                  name="manualOtp"
+                  maxlength="6"
+                  placeholder="000000"
+                  class="w-full px-4 py-3 border border-slate-200 rounded-full text-sm text-slate-950 text-center font-bold tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                class="w-full h-12 bg-primary text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-primary/10 hover:bg-primary-dark transition-all active:scale-[0.98] disabled:opacity-50"
+                [disabled]="loadingOtp()"
+              >
+                {{ loadingOtp() ? 'Verifying...' : 'Verify Code' }}
+              </button>
+            </form>
+
+            <div class="mt-6 bg-slate-50 border border-slate-200 rounded-lg p-4">
+              <label class="block text-xs font-bold text-secondary uppercase tracking-wider mb-2">Need a new code?</label>
+              <div class="grid gap-2">
+                <input
+                  type="email"
+                  [(ngModel)]="resendEmail"
+                  name="resendEmail"
+                  placeholder="Email address for code resend"
+                  class="w-full px-4 py-2 border border-slate-200 rounded-full text-xs text-slate-950 focus:outline-none focus:ring-2 focus:ring-primary outline-none"
+                />
+                <button
+                  class="w-full py-2 bg-slate-200 hover:bg-slate-300 text-on-surface font-label-caps text-[10px] font-bold tracking-[0.1em] rounded-full transition-all"
+                  [disabled]="resendLoading() || !resendEmail.trim()"
+                  (click)="resendVerification()"
+                  type="button"
+                >
+                  {{ resendLoading() ? 'Sending...' : 'Resend Verification Code' }}
+                </button>
+                <p *ngIf="resendMessage()" class="text-xs text-emerald-800 text-center mt-1">{{ resendMessage() }}</p>
+                <p *ngIf="resendError()" class="text-xs text-rose-800 text-center mt-1">{{ resendError() }}</p>
+              </div>
+            </div>
+
+            <div class="space-y-3 mt-6">
+              <a routerLink="/login" class="w-full h-12 bg-slate-100 text-on-surface font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full hover:bg-slate-200 transition-all flex items-center justify-center">
+                BACK TO LOGIN
               </a>
             </div>
           </div>
@@ -130,13 +212,26 @@ export class VerifyEmailPage implements OnInit {
   // Prevent later duplicate responses from overriding the first successful result
   verificationHandled = signal(false);
   errorMessage = '';
+  successMessage = '';
   resendEmail = '';
   resendLoading = signal(false);
   resendMessage = signal('');
   resendError = signal('');
 
+  routeHasToken = signal(false);
+  manualEmail = '';
+  manualOtp = '';
+  loadingOtp = signal(false);
+
   ngOnInit() {
-    this.verifyEmailToken();
+    const token = this.route.snapshot.queryParamMap.get('token');
+    if (token) {
+      this.routeHasToken.set(true);
+      this.verifyEmailToken();
+    } else {
+      this.routeHasToken.set(false);
+      this.verificationComplete.set(true);
+    }
   }
 
   verifyEmailToken() {
@@ -175,6 +270,34 @@ export class VerifyEmailPage implements OnInit {
     this.router.navigate(['/login']);
   }
 
+  onSubmitOtp() {
+    if (!this.manualEmail.trim() || !this.manualOtp.trim()) {
+      this.errorMessage = 'Please fill in both your email and the verification code.';
+      this.successMessage = '';
+      return;
+    }
+
+    this.loadingOtp.set(true);
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.authService.verifyEmail(this.manualOtp.trim(), this.manualEmail.trim()).subscribe({
+      next: () => {
+        this.loadingOtp.set(false);
+        this.verificationSuccess.set(true);
+        this.successMessage = 'Email verified successfully! Redirecting to login...';
+        this.notification.success('Email verified successfully!');
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 2000);
+      },
+      error: (error) => {
+        this.loadingOtp.set(false);
+        this.errorMessage = error?.error?.message || error?.message || 'Verification failed. The code may be incorrect or expired.';
+      }
+    });
+  }
+
   resendVerification() {
     if (!this.resendEmail?.trim()) {
       this.resendError.set('Please enter your email address.');
@@ -189,11 +312,12 @@ export class VerifyEmailPage implements OnInit {
     this.authService.resendVerificationEmail(this.resendEmail.trim()).subscribe({
       next: (response: any) => {
         this.resendLoading.set(false);
-        this.resendMessage.set(typeof response === 'string' ? response : response?.message || 'A new verification link has been sent.');
+        const msg = typeof response === 'string' ? response : response?.message || 'A new verification code has been sent.';
+        this.resendMessage.set(msg);
       },
       error: (error: any) => {
         this.resendLoading.set(false);
-        this.resendError.set(error?.error || error?.message || 'Failed to resend verification link.');
+        this.resendError.set(error?.error || error?.message || 'Failed to resend verification code.');
       }
     });
   }

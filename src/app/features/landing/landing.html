@@ -2,7 +2,7 @@
 
 <main class="overflow-x-hidden">
     <!-- Hero Section -->
-    <section class="relative pt-24 pb-32 lg:pt-40 lg:pb-56">
+    <section class="relative pt-16 pb-16 lg:pt-40 lg:pb-56">
         <!-- Background Decoration -->
         <div class="absolute top-0 right-0 -z-10 w-full h-full opacity-30">
             <div class="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-brand-teal-soft rounded-full blur-[120px]"></div>
@@ -10,22 +10,22 @@
             </div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-12 gap-20 items-center">
-            <div class="lg:col-span-7 z-10">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12 grid lg:grid-cols-12 gap-10 lg:gap-20 items-center">
+            <div class="lg:col-span-7 z-10 flex flex-col items-center lg:items-start text-center lg:text-left">
                 <div
-                    class="inline-flex items-center gap-2 px-4 py-1.5 hero-pill rounded-full text-[10px] font-black uppercase tracking-widest mb-10">
+                    class="inline-flex items-center gap-2 px-4 py-1.5 hero-pill rounded-full text-[10px] font-black uppercase tracking-widest mb-10 mx-auto lg:mx-0">
                     <mat-icon class="!text-[14px] !w-auto !h-auto">verified</mat-icon>
                     Verified Professional Ecosystem
                 </div>
-                <h1 class="text-4xl sm:text-6xl lg:text-7xl font-black text-slate-900 mb-6 lg:mb-8 tracking-tighter leading-[1.1] lg:leading-[0.95]">
+                <h1 class="hero-title text-slate-900 mb-6 lg:mb-8 tracking-tighter">
                     Elite Talent. <br>
                     <span class="text-brand-teal">Absolute Trust.</span>
                 </h1>
-                <p class="text-lg lg:text-xl text-slate-500 mb-8 lg:mb-12 max-w-xl font-medium leading-relaxed">
+                <p class="text-lg lg:text-xl text-slate-500 mb-8 lg:mb-12 max-w-xl mx-auto lg:mx-0 font-medium leading-relaxed">
                     The premium marketplace for verified local professionals. Secure your high-stakes projects with our
                     institutional-grade escrow and vetting system.
                 </p>
-                <div class="flex flex-col sm:flex-row gap-4">
+                <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start w-full sm:w-auto px-6 sm:px-0">
                     <button [routerLink]="['/register']" [queryParams]="{role: 'client'}"
                         class="btn-brand hero-cta-large text-xs font-black uppercase tracking-[0.18em] shadow-2xl transform-gpu transition-all hover:translate-y-[-2px]">
                         Discover Experts
@@ -37,7 +37,7 @@
                 </div>
 
                 <div
-                    class="mt-12 lg:mt-16 flex flex-wrap lg:flex-nowrap items-center gap-6 lg:gap-10 opacity-40 grayscale group hover:grayscale-0 transition-all duration-700">
+                    class="mt-12 lg:mt-16 flex flex-wrap lg:flex-nowrap items-center justify-center lg:justify-start gap-6 lg:gap-10 opacity-40 grayscale group hover:grayscale-0 transition-all duration-700">
                     <div class="flex flex-col gap-1">
                         <span class="text-2xl font-black tracking-tighter text-slate-900">4.9/5</span>
                         <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">Avg. Rating</span>
@@ -57,9 +57,9 @@
             </div>
 
             <div class="lg:col-span-5 relative flex items-center justify-center">
-                <div class="relative w-full max-w-[520px] lg:max-w-[620px] py-6 lg:py-0">
-                    <div class="hero-image-panel relative mx-auto w-full min-h-[520px] lg:min-h-[700px] flex items-center justify-center">
-                        <div class="hero-image-bg absolute inset-0 rounded-[3rem] bg-white/90 shadow-2xl"></div>
+                <div class="relative w-full max-w-[280px] sm:max-w-[520px] lg:max-w-[620px] py-6 lg:py-0">
+                    <div class="hero-image-panel relative mx-auto w-full min-h-[360px] lg:min-h-[700px] flex items-center justify-center">
+                        <div class="hero-image-bg absolute inset-0 rounded-[2rem] lg:rounded-[3rem] bg-white/90 shadow-2xl"></div>
                         <img src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=800&q=80" alt="App interface mockup"
                             class="phone-mockup phone-mockup-2" />
                         <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=800&q=80" alt="Professional team collaboration"

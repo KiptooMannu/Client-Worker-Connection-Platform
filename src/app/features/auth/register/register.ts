@@ -26,27 +26,55 @@ import { NotificationService } from '../../../core/services/notification.service
           </div>
 
           <!-- Verification Message (shown after registration) -->
-          <div *ngIf="registrationComplete()" class="space-y-4">
-            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
-              <div class="flex items-start gap-3">
-                <svg class="w-6 h-6 text-emerald-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <div>
-                  <h3 class="font-bold text-emerald-900 mb-1">Check Your Email</h3>
-                  <p class="text-sm text-emerald-800 mb-3">We've sent a verification link to <strong>{{ email }}</strong></p>
-                  <p class="text-sm text-emerald-800">Click the link in the email to verify your account and activate your access to Kazi Konnect.</p>
+          <div *ngIf="registrationComplete()" class="space-y-6">
+            <div class="text-center mb-4">
+              <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-emerald-600 text-3xl">mail</span>
+              </div>
+              <h2 class="font-headline-md text-xl md:text-2xl text-primary mb-1">Verify Your Email</h2>
+              <p class="font-body-md text-sm text-secondary">We sent a 6-digit code to <strong>{{ email }}</strong></p>
+            </div>
+
+            <!-- OTP Input Form -->
+            <form (submit)="onVerifyOtp()" class="space-y-4">
+              <div *ngIf="otpError()" class="rounded-xl border border-rose-200 bg-rose-50 text-rose-900 px-4 py-3 text-sm">
+                {{ otpError() }}
+              </div>
+              <div *ngIf="otpSuccess()" class="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 px-4 py-3 text-sm">
+                {{ otpSuccess() }}
+              </div>
+
+              <div class="space-y-2">
+                <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider block text-center">Verification Code</label>
+                <div class="flex justify-center gap-2">
+                  <input class="w-full max-w-[200px] h-12 text-center text-xl font-bold tracking-[0.5em] border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                         type="text" maxlength="6" placeholder="000000" name="otpCode" [(ngModel)]="otpCode" required />
                 </div>
               </div>
+
+              <button class="w-full h-12 bg-primary text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-primary/10 hover:bg-primary-dark transition-all active:scale-[0.98] disabled:opacity-50"
+                      type="submit" [disabled]="otpLoading()">
+                {{ otpLoading() ? 'VERIFYING...' : 'VERIFY CODE' }}
+              </button>
+            </form>
+
+            <div class="text-center pt-2">
+              <button (click)="resendOtp()" class="text-primary font-bold hover:underline text-sm outline-none" [disabled]="resendLoading()" type="button">
+                {{ resendLoading() ? 'Sending...' : 'Resend Code' }}
+              </button>
             </div>
-            <div class="pt-4 text-center">
-              <p class="text-sm text-secondary mb-4">Didn't receive the email? Check your spam folder or</p>
-              <button (click)="backToRegister()" class="text-primary font-bold hover:underline">Try registering again</button>
+            
+            <div class="pt-4 border-t border-slate-100 text-center">
+              <button (click)="backToRegister()" class="text-secondary font-bold hover:underline text-sm outline-none" type="button">Back to Registration</button>
             </div>
           </div>
 
           <!-- Registration Form (shown when not complete) -->
           <form *ngIf="!registrationComplete()" (submit)="onSubmit()" class="space-y-4">
+            <div *ngIf="formError()" class="rounded-xl border border-rose-200 bg-rose-50 text-rose-900 px-4 py-3">
+              <p class="font-semibold text-sm">Registration error</p>
+              <p class="text-[13px] mt-1">{{ formError() }}</p>
+            </div>
             <!-- Name Row -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="space-y-1.5">
@@ -99,7 +127,7 @@ import { NotificationService } from '../../../core/services/notification.service
                           [class.shadow-sm]="role === 'Client'"
                           [class.text-secondary]="role !== 'Client'"
                           class="flex-1 rounded-full font-label-sm text-[10px] font-bold uppercase tracking-wider transition-all outline-none" type="button">
-                    Client
+                    Employer
                   </button>
                   <button (click)="role = 'Worker'"
                           [class.bg-white]="role === 'Worker'"
@@ -184,6 +212,13 @@ export class RegisterPage implements OnInit {
   showPassword = false;
   registrationComplete = signal(false);
   validationErrors = signal<Record<string, string>>({});
+  formError = signal('');
+  
+  otpCode = '';
+  otpLoading = signal(false);
+  otpError = signal('');
+  otpSuccess = signal('');
+  resendLoading = signal(false);
 
   ngOnInit() {
     const roleParam = this.route.snapshot.queryParamMap.get('role');
@@ -226,6 +261,7 @@ export class RegisterPage implements OnInit {
     }
     
     this.loading.set(true);
+    this.formError.set('');
     this.validationErrors.set({});
     this.auth.register(this.firstName, this.secondName, this.email, this.role, this.password, this.username).subscribe({
       next: () => {
@@ -241,10 +277,22 @@ export class RegisterPage implements OnInit {
           return;
         }
 
-        const message = error?.error?.message || error?.message;
-        if (message) {
-          this.notification.error(message);
+        let message = 'Registration failed. Please try again.';
+        if (typeof error?.error === 'string') {
+          try {
+            const parsed = JSON.parse(error.error);
+            message = parsed?.message || parsed?.error || error.error || message;
+          } catch {
+            message = error.error || message;
+          }
+        } else if (error?.error?.message) {
+          message = error.error.message;
+        } else if (error?.message) {
+          message = error.message;
         }
+
+        this.formError.set(message);
+        this.notification.error(message);
       }
     });
   }
@@ -258,5 +306,57 @@ export class RegisterPage implements OnInit {
     this.password = '';
     this.confirmPassword = '';
     this.validationErrors.set({});
+    this.formError.set('');
+    this.otpCode = '';
+    this.otpError.set('');
+    this.otpSuccess.set('');
+  }
+
+  onVerifyOtp() {
+    if (!this.otpCode.trim() || this.otpCode.trim().length !== 6) {
+      this.otpError.set('Please enter a valid 6-digit verification code.');
+      return;
+    }
+
+    this.otpLoading.set(true);
+    this.otpError.set('');
+    this.otpSuccess.set('');
+
+    this.auth.verifyEmail(this.otpCode.trim(), this.email.trim()).subscribe({
+      next: () => {
+        this.otpLoading.set(false);
+        this.otpSuccess.set('Email verified successfully! Redirecting to login...');
+        this.notification.success('Email verified successfully!');
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 2000);
+      },
+      error: (error: any) => {
+        this.otpLoading.set(false);
+        const message = error?.error?.message || error?.message || 'Verification failed. The code may be incorrect or expired.';
+        this.otpError.set(message);
+        this.notification.error(message);
+      }
+    });
+  }
+
+  resendOtp() {
+    this.resendLoading.set(true);
+    this.otpError.set('');
+    this.otpSuccess.set('');
+
+    this.auth.resendVerificationEmail(this.email.trim()).subscribe({
+      next: (response: any) => {
+        this.resendLoading.set(false);
+        const msg = typeof response === 'string' ? response : response?.message || 'A new verification code has been sent.';
+        this.otpSuccess.set(msg);
+        this.notification.success(msg);
+      },
+      error: (error: any) => {
+        this.resendLoading.set(false);
+        const msg = error?.error || error?.message || 'Failed to resend verification code.';
+        this.otpError.set(msg);
+      }
+    });
   }
 }

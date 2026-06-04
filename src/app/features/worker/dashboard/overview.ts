@@ -284,7 +284,7 @@ export class WorkerDashboardOverviewPage {
 
   statusDesc = computed(() => {
     const s = this.worker().status;
-    if (s === 'Verified') return 'Your profile is live and visible to elite clients. Keep your availability updated.';
+    if (s === 'Verified') return 'Your profile is live and visible to elite employers. Keep your availability updated.';
     if (s === 'Pending') return "Admins are currently reviewing your professional credentials. You'll be notified once cleared.";
     return 'Complete your professional audit to unlock premium marketplace features.';
   });

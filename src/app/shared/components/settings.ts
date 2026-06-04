@@ -51,7 +51,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
         <div class="text-center mt-6 md:mt-8 z-10">
           <h1 class="text-xl md:text-3xl font-black text-white tracking-tighter mb-1 md:mb-2">{{ auth.currentUser()?.name }}</h1>
           <p class="text-white/50 text-[10px] md:text-xs font-black uppercase tracking-widest">
-            {{ auth.currentUser()?.email }} | {{ auth.currentUser()?.role }}
+            {{ auth.currentUser()?.email }} | {{ auth.currentUser()?.role === 'Client' ? 'Employer' : auth.currentUser()?.role }}
           </p>
           <p class="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] mt-2">
             {{ form.phoneNumber || auth.currentUser()?.phoneNumber || state.currentClient()?.phoneNumber || state.currentWorker().phoneNumber || 'Phone not set' }}

@@ -25,7 +25,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
       <app-navbar 
         [showHireTalent]="false" 
         pageTitle="Marketplace" 
-        badge="Client">
+        badge="Employer">
       </app-navbar>
 
       <div class="flex flex-1 overflow-hidden">
