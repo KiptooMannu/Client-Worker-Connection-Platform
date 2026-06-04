@@ -120,7 +120,7 @@ export class LoginPage {
 
   onSubmit() {
     this.loading.set(true);
-    this.auth.login(this.email, this.password, this.returnUrl).subscribe({
+    this.auth.login(this.email, this.password).subscribe({
       next: () => {
         this.loading.set(false);
       },
