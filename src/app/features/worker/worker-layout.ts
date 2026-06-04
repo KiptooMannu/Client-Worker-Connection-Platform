@@ -33,23 +33,23 @@ import { NavbarComponent } from '../../shared/components/navbar';
         <aside class="hidden lg:flex flex-col w-72 border-r border-outline-variant/30 bg-surface px-4 py-8 space-y-6 shrink-0">
           <nav class="space-y-1">
             <a routerLink="dashboard" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
-              <mat-icon class="group-[.active-tab]:text-primary transition-colors">grid_view</mat-icon>
+              <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">grid_view</mat-icon>
               Dashboard
             </a>
             <a routerLink="history" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
-              <mat-icon class="group-[.active-tab]:text-primary transition-colors">receipt_long</mat-icon>
+              <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">receipt_long</mat-icon>
               My Jobs
             </a>
             <a routerLink="verification" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
-              <mat-icon class="group-[.active-tab]:text-primary transition-colors">verified_user</mat-icon>
+              <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">verified_user</mat-icon>
               Documents
             </a>
             <a routerLink="profile" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
-              <mat-icon class="group-[.active-tab]:text-primary transition-colors">person_edit</mat-icon>
+              <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">person_edit</mat-icon>
               Profile
             </a>
             <a routerLink="settings" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
-              <mat-icon class="group-[.active-tab]:text-primary transition-colors">settings</mat-icon>
+              <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">settings</mat-icon>
               Settings
             </a>
           </nav>
@@ -73,35 +73,35 @@ import { NavbarComponent } from '../../shared/components/navbar';
       <!-- Mobile Bottom Navigation Bar -->
       <div class="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-4 z-[100] pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
         <a routerLink="dashboard" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">grid_view</mat-icon>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Home</span>
+          <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">grid_view</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Home</span>
         </a>
         <a routerLink="history" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">receipt_long</mat-icon>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Jobs</span>
+          <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">receipt_long</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Jobs</span>
         </a>
         <a routerLink="verification" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">verified_user</mat-icon>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Docs</span>
+          <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">verified_user</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Docs</span>
         </a>
         <a routerLink="messages" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
           <div class="relative">
-            <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">chat_bubble_outline</mat-icon>
+            <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">chat_bubble_outline</mat-icon>
             @if (state.unreadMessagesCount() > 0) {
-              <span class="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white font-black">
+              <span class="absolute -top-1 -right-1 w-4 h-4 bg-brand-teal text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white font-black">
                 {{ state.unreadMessagesCount() }}
               </span>
             }
           </div>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Chats</span>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Chats</span>
         </a>
         <a routerLink="profile" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">person_outline</mat-icon>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Profile</span>
+          <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">person_outline</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Profile</span>
         </a>
         <a routerLink="settings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <mat-icon class="group-[.active-mobile-tab]:text-primary transition-colors">settings</mat-icon>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-primary">Settings</span>
+          <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">settings</mat-icon>
+          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Settings</span>
         </a>
       </div>
     </div>

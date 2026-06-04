@@ -28,7 +28,7 @@ import { NotificationService } from '../../../core/services/notification.service
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
               </div>
-              <h1 class="font-headline-lg text-2xl md:text-3xl text-primary mb-2">Email Verified!</h1>
+              <h1 class="font-headline-lg text-2xl md:text-3xl text-brand-teal mb-2">Email Verified!</h1>
               <p class="font-body-lg text-sm text-secondary">Your account is now active</p>
             </div>
 
@@ -37,7 +37,7 @@ import { NotificationService } from '../../../core/services/notification.service
             </div>
 
             <div class="space-y-3">
-              <button (click)="goToLogin()" class="w-full h-12 bg-primary text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-primary/10 hover:bg-primary-dark transition-all active:scale-[0.98]">
+              <button (click)="goToLogin()" class="w-full h-12 bg-brand-teal text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-brand-teal/10 hover:bg-brand-teal-dark transition-all active:scale-[0.98]">
                 GO TO LOGIN
               </button>
               <a routerLink="/" class="w-full h-12 bg-slate-100 text-on-surface font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-slate-100/10 hover:bg-slate-200 transition-all active:scale-[0.98] flex items-center justify-center">
@@ -66,10 +66,10 @@ import { NotificationService } from '../../../core/services/notification.service
                   type="email"
                   [(ngModel)]="resendEmail"
                   placeholder="Email address"
-                  class="w-full px-4 py-3 border rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-primary"
+                  class="w-full px-4 py-3 border rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-brand-teal"
                 />
                 <button
-                  class="w-full h-12 bg-primary text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-primary/10 hover:bg-primary-dark transition-all active:scale-[0.98]"
+                  class="w-full h-12 bg-brand-teal text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-brand-teal/10 hover:bg-brand-teal-dark transition-all active:scale-[0.98]"
                   [disabled]="resendLoading() || !resendEmail.trim()"
                   (click)="resendVerification()"
                 >
@@ -81,7 +81,7 @@ import { NotificationService } from '../../../core/services/notification.service
             </div>
 
             <div class="space-y-3">
-              <a routerLink="/register" class="w-full h-12 bg-primary text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-primary/10 hover:bg-primary-dark transition-all active:scale-[0.98] flex items-center justify-center">
+              <a routerLink="/register" class="w-full h-12 bg-brand-teal text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-brand-teal/10 hover:bg-brand-teal-dark transition-all active:scale-[0.98] flex items-center justify-center">
                 TRY AGAIN
               </a>
               <a routerLink="/login" class="w-full h-12 bg-slate-100 text-on-surface font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-slate-100/10 hover:bg-slate-200 transition-all active:scale-[0.98] flex items-center justify-center">
@@ -93,10 +93,10 @@ import { NotificationService } from '../../../core/services/notification.service
           <!-- OTP Manual Verification State -->
           <div *ngIf="verificationComplete() && !routeHasToken() && !verificationSuccess()">
             <div class="text-center mb-6">
-              <div class="bg-primary-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-primary/20">
+              <div class="bg-primary-container w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg shadow-brand-teal/20">
                 <span class="material-symbols-outlined text-white text-3xl">domain_verification</span>
               </div>
-              <h1 class="font-headline-lg text-2xl md:text-3xl text-primary mb-2">Verify Your Account</h1>
+              <h1 class="font-headline-lg text-2xl md:text-3xl text-brand-teal mb-2">Verify Your Account</h1>
               <p class="font-body-lg text-sm text-secondary">Enter your email and the 6-digit verification code</p>
             </div>
 
@@ -115,7 +115,7 @@ import { NotificationService } from '../../../core/services/notification.service
                   [(ngModel)]="manualEmail"
                   name="manualEmail"
                   placeholder="name@example.com"
-                  class="w-full px-4 py-3 border border-slate-200 rounded-full text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  class="w-full px-4 py-3 border border-slate-200 rounded-full text-sm text-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent outline-none"
                   required
                 />
               </div>
@@ -128,14 +128,14 @@ import { NotificationService } from '../../../core/services/notification.service
                   name="manualOtp"
                   maxlength="6"
                   placeholder="000000"
-                  class="w-full px-4 py-3 border border-slate-200 rounded-full text-sm text-slate-950 text-center font-bold tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent outline-none"
+                  class="w-full px-4 py-3 border border-slate-200 rounded-full text-sm text-slate-950 text-center font-bold tracking-[0.5em] focus:outline-none focus:ring-2 focus:ring-brand-teal focus:border-transparent outline-none"
                   required
                 />
               </div>
 
               <button
                 type="submit"
-                class="w-full h-12 bg-primary text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-primary/10 hover:bg-primary-dark transition-all active:scale-[0.98] disabled:opacity-50"
+                class="w-full h-12 bg-brand-teal text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-brand-teal/10 hover:bg-brand-teal-dark transition-all active:scale-[0.98] disabled:opacity-50"
                 [disabled]="loadingOtp()"
               >
                 {{ loadingOtp() ? 'Verifying...' : 'Verify Code' }}
@@ -150,7 +150,7 @@ import { NotificationService } from '../../../core/services/notification.service
                   [(ngModel)]="resendEmail"
                   name="resendEmail"
                   placeholder="Email address for code resend"
-                  class="w-full px-4 py-2 border border-slate-200 rounded-full text-xs text-slate-950 focus:outline-none focus:ring-2 focus:ring-primary outline-none"
+                  class="w-full px-4 py-2 border border-slate-200 rounded-full text-xs text-slate-950 focus:outline-none focus:ring-2 focus:ring-brand-teal outline-none"
                 />
                 <button
                   class="w-full py-2 bg-slate-200 hover:bg-slate-300 text-on-surface font-label-caps text-[10px] font-bold tracking-[0.1em] rounded-full transition-all"
@@ -176,13 +176,13 @@ import { NotificationService } from '../../../core/services/notification.service
           <div *ngIf="!verificationComplete()" class="text-center">
             <div class="mb-6">
               <div class="inline-block">
-                <svg class="animate-spin h-12 w-12 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg class="animate-spin h-12 w-12 text-brand-teal" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
               </div>
             </div>
-            <h1 class="font-headline-lg text-2xl md:text-3xl text-primary mb-2">Verifying Email</h1>
+            <h1 class="font-headline-lg text-2xl md:text-3xl text-brand-teal mb-2">Verifying Email</h1>
             <p class="font-body-lg text-sm text-secondary">Please wait while we verify your email address...</p>
           </div>
         </div>
@@ -193,8 +193,8 @@ import { NotificationService } from '../../../core/services/notification.service
         <div class="flex justify-between items-center px-6 max-w-[1280px] mx-auto w-full">
           <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">© 2024 Kazi Konnect. Professional.</span>
           <div class="flex gap-6">
-            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Terms</a>
-            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Privacy</a>
+            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-brand-teal transition-colors cursor-pointer">Terms</a>
+            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-brand-teal transition-colors cursor-pointer">Privacy</a>
           </div>
         </div>
       </footer>

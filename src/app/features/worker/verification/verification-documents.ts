@@ -31,18 +31,20 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       <!-- Trust Audit Header -->
       <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
         <div class="space-y-2">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="material-symbols-outlined text-on-secondary-container text-[18px]">verified_user</span>
+          <div class="flex items-center gap-3 mb-1">
+            <div class="w-10 h-10 rounded-full bg-white/15 text-white flex items-center justify-center">
+              <span class="material-symbols-outlined text-lg">verified_user</span>
+            </div>
             <span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Identity Vault</span>
           </div>
-          <h1 class="text-3xl font-black text-primary">Trust Audit</h1>
+          <h1 class="text-3xl font-black text-brand-teal">Trust Audit</h1>
           <p class="font-body-sm text-body-sm text-on-surface-variant max-w-md">Compliance auditing for secure marketplace operations. High-level encryption active.</p>
         </div>
 
         <div class="flex items-center gap-4 p-4 bg-white border border-outline-variant rounded-xl shadow-sm">
            <div class="text-right">
               <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest block">Audit Readiness</span>
-              <h2 class="text-2xl font-black text-primary">{{ state.currentWorkerCompletion() }}%</h2>
+              <h2 class="text-2xl font-black text-brand-teal">{{ state.currentWorkerCompletion() }}%</h2>
            </div>
            <div class="h-12 w-12 rounded-lg bg-secondary-container flex items-center justify-center">
               <span class="material-symbols-outlined text-on-secondary-container" style="font-variation-settings: 'FILL' 1;">security</span>
@@ -74,24 +76,24 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             
             <!-- Identity Documents -->
             <section class="space-y-4">
-              <h3 class="font-label-md text-label-md text-primary uppercase tracking-widest px-1">Primary Credentials</h3>
+              <h3 class="font-label-md text-label-md text-brand-teal uppercase tracking-widest px-1">Primary Credentials</h3>
               
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- ID Front -->
-                <div (click)="fileInputFront.click()" class="group relative aspect-[1.5/1] bg-surface-container-low rounded-xl flex flex-col items-center justify-center border border-outline-variant hover:border-primary transition-all cursor-pointer overflow-hidden shadow-sm">
+                <div (click)="fileInputFront.click()" class="group relative aspect-[1.5/1] bg-surface-container-low rounded-xl flex flex-col items-center justify-center border border-outline-variant hover:border-brand-teal transition-all cursor-pointer overflow-hidden shadow-sm">
                   <input #fileInputFront type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Front')" class="hidden">
                   @if (getFileUrl('ID-Front')) {
                     <img [src]="getFileUrl('ID-Front')" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
-                      <span class="bg-white px-3 py-1.5 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest shadow-lg">Replace Front</span>
+                    <div class="absolute inset-0 bg-brand-teal/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
+                      <span class="bg-white px-3 py-1.5 rounded-lg text-brand-teal text-[10px] font-black uppercase tracking-widest shadow-lg">Replace Front</span>
                     </div>
-                    <div class="absolute top-2 right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
+                    <div class="absolute top-2 right-2 bg-brand-teal text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
                        <mat-icon class="!text-[14px]">check</mat-icon>
                     </div>
                   } @else {
                     <div class="flex flex-col items-center gap-2">
-                      <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-primary border border-outline-variant">
-                        <span class="material-symbols-outlined">add_a_photo</span>
+                      <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center text-brand-teal border border-outline-variant shadow-sm">
+                        <span class="material-symbols-outlined text-2xl">add_a_photo</span>
                       </div>
                       <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">ID Front View</span>
                     </div>
@@ -99,20 +101,20 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 </div>
 
                 <!-- ID Back -->
-                <div (click)="fileInputBack.click()" class="group relative aspect-[1.5/1] bg-surface-container-low rounded-xl flex flex-col items-center justify-center border border-outline-variant hover:border-primary transition-all cursor-pointer overflow-hidden shadow-sm">
+                <div (click)="fileInputBack.click()" class="group relative aspect-[1.5/1] bg-surface-container-low rounded-xl flex flex-col items-center justify-center border border-outline-variant hover:border-brand-teal transition-all cursor-pointer overflow-hidden shadow-sm">
                   <input #fileInputBack type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Back')" class="hidden">
                   @if (getFileUrl('ID-Back')) {
                     <img [src]="getFileUrl('ID-Back')" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
-                      <span class="bg-white px-3 py-1.5 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest shadow-lg">Replace Back</span>
+                    <div class="absolute inset-0 bg-brand-teal/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
+                      <span class="bg-white px-3 py-1.5 rounded-lg text-brand-teal text-[10px] font-black uppercase tracking-widest shadow-lg">Replace Back</span>
                     </div>
-                    <div class="absolute top-2 right-2 bg-primary text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
+                    <div class="absolute top-2 right-2 bg-brand-teal text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
                        <mat-icon class="!text-[14px]">check</mat-icon>
                     </div>
                   } @else {
                     <div class="flex flex-col items-center gap-2">
-                      <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-primary border border-outline-variant">
-                        <span class="material-symbols-outlined">add_a_photo</span>
+                      <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center text-brand-teal border border-outline-variant shadow-sm">
+                        <span class="material-symbols-outlined text-2xl">add_a_photo</span>
                       </div>
                       <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">ID Back View</span>
                     </div>
@@ -123,14 +125,14 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
             <!-- Professional Proof -->
             <section class="space-y-4">
-              <h3 class="font-label-md text-label-md text-primary uppercase tracking-widest px-1">Secondary Proof</h3>
+              <h3 class="font-label-md text-label-md text-brand-teal uppercase tracking-widest px-1">Secondary Proof</h3>
               <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 space-y-6">
                 <div class="flex items-center justify-between gap-4">
                   <div class="flex-1">
-                    <h4 class="font-bold text-primary mb-1">Trade Certifications</h4>
+                    <h4 class="font-bold text-brand-teal mb-1">Trade Certifications</h4>
                     <p class="text-xs text-on-surface-variant leading-relaxed">Safety audits, specialized licenses, or trade diplomas.</p>
                   </div>
-                  <button (click)="bulkFileInput.click()" class="w-12 h-12 bg-primary text-white rounded-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform">
+                  <button (click)="bulkFileInput.click()" class="w-12 h-12 bg-brand-teal text-white rounded-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform">
                     <mat-icon>upload_file</mat-icon>
                   </button>
                   <input #bulkFileInput type="file" multiple accept=".pdf,.jpg,.png" (change)="onFileSelected($event, 'Certification')" class="hidden">
@@ -141,7 +143,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
           <!-- Sidebar: Secure Vault -->
           <aside class="md:col-span-5 space-y-6">
-            <div class="bg-primary text-white rounded-xl p-6 shadow-xl relative overflow-hidden group">
+            <div class="bg-brand-teal text-white rounded-xl p-6 shadow-xl relative overflow-hidden group">
               <!-- Subtle AES encryption pattern background -->
               <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
               
@@ -189,7 +191,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <!-- Profile Readiness Action -->
             <div class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm space-y-4">
                <div>
-                  <h4 class="font-bold text-primary">Commit to Audit</h4>
+                  <h4 class="font-bold text-brand-teal">Commit to Audit</h4>
                   <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">
                      Review is finalized by compliance officers. Integrity check usually completes within 24 operational hours.
                   </p>
@@ -197,13 +199,13 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                
                <button (click)="submitApplication()" 
                        [disabled]="isSubmitting() || uploadedFiles().length === 0 || state.currentWorkerCompletion() < 100"
-                       class="w-full py-4 bg-primary text-white rounded-lg font-bold text-sm uppercase tracking-widest hover:opacity-90 disabled:opacity-30 disabled:grayscale transition-all shadow-lg shadow-primary/10 active:scale-[0.98]">
+                       class="w-full py-4 bg-brand-teal text-white rounded-lg font-bold text-sm uppercase tracking-widest hover:opacity-90 disabled:opacity-30 disabled:grayscale transition-all shadow-lg shadow-brand-teal/10 active:scale-[0.98]">
                   {{ isSubmitting() ? 'Transmitting...' : 'Sign & Submit' }}
                </button>
 
                @if (state.currentWorkerCompletion() < 100) {
                  <div class="flex items-start gap-2 p-3 bg-surface-container rounded-lg border border-outline-variant/30">
-                    <mat-icon class="text-primary !text-[16px]">info_outline</mat-icon>
+                    <mat-icon class="text-brand-teal !text-[16px]">info_outline</mat-icon>
                     <p class="text-[10px] text-on-surface-variant font-medium leading-normal">
                       Profile requires 100% completion: bio, skills, work history, certifications, ID documents (front & back), and trade certification proof before transmission to compliance.
                     </p>
@@ -218,18 +220,18 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
           <div class="w-20 h-20 bg-secondary-container text-on-secondary-container rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
             <span class="material-symbols-outlined text-[40px]" style="font-variation-settings: 'FILL' 1;">security</span>
           </div>
-          <h2 class="text-2xl font-black text-primary mb-3">Audit Underway</h2>
+          <h2 class="text-2xl font-black text-brand-teal mb-3">Audit Underway</h2>
           <p class="text-on-surface-variant text-sm font-medium mb-8 leading-relaxed px-4">Our compliance team is currently auditing your professional credentials. Verification usually completes within 24 business hours.</p>
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <button routerLink="/worker/dashboard" class="px-6 py-3 bg-primary text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-sm active:scale-95 transition-transform">Back to Workspace</button>
-            <button class="px-6 py-3 border border-outline-variant text-primary rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-surface-container-low transition-colors">Support Line</button>
+            <button routerLink="/worker/dashboard" class="px-6 py-3 bg-brand-teal text-white rounded-lg font-bold text-xs uppercase tracking-widest shadow-sm active:scale-95 transition-transform">Back to Workspace</button>
+            <button class="px-6 py-3 border border-outline-variant text-brand-teal rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-surface-container-low transition-colors">Support Line</button>
           </div>
         </div>
       }
       
       <footer class="text-center pt-12">
         <div class="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-low rounded-full border border-outline-variant">
-           <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></span>
+           <span class="w-1.5 h-1.5 bg-brand-teal rounded-full animate-pulse"></span>
            <span class="text-[9px] font-black text-on-surface-variant uppercase tracking-[0.2em]">Kazi Secure Shield Active • ISO 27001 Protocol</span>
         </div>
       </footer>

@@ -37,7 +37,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
         <div>
           <div class="flex items-center gap-3 mb-2">
-            <span class="bg-indigo-50 text-indigo-600 text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-indigo-100/50">Admin Queue</span>
+            <span class="bg-brand-teal-soft text-brand-teal text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest border border-brand-teal/30">Admin Queue</span>
             <span class="text-slate-400 text-[9px] font-bold uppercase tracking-widest">
               @if (state.isLoadingWorkers() && state.pendingWorkers().length === 0) { Syncing... } @else { {{ state.pendingWorkers().length }} Pending Reviews }
             </span>
@@ -48,11 +48,11 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         <div class="flex items-center gap-3">
           @if (selectedIds.size > 0) {
             <div class="bg-white border border-slate-200 px-4 py-2 rounded-2xl flex items-center gap-4 shadow-sm animate-in slide-in-from-right-10">
-              <span class="text-[10px] font-black text-indigo-600 uppercase tracking-widest">{{ selectedIds.size }} Selected</span>
+              <span class="text-[10px] font-black text-brand-teal uppercase tracking-widest">{{ selectedIds.size }} Selected</span>
               <div class="h-6 w-[1px] bg-slate-100"></div>
               <div class="flex gap-2">
                 <button (click)="openBulkReject()" [disabled]="isProcessing()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider text-red-600 hover:bg-red-50 transition-all border border-red-100 disabled:opacity-50 disabled:cursor-not-allowed">Reject</button>
-                <button (click)="bulkApprove()" [disabled]="isProcessing()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-indigo-600 text-white hover:bg-indigo-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <button (click)="bulkApprove()" [disabled]="isProcessing()" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-wider bg-brand-teal text-white hover:bg-brand-teal-dark transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   @if (isProcessing()) {
                     <span class="inline-block w-2.5 h-2.5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                   }
@@ -129,7 +129,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[10px] !font-black !text-slate-400 !uppercase !tracking-widest">Priority</th>
               <td mat-cell *matCellDef="let user" class="!border-b !border-slate-50">
                 <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider" 
-                      [ngClass]="user.status === 'Priority' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-blue-50 text-blue-600 border border-blue-100'">
+                      [ngClass]="user.status === 'Priority' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-brand-teal-soft text-brand-teal border border-brand-teal/30'">
                   {{ user.status }}
                 </span>
               </td>
@@ -147,7 +147,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                     <button (click)="openReject(user)" [disabled]="isProcessing()" class="w-8 h-8 rounded-lg hover:bg-rose-50 text-rose-600 flex items-center justify-center transition-all border border-transparent hover:border-rose-100 disabled:opacity-50 disabled:cursor-not-allowed" title="Reject">
                       <mat-icon class="!text-lg">block</mat-icon>
                     </button>
-                    <button (click)="approve(user)" [disabled]="isProcessing()" class="px-4 py-1.5 rounded-lg bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                    <button (click)="approve(user)" [disabled]="isProcessing()" class="px-4 py-1.5 rounded-lg bg-brand-teal text-white text-[10px] font-black uppercase tracking-widest hover:bg-brand-teal-dark transition-all shadow-sm disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                       @if (isProcessing()) {
                         <span class="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                         Processing...
@@ -160,7 +160,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 } @else if (reviewingId === user.id && detailedReview) {
                   <button (click)="detailedReview = null" class="text-slate-400 hover:text-slate-600"><mat-icon class="!text-lg">close</mat-icon></button>
                 } @else {
-                  <button (click)="reviewingId = user.id" class="px-5 py-2 rounded-xl text-indigo-600 text-[10px] font-black uppercase tracking-widest border border-indigo-50 hover:bg-indigo-50 transition-all">
+                  <button (click)="reviewingId = user.id" class="px-5 py-2 rounded-xl text-brand-teal text-[10px] font-black uppercase tracking-widest border border-brand-teal/20 hover:bg-brand-teal-soft transition-all">
                     Start Review
                   </button>
                 }
@@ -175,7 +175,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         @if (state.pendingWorkers().length === 0 && !state.isLoadingWorkers()) {
           <div class="py-20 flex flex-col items-center justify-center bg-slate-50/30">
             <div class="w-16 h-16 rounded-3xl bg-white shadow-sm flex items-center justify-center mb-6 border border-slate-100">
-              <mat-icon class="!text-3xl text-emerald-500">check_circle</mat-icon>
+              <mat-icon class="!text-3xl text-brand-teal">check_circle</mat-icon>
             </div>
             <h3 class="text-xl font-black text-slate-900 mb-1">Queue is Clear</h3>
             <p class="text-slate-400 text-xs font-medium">No pending applications at the moment.</p>
@@ -196,7 +196,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 <button
                   (click)="goToPage(p)"
                   class="w-8 h-8 rounded-lg text-[10px] font-black transition-all"
-                  [ngClass]="p === currentPage ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-500 hover:bg-white'">
+                  [ngClass]="p === currentPage ? 'bg-brand-teal text-white shadow-md' : 'text-slate-500 hover:bg-white'">
                   {{ p }}
                 </button>
               }
@@ -220,37 +220,30 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                   @if (detailedReview.image) { <img [src]="detailedReview.image" class="w-full h-full object-cover"> } @else { {{ detailedReview.initials }} }
                 </div>
                 <h2 class="text-2xl font-black text-slate-900 mb-1 leading-tight">{{ detailedReview.name }}</h2>
-                <p class="text-indigo-600 font-black text-[10px] uppercase tracking-widest mb-6">{{ detailedReview.category }}</p>
-                
-                <div class="w-full space-y-4">
-                  <div class="grid grid-cols-3 gap-3">
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
-                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Skills</span>
-                      <p class="text-sm font-black text-slate-900">{{ detailedReview.skills?.length || 0 }}</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
-                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">History</span>
-                      <p class="text-sm font-black text-slate-900">{{ detailedReview.workHistory?.length || 0 }}</p>
-                    </div>
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
-                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Docs</span>
-                      <p class="text-sm font-black text-slate-900">{{ detailedReview.uploadedDocuments?.length || 0 }}</p>
-                    </div>
-                  </div>
+                <p class="text-brand-teal font-black text-[10px] uppercase tracking-widest mb-6">{{ detailedReview.category }}</p>
+                <p class="text-sm font-black text-slate-900">{{ detailedReview.skills?.length || 0 }}</p>
+              </div>
 
-                  <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Base Compensation</span>
-                    <div class="flex items-baseline gap-1">
-                      <span class="text-2xl font-black text-slate-900">\${{ detailedReview.rate }}</span>
-                      <span class="text-xs font-bold text-slate-400">/hr</span>
-                    </div>
+              <div class="mt-8 space-y-4">
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
+                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">History</span>
+                  <p class="text-sm font-black text-slate-900">{{ detailedReview.workHistory?.length || 0 }}</p>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
+                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Docs</span>
+                  <p class="text-sm font-black text-slate-900">{{ detailedReview.uploadedDocuments?.length || 0 }}</p>
+                </div>
+                <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Base Compensation</span>
+                  <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-black text-slate-900">\${{ detailedReview.rate }}</span>
+                    <span class="text-xs font-bold text-slate-400">/hr</span>
                   </div>
-                  
-                  <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Location Context</span>
-                    <p class="text-sm font-bold text-slate-900 mb-1">{{ detailedReview.location }}</p>
-                    <p class="text-[11px] text-slate-400 font-medium leading-relaxed">{{ detailedReview.preferredLocations?.join(', ') }}</p>
-                  </div>
+                </div>
+                <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Location Context</span>
+                  <p class="text-sm font-bold text-slate-900 mb-1">{{ detailedReview.location }}</p>
+                  <p class="text-[11px] text-slate-400 font-medium leading-relaxed">{{ detailedReview.preferredLocations?.join(', ') }}</p>
                 </div>
               </div>
             </div>
@@ -268,7 +261,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 <!-- Bio -->
                 <div>
                    <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4">Professional Bio</h4>
-                   <p class="text-slate-600 leading-relaxed italic border-l-4 border-indigo-500 pl-6 text-sm">"{{ detailedReview.bio || 'No professional bio provided.' }}"</p>
+                   <p class="text-slate-600 leading-relaxed italic border-l-4 border-brand-teal pl-6 text-sm">"{{ detailedReview.bio || 'No professional bio provided.' }}"</p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
@@ -278,11 +271,11 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                       <div class="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-[1px] before:bg-slate-100">
                         @for (work of detailedReview.workHistory; track $index) {
                           <div class="relative pl-10">
-                            <div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-white border-2 border-indigo-600 flex items-center justify-center z-10">
-                               <div class="w-2 h-2 rounded-full bg-indigo-600"></div>
+                            <div class="absolute left-0 top-1 w-6 h-6 rounded-full bg-white border-2 border-brand-teal flex items-center justify-center z-10">
+                               <div class="w-2 h-2 rounded-full bg-brand-teal"></div>
                             </div>
                             <p class="font-bold text-slate-900 text-sm mb-1">{{ work.role }} @ {{ work.company }}</p>
-                            <p class="text-[10px] text-indigo-500 font-bold uppercase mb-2">{{ work.period }}</p>
+                            <p class="text-[10px] text-brand-teal font-bold uppercase mb-2">{{ work.period }}</p>
                             <p class="text-xs text-slate-500 leading-relaxed">{{ work.description }}</p>
                           </div>
                         }
@@ -303,7 +296,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                                  <p class="font-bold text-slate-900 text-xs">{{ cert.name }}</p>
                                  <p class="text-[10px] text-slate-400">{{ cert.issuer }}</p>
                                </div>
-                               <span class="text-[10px] font-black text-indigo-600 bg-white px-2 py-1 rounded-lg border border-indigo-50 shadow-sm">{{ cert.year }}</span>
+                               <span class="text-[10px] font-black text-brand-teal bg-white px-2 py-1 rounded-lg border border-brand-teal/20 shadow-sm">{{ cert.year }}</span>
                             </div>
                           }
                         </div>
@@ -313,9 +306,9 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                         <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Security Documents</h4>
                         <div class="space-y-4">
                           @for (doc of detailedReview.uploadedDocuments; track doc.name) {
-                            <div class="p-4 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-indigo-200 hover:bg-indigo-50/30 transition-all">
+                            <div class="p-4 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-brand-teal/30 hover:bg-brand-teal-soft transition-all">
                               <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-indigo-600">
+                                <div class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-brand-teal">
                                   <mat-icon class="!text-xl">{{ doc.type.toLowerCase().includes('identification') ? 'badge' : 'verified' }}</mat-icon>
                                 </div>
                                 <div>
@@ -323,7 +316,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                                   <p class="text-[10px] text-slate-400 uppercase">{{ doc.type }}</p>
                                 </div>
                               </div>
-                              <button class="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 shadow-sm transition-all">
+                              <button class="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-brand-teal group-hover:border-brand-teal/20 shadow-sm transition-all">
                                 <mat-icon class="!text-base">download</mat-icon>
                               </button>
                             </div>

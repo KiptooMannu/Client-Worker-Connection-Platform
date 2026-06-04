@@ -49,7 +49,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <div>
                 <div class="flex items-center gap-2 mb-1">
                   <h3 class="text-xl font-black text-slate-900 tracking-tight">{{ selectedUser().name }}</h3>
-                  <span class="px-2 py-0.5 rounded-md bg-indigo-50 text-indigo-600 text-[8px] font-black uppercase tracking-widest border border-indigo-100">
+                  <span class="px-2 py-0.5 rounded-md bg-brand-teal-soft text-brand-teal text-[8px] font-black uppercase tracking-widest border border-brand-teal/30">
                     {{ selectedUser().role }}
                   </span>
                 </div>
@@ -71,7 +71,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <div class="space-y-2">
                  <h4 class="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em]">Profile Narrative</h4>
                  <div class="p-4 bg-slate-50/50 rounded-xl border border-slate-100">
-                    <p class="text-slate-600 text-xs font-medium leading-relaxed italic border-l-2 border-indigo-500 pl-4">
+                    <p class="text-slate-600 text-xs font-medium leading-relaxed italic border-l-2 border-brand-teal pl-4">
                       {{ selectedUser().bio || 'No professional biography provided for this profile.' }}
                     </p>
                  </div>
@@ -93,7 +93,7 @@ import { AuthService } from '../../../core/services/auth.service';
                   <h4 class="text-[8px] font-black text-slate-400 uppercase tracking-[0.15em]">Platform Engagement</h4>
                   <div class="grid grid-cols-2 gap-3">
                       <div class="p-4 rounded-xl border border-slate-100 bg-white shadow-sm flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                        <div class="w-8 h-8 rounded-lg bg-brand-teal-soft flex items-center justify-center text-brand-teal">
                           <mat-icon class="!text-sm">payments</mat-icon>
                         </div>
                         <div>
@@ -102,7 +102,7 @@ import { AuthService } from '../../../core/services/auth.service';
                         </div>
                       </div>
                       <div class="p-4 rounded-xl border border-slate-100 bg-white shadow-sm flex items-center gap-4">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
+                        <div class="w-8 h-8 rounded-lg bg-brand-teal-soft flex items-center justify-center text-brand-teal">
                           <mat-icon class="!text-sm">handshake</mat-icon>
                         </div>
                         <div>
@@ -197,7 +197,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="flex flex-wrap gap-4 w-full lg:w-auto">
             <div class="relative group w-full sm:w-80">
               <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 !text-base">search</mat-icon>
-              <input class="w-full pl-11 pr-12 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 transition-all outline-none" 
+              <input class="w-full pl-11 pr-12 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium focus:ring-4 focus:ring-brand-teal/20 focus:border-brand-teal transition-all outline-none" 
                      placeholder="Search identities..." 
                      type="text" 
                      [ngModel]="searchQuery()" 
@@ -228,7 +228,7 @@ import { AuthService } from '../../../core/services/auth.service';
               </mat-form-field>
 
               @if (selectedRole() !== 'all' || selectedStatus() !== 'any' || searchQuery()) {
-                <button (click)="resetFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 hover:bg-indigo-100 transition-all border border-indigo-100">
+                <button (click)="resetFilters()" class="px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest text-brand-teal bg-brand-teal-soft hover:bg-brand-teal/10 transition-all border border-brand-teal/20">
                   Reset Filters
                 </button>
               }
@@ -267,7 +267,7 @@ import { AuthService } from '../../../core/services/auth.service';
               <th mat-header-cell *matHeaderCellDef class="!bg-slate-50/50 !border-b !border-slate-100 !text-[11px] !font-bold !text-slate-400 !uppercase !tracking-[0.2em]">Role & Tier</th>
               <td mat-cell *matCellDef="let user" class="!border-b !border-slate-50">
                 <p class="text-sm font-bold text-slate-900">{{ user.role }}</p>
-                <p class="text-[10px] text-indigo-500 font-bold uppercase tracking-tighter">{{ user.tier }}</p>
+                <p class="text-[10px] text-brand-teal font-bold uppercase tracking-tighter">{{ user.tier }}</p>
               </td>
             </ng-container>
 
@@ -313,8 +313,8 @@ import { AuthService } from '../../../core/services/auth.service';
                       <span class="font-bold text-xs uppercase">Suspend Access</span>
                     </button>
                     @if (user.status === 'Suspended') {
-                      <button mat-menu-item (click)="activateUser(user)" class="!text-emerald-600">
-                        <mat-icon class="text-emerald-600">check_circle</mat-icon>
+                      <button mat-menu-item (click)="activateUser(user)" class="!text-brand-teal">
+                        <mat-icon class="text-brand-teal">check_circle</mat-icon>
                         <span class="font-bold text-xs uppercase">Activate Access</span>
                       </button>
                     }
@@ -389,9 +389,9 @@ export class AdminUserManagementPage implements OnInit {
 
   get dynamicStats() {
     return [
-      { label: 'Total Users', value: this.state.workers().length + this.state.clients().length, subtext: 'live', icon: 'group', trendClass: 'text-emerald-500' },
-      { label: 'Verified Experts', value: this.state.verifiedWorkers().length, subtext: 'Quality Assured', icon: 'verified', trendClass: 'text-indigo-500' },
-      { label: 'Active Clients', value: this.state.clients().length, subtext: 'Registered', icon: 'payments', trendClass: 'text-indigo-500' },
+      { label: 'Total Users', value: this.state.workers().length + this.state.clients().length, subtext: 'live', icon: 'group', trendClass: 'text-brand-teal' },
+      { label: 'Verified Experts', value: this.state.verifiedWorkers().length, subtext: 'Quality Assured', icon: 'verified', trendClass: 'text-brand-teal' },
+      { label: 'Active Clients', value: this.state.clients().length, subtext: 'Registered', icon: 'payments', trendClass: 'text-brand-teal' },
       { label: 'Pending Review', value: this.state.pendingWorkers().length, subtext: 'Priority Queue', icon: 'priority_high', trendClass: 'text-rose-500' }
     ];
   }
@@ -419,7 +419,7 @@ export class AdminUserManagementPage implements OnInit {
           identity: w.name,
           role: 'Service Provider',
           tier: w.status === 'Verified' ? 'Verified Professional' : 'New Applicant',
-          statusClass: w.status === 'Verified' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+          statusClass: w.status === 'Verified' ? 'bg-brand-teal-soft text-brand-teal border border-brand-teal/30' :
             w.status === 'Suspended' ? 'bg-rose-50 text-rose-700 border border-rose-100 animate-pulse' :
               w.status === 'Rejected' ? 'bg-rose-50 text-rose-700 border border-rose-100' :
                 'bg-slate-50 text-slate-500 border border-slate-100',
@@ -442,7 +442,7 @@ export class AdminUserManagementPage implements OnInit {
           identity: c.name,
           role: 'Enterprise Client',
           tier: c.tier || 'Standard',
-          statusClass: c.status === 'Active' ? 'bg-indigo-50 text-indigo-700 border border-indigo-100' : 'bg-rose-50 text-rose-700 border border-rose-100',
+          statusClass: c.status === 'Active' ? 'bg-brand-teal-soft text-brand-teal border border-brand-teal/30' : 'bg-rose-50 text-rose-700 border border-rose-100',
           progress: c.progress || 90,
           progressClass: (c.progress || 90) >= 90 ? 'health-teal' : 'health-blue'
         }));

@@ -204,7 +204,22 @@ import { WebSocketService } from '../../core/services/websocket.service';
     @if (isMobileMenuOpen()) {
       <div class="fixed inset-0 top-20 z-50 lg:hidden animate-in slide-in-from-top duration-300">
         <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="toggleMobileMenu()"></div>
-        <nav class="relative bg-brand-teal border-t border-brand-teal flex flex-col p-6 gap-4 shadow-2xl mobile-menu-nav">
+        <nav class="relative bg-brand-teal border-t border-brand-teal flex flex-col p-6 gap-5 shadow-2xl mobile-menu-nav">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.35em] text-white/80 font-black mb-1">Menu</p>
+              <h2 class="text-2xl font-black text-white">Kazi Konnect</h2>
+            </div>
+            <button (click)="toggleMobileMenu()" class="text-white/80 hover:text-white transition-colors">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+          <div class="grid gap-3">
+            <a [routerLink]="['/']" fragment="about" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-4 px-4 rounded-3xl bg-white/10 border border-white/15 hover:bg-white/15 transition-all">About Us</a>
+            <a [routerLink]="['/']" fragment="faq" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-4 px-4 rounded-3xl bg-white/10 border border-white/15 hover:bg-white/15 transition-all">Frequently Asked Questions</a>
+            <a [routerLink]="['/']" fragment="contact" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-4 px-4 rounded-3xl bg-white/10 border border-white/15 hover:bg-white/15 transition-all">Contact Us</a>
+            <div class="h-px bg-white/20 my-1.5"></div>
+          </div>
           @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
             <a routerLink="/worker/dashboard" (click)="toggleMobileMenu()" class="text-lg font-black text-white py-3 border-b border-white/10">Find Jobs</a>
           }

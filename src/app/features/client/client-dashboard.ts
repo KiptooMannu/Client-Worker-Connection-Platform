@@ -33,11 +33,11 @@ import { PlatformStateService } from '../../core/services/platform-state.service
       <!-- Premium Hero Section -->
       <section class="mb-12 relative py-8 px-2 md:px-0">
         <div class="max-w-4xl">
-          <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[9px] font-black uppercase tracking-[0.2em] mb-6 border border-blue-100">
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-brand-teal-soft text-brand-teal rounded-full text-[9px] font-black uppercase tracking-[0.2em] mb-6 border border-brand-teal/10">
             <mat-icon class="!text-[14px]">verified_user</mat-icon>
             Verified Workers
           </div>
-          <h1 class="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter leading-[1.1]">Find Professional <br> <span class="text-blue-600">Workers</span></h1>
+          <h1 class="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter leading-[1.1]">Find Professional <br> <span class="text-brand-teal">Workers</span></h1>
           <p class="text-lg text-slate-500 font-medium leading-relaxed max-w-2xl">Search for local experts, track your work, and pay safely through our escrow system.</p>
         </div>
       </section>
@@ -46,15 +46,15 @@ import { PlatformStateService } from '../../core/services/platform-state.service
       <div class="mb-12 bg-white border border-outline-variant/30 p-6 rounded-3xl shadow-sm">
         <div class="space-y-1 sm:space-y-0 sm:grid sm:grid-cols-4 gap-4">
           <div class="relative group">
-            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-primary transition-colors !text-base">search</mat-icon>
-            <input type="text" class="w-full pl-11 pr-4 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-primary transition-all outline-none" 
+            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-teal transition-colors !text-base">search</mat-icon>
+            <input type="text" class="w-full pl-11 pr-4 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-brand-teal transition-all outline-none" 
                    placeholder="Name or email..."
                    [ngModel]="nameQuery()" (ngModelChange)="nameQuery.set($event)">
           </div>
           
           <div class="relative">
             <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 !text-base">work_outline</mat-icon>
-            <select class="w-full pl-11 pr-10 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-primary transition-all outline-none cursor-pointer appearance-none" 
+            <select class="w-full pl-11 pr-10 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-brand-teal transition-all outline-none cursor-pointer appearance-none" 
                     [ngModel]="selectedSkill()" (ngModelChange)="selectedSkill.set($event)">
               <option [value]="null">All Categories</option>
               @for (skill of state.availableSkills(); track skill) {
@@ -65,7 +65,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
           <div class="relative">
             <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 !text-base">location_on</mat-icon>
-            <select class="w-full pl-11 pr-10 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-primary transition-all outline-none cursor-pointer appearance-none" 
+            <select class="w-full pl-11 pr-10 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-brand-teal transition-all outline-none cursor-pointer appearance-none" 
                     [ngModel]="locationQuery()" (ngModelChange)="locationQuery.set($event)">
               <option [value]="null">All Locations</option>
               @for (loc of state.availableLocations(); track loc) {
@@ -74,7 +74,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
             </select>
           </div>
 
-          <button (click)="performSearch()" class="w-full bg-slate-900 text-white h-11 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-primary active:scale-95 transition-all shadow-xl shadow-slate-900/10">
+          <button (click)="performSearch()" class="w-full bg-slate-900 text-white h-11 rounded-xl font-black text-[10px] uppercase tracking-widest hover-bg-brand-teal-dark active:scale-95 transition-all shadow-xl shadow-slate-900/10">
             Search
           </button>
         </div>
@@ -85,7 +85,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
         <aside class="hidden lg:block lg:col-span-3 space-y-6">
           <div class="bg-white p-6 rounded-2xl border border-outline-variant/30 shadow-sm">
             <h3 class="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-6 flex items-center gap-2">
-              <span class="w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+              <span class="w-1.5 h-1.5 bg-brand-teal rounded-full"></span>
               Market Stats
             </h3>
             <div class="space-y-6">
@@ -101,7 +101,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           </div>
 
           <div class="p-6 rounded-2xl bg-slate-900 text-white shadow-2xl relative overflow-hidden group">
-             <mat-icon class="!text-3xl mb-4 text-blue-400 opacity-80 group-hover:scale-110 transition-transform duration-500">verified_user</mat-icon>
+             <mat-icon class="!text-3xl mb-4 text-brand-teal opacity-80 group-hover:scale-110 transition-transform duration-500">verified_user</mat-icon>
              <h4 class="text-base font-black leading-tight mb-3 relative z-10">Safe Payments</h4>
              <p class="text-[10px] text-slate-400 leading-relaxed font-medium relative z-10">Money is held safely until you approve the work.</p>
              <div class="absolute -bottom-6 -right-6 opacity-5">
@@ -130,28 +130,28 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
           <div class="flex flex-col gap-3">
             @for (worker of paginatedWorkers(); track worker.id) {
-              <div class="bg-white border border-slate-100 rounded-xl p-3 shadow-sm hover:border-primary/30 transition-all group flex items-center gap-5">
+              <div class="bg-white border border-slate-100 rounded-xl p-3 shadow-sm hover-border-brand-teal transition-all group flex items-center gap-5">
                 <!-- Ultra Compact Avatar -->
                 <div class="relative shrink-0">
-                  <div class="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center text-primary font-black text-sm uppercase transition-transform group-hover:scale-105">
+                  <div class="w-12 h-12 rounded-lg overflow-hidden border border-slate-100 bg-slate-50 flex items-center justify-center text-brand-teal font-black text-sm uppercase transition-transform group-hover:scale-105">
                     @if (worker.image) { 
                       <img [src]="worker.image" class="w-full h-full object-cover"> 
                     } @else { {{ worker.initials }} }
                   </div>
-                  <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full"></span>
+                  <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-brand-teal border-2 border-white rounded-full"></span>
                 </div>
 
                 <!-- Worker Info (Ultra Compact) -->
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-0.5">
-                    <h3 class="text-[13px] font-black text-slate-900 group-hover:text-primary transition-colors truncate tracking-tight">{{ worker.name }}</h3>
+                    <h3 class="text-[13px] font-black text-slate-900 group-hover:text-brand-teal transition-colors truncate tracking-tight">{{ worker.name }}</h3>
                     <div class="flex items-center gap-1 bg-amber-50 px-1 py-0.5 rounded border border-amber-100 shrink-0">
                       <mat-icon class="!text-amber-500 !text-[8px] !w-auto !h-auto" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
                       <span class="text-[8px] font-black text-amber-700">{{ worker.reviews > 0 ? worker.rating.toFixed(1) : 'NEW' }}</span>
                     </div>
                   </div>
                   <div class="flex items-center gap-3">
-                    <p class="text-[8px] font-black text-primary uppercase tracking-[0.1em]">{{ worker.category || 'Expert' }}</p>
+                    <p class="text-[8px] font-black text-brand-teal uppercase tracking-[0.1em]">{{ worker.category || 'Expert' }}</p>
                     <span class="w-1 h-1 rounded-full bg-slate-200"></span>
                     <p class="text-[10px] text-slate-500 font-medium truncate max-w-[400px]">{{ worker.bio || 'Professional expert dedicated to quality delivery.' }}</p>
                   </div>
@@ -164,7 +164,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                     <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">/hr</span>
                   </div>
                   <button [routerLink]="['/client/profile', worker.id]" 
-                          class="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-[8px] uppercase tracking-widest hover:bg-primary active:scale-95 transition-all shadow-sm">
+                          class="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-[8px] uppercase tracking-widest hover-bg-brand-teal active:scale-95 transition-all shadow-sm">
                     View
                   </button>
                 </div>
@@ -177,14 +177,14 @@ import { PlatformStateService } from '../../core/services/platform-state.service
             <div class="mt-16 flex items-center justify-center gap-3">
               <button (click)="goToPage(currentPage() - 1)" 
                       [disabled]="currentPage() === 1"
-                      class="w-12 h-12 flex items-center justify-center rounded-2xl border border-outline-variant/30 bg-white text-slate-400 hover:text-primary hover:border-primary disabled:opacity-20 transition-all">
+                      class="w-12 h-12 flex items-center justify-center rounded-2xl border border-outline-variant/30 bg-white text-slate-400 hover-text-brand-teal hover-border-brand-teal disabled:opacity-20 transition-all">
                 <mat-icon>west</mat-icon>
               </button>
               
               <div class="flex items-center gap-2 bg-white p-2 rounded-2xl border border-outline-variant/30">
                 @for (page of [].constructor(totalPages()); track $index) {
                   <button (click)="goToPage($index + 1)"
-                          [class]="($index + 1 === currentPage()) ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:bg-surface'"
+                          [class]="($index + 1 === currentPage()) ? 'bg-brand-teal text-white shadow-lg shadow-brand-teal/20' : 'text-slate-400 hover:bg-surface'"
                           class="w-10 h-10 rounded-xl font-black text-xs transition-all">
                     {{ $index + 1 }}
                   </button>
@@ -193,7 +193,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
               <button (click)="goToPage(currentPage() + 1)" 
                       [disabled]="currentPage() === totalPages()"
-                      class="w-12 h-12 flex items-center justify-center rounded-2xl border border-outline-variant/30 bg-white text-slate-400 hover:text-primary hover:border-primary disabled:opacity-20 transition-all">
+                      class="w-12 h-12 flex items-center justify-center rounded-2xl border border-outline-variant/30 bg-white text-slate-400 hover-text-brand-teal hover-border-brand-teal disabled:opacity-20 transition-all">
                 <mat-icon>east</mat-icon>
               </button>
             </div>

@@ -21,7 +21,7 @@ import { NotificationService } from '../../../core/services/notification.service
         <div class="w-full max-w-[500px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(46,49,146,0.05)] border border-slate-200 p-6 md:p-8">
           <!-- Header Section -->
           <div class="text-center mb-6">
-            <h1 class="font-headline-lg text-2xl md:text-3xl text-primary mb-1">Create Account</h1>
+            <h1 class="font-headline-lg text-2xl md:text-3xl text-brand-teal mb-1">Create Account</h1>
             <p class="font-body-lg text-sm text-secondary">Join the community</p>
           </div>
 
@@ -31,7 +31,7 @@ import { NotificationService } from '../../../core/services/notification.service
               <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span class="material-symbols-outlined text-emerald-600 text-3xl">mail</span>
               </div>
-              <h2 class="font-headline-md text-xl md:text-2xl text-primary mb-1">Verify Your Email</h2>
+              <h2 class="font-headline-md text-xl md:text-2xl text-brand-teal mb-1">Verify Your Email</h2>
               <p class="font-body-md text-sm text-secondary">We sent a 6-digit code to <strong>{{ email }}</strong></p>
             </div>
 
@@ -47,19 +47,19 @@ import { NotificationService } from '../../../core/services/notification.service
               <div class="space-y-2">
                 <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider block text-center">Verification Code</label>
                 <div class="flex justify-center gap-2">
-                  <input class="w-full max-w-[200px] h-12 text-center text-xl font-bold tracking-[0.5em] border border-slate-200 rounded-xl focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                  <input class="w-full max-w-[200px] h-12 text-center text-xl font-bold tracking-[0.5em] border border-slate-200 rounded-xl focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all outline-none"
                          type="text" maxlength="6" placeholder="000000" name="otpCode" [(ngModel)]="otpCode" required />
                 </div>
               </div>
 
-              <button class="w-full h-12 bg-primary text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-primary/10 hover:bg-primary-dark transition-all active:scale-[0.98] disabled:opacity-50"
+              <button class="w-full h-12 bg-brand-teal text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-brand-teal/10 hover:bg-brand-teal-dark transition-all active:scale-[0.98] disabled:opacity-50"
                       type="submit" [disabled]="otpLoading()">
                 {{ otpLoading() ? 'VERIFYING...' : 'VERIFY CODE' }}
               </button>
             </form>
 
             <div class="text-center pt-2">
-              <button (click)="resendOtp()" class="text-primary font-bold hover:underline text-sm outline-none" [disabled]="resendLoading()" type="button">
+              <button (click)="resendOtp()" class="text-brand-teal font-bold hover:underline text-sm outline-none" [disabled]="resendLoading()" type="button">
                 {{ resendLoading() ? 'Sending...' : 'Resend Code' }}
               </button>
             </div>
@@ -81,7 +81,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">First Name <span class="text-rose-500">*</span></label>
                 <div class="relative group">
                   <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="John" type="text" name="firstName" [(ngModel)]="firstName" required/>
                 </div>
               </div>
@@ -90,7 +90,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Second Name <span class="text-rose-500">*</span></label>
                 <div class="relative group">
                   <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="Doe" type="text" name="secondName" [(ngModel)]="secondName" required/>
                 </div>
               </div>
@@ -102,7 +102,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Email <span class="text-rose-500">*</span></label>
                 <div class="relative group">
                   <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="john@example.com" type="email" name="email" [(ngModel)]="email" required/>
                 </div>
                 <p *ngIf="validationErrors()['email']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['email'] }}</p>
@@ -112,7 +112,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Username <span class="text-rose-500">*</span></label>
                 <div class="relative group">
                   <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="username" type="text" name="username" [(ngModel)]="username" required/>
                 </div>
                 <p *ngIf="validationErrors()['username']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['username'] }}</p>
@@ -123,7 +123,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 <div class="flex p-1 bg-slate-50 border border-slate-100 rounded-full gap-1 h-11">
                   <button (click)="role = 'Client'" 
                           [class.bg-white]="role === 'Client'"
-                          [class.text-primary]="role === 'Client'"
+                          [class.text-brand-teal]="role === 'Client'"
                           [class.shadow-sm]="role === 'Client'"
                           [class.text-secondary]="role !== 'Client'"
                           class="flex-1 rounded-full font-label-sm text-[10px] font-bold uppercase tracking-wider transition-all outline-none" type="button">
@@ -131,7 +131,7 @@ import { NotificationService } from '../../../core/services/notification.service
                   </button>
                   <button (click)="role = 'Worker'"
                           [class.bg-white]="role === 'Worker'"
-                          [class.text-primary]="role === 'Worker'"
+                          [class.text-brand-teal]="role === 'Worker'"
                           [class.shadow-sm]="role === 'Worker'"
                           [class.text-secondary]="role !== 'Worker'"
                           class="flex-1 rounded-full font-label-sm text-[10px] font-bold uppercase tracking-wider transition-all outline-none" type="button">
@@ -147,7 +147,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Password <span class="text-rose-500">*</span></label>
                 <div class="relative group">
                   <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="••••••••" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" required/>
                 </div>
                 <p *ngIf="validationErrors()['password']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['password'] }}</p>
@@ -157,7 +157,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Confirm <span class="text-rose-500">*</span></label>
                 <div class="relative group">
                   <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-primary-container/5 focus:border-primary transition-all text-sm font-body-md text-on-surface outline-none"
+                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
                          placeholder="••••••••" [type]="showPassword ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="confirmPassword" required/>
                 </div>
               </div>
@@ -165,7 +165,7 @@ import { NotificationService } from '../../../core/services/notification.service
 
             <!-- Action Button -->
             <div class="pt-2">
-              <button class="w-full h-12 bg-on-background text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98] disabled:opacity-50"
+              <button class="w-full h-12 bg-on-background text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98] disabled:opacity-50"
                       type="submit" [disabled]="loading()">
                 {{ loading() ? 'PLEASE WAIT...' : 'GET STARTED' }}
               </button>
@@ -176,7 +176,7 @@ import { NotificationService } from '../../../core/services/notification.service
           <div class="mt-6 text-center">
             <p class="font-body-md text-sm text-secondary">
               Already have an account? 
-              <a routerLink="/login" class="text-primary font-bold hover:underline transition-all cursor-pointer">Sign In</a>
+              <a routerLink="/login" class="text-brand-teal font-bold hover:underline transition-all cursor-pointer">Sign In</a>
             </p>
           </div>
         </div>
@@ -187,8 +187,8 @@ import { NotificationService } from '../../../core/services/notification.service
         <div class="flex justify-between items-center px-6 max-w-[1280px] mx-auto w-full">
           <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">© 2024 Kazi Konnect. Professional.</span>
           <div class="flex gap-6">
-            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Terms</a>
-            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-primary transition-colors cursor-pointer">Privacy</a>
+            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-brand-teal transition-colors cursor-pointer">Terms</a>
+            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-brand-teal transition-colors cursor-pointer">Privacy</a>
           </div>
         </div>
       </footer>

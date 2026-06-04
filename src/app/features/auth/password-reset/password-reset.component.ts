@@ -32,7 +32,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
         <div class="w-full max-w-[420px]">
           <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-10 shadow-[0_20px_60px_rgba(46,49,146,0.05)] text-center">
             <div class="mb-8 flex flex-col items-center">
-              <div class="w-14 h-14 bg-primary-container rounded-full flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
+              <div class="w-14 h-14 bg-primary-container rounded-full flex items-center justify-center mb-4 shadow-lg shadow-brand-teal/20">
                 <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><circle cx="6" cy="18" r="2"></circle><line x1="8" y1="8" x2="10" y2="10"></line><line x1="16" y1="8" x2="14" y2="10"></line><line x1="16" y1="16" x2="14" y2="14"></line><line x1="8" y1="16" x2="10" y2="14"></line></svg>
               </div>
               <h1 class="font-headline-md text-xl md:text-2xl text-on-surface mb-1 leading-tight">Reset Password</h1>
@@ -47,7 +47,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002-2.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     </div>
-                    <input id="email" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                    <input id="email" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all"
                            type="email"
                            formControlName="email"
                            placeholder="name@company.com"
@@ -62,7 +62,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     </div>
-                    <input id="verification" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                    <input id="verification" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all"
                            type="text"
                            formControlName="verification"
                            placeholder="What is 1 + 1?"
@@ -75,7 +75,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                   {{ requestError }}
                 </div>
 
-                <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98] disabled:opacity-50"
+                <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98] disabled:opacity-50"
                         type="submit"
                         [disabled]="requestForm.invalid || requestLoading"
                 >
@@ -90,7 +90,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
               <div class="mt-8 text-center">
                 <p class="font-body-md text-sm text-secondary">
                   Remember your password?
-                  <a routerLink="/login" class="text-primary font-bold hover:underline cursor-pointer">Sign In</a>
+                  <a routerLink="/login" class="text-brand-teal font-bold hover:underline cursor-pointer">Sign In</a>
                 </p>
               </div>
             </div>
@@ -110,7 +110,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                       </svg>
                     </div>
-                    <input id="otpCode" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface text-center font-bold tracking-[0.5em] focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                    <input id="otpCode" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface text-center font-bold tracking-[0.5em] focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all outline-none"
                            type="text"
                            maxlength="6"
                            formControlName="token"
@@ -126,7 +126,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                     </div>
-                    <input id="newPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                    <input id="newPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all"
                            type="password"
                            formControlName="newPassword"
                            placeholder="Enter new password (min 8 characters)"
@@ -141,7 +141,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                       <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
                     </div>
-                    <input id="confirmPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                    <input id="confirmPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all"
                            type="password"
                            formControlName="confirmPassword"
                            placeholder="Confirm your password"
@@ -154,7 +154,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                   {{ confirmError }}
                 </div>
 
-                <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98]"
+                <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98]"
                         type="submit"
                         [disabled]="confirmForm.invalid || confirmLoading"
                 >
@@ -179,7 +179,7 @@ import { NavbarComponent } from '../../../shared/components/navbar';
                 <strong>✅ Password Reset Successfully!</strong>
                 <p class="mt-2 text-sm">Your password has been changed. You can now sign in with your new password.</p>
               </div>
-              <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98]"
+              <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98]"
                       type="button"
                       (click)="onRedirectToLogin()"
               >

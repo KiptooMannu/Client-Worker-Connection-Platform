@@ -30,16 +30,18 @@ import { inject, computed, signal } from '@angular/core';
       <!-- History Header -->
       <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
         <div class="space-y-2">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="material-symbols-outlined text-on-secondary-container text-[18px]">account_balance_wallet</span>
+          <div class="flex items-center gap-3 mb-1">
+            <div class="w-10 h-10 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+            </div>
             <span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Financial Audit</span>
           </div>
-          <h1 class="text-3xl font-black text-primary">Job Ledger</h1>
+          <h1 class="text-3xl font-black text-brand-teal">Job Ledger</h1>
           <p class="font-body-sm text-body-sm text-on-surface-variant max-w-md">Detailed record of service contributions, performance metrics, and verified earnings.</p>
         </div>
 
         <div class="flex gap-3">
-          <button (click)="exportHistory()" class="px-5 py-3 bg-white border border-outline-variant text-primary rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all shadow-sm flex items-center gap-2">
+          <button (click)="exportHistory()" class="px-5 py-3 bg-white border border-outline-variant text-brand-teal rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all shadow-sm flex items-center gap-2">
             <mat-icon class="!text-sm">receipt_long</mat-icon>
             Export
           </button>
@@ -52,11 +54,11 @@ import { inject, computed, signal } from '@angular/core';
         <div class="md:col-span-8 bg-white rounded-xl p-6 border border-outline-variant shadow-sm space-y-6 relative group overflow-hidden">
           <div class="flex justify-between items-start">
              <div>
-                <h3 class="font-bold text-primary">Revenue Momentum</h3>
+                <h3 class="font-bold text-brand-teal">Revenue Momentum</h3>
                 <p class="text-[10px] text-on-surface-variant font-black uppercase tracking-widest mt-0.5">Earnings per cycle</p>
              </div>
              <div class="text-right">
-                <span class="text-2xl font-black text-primary">{{ state.bookings().length }}</span>
+                <span class="text-2xl font-black text-brand-teal">{{ state.bookings().length }}</span>
                 <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">Total Projects</p>
              </div>
           </div>
@@ -64,7 +66,7 @@ import { inject, computed, signal } from '@angular/core';
           <div class="h-40 flex items-end justify-between gap-3 px-2">
             @for (bar of earnings; track $index) {
               <div class="flex flex-col items-center gap-3 flex-1 group/bar relative h-full justify-end">
-                <div class="w-full bg-surface-container rounded-lg transition-all hover:bg-primary cursor-pointer relative" 
+                <div class="w-full bg-surface-container rounded-lg transition-all hover:bg-brand-teal cursor-pointer relative" 
                      [style.height]="bar.height + '%'">
                      <div class="absolute inset-0 bg-white/5 opacity-0 group-hover/bar:opacity-100 transition-opacity"></div>
                 </div>
@@ -75,7 +77,7 @@ import { inject, computed, signal } from '@angular/core';
         </div>
 
         <!-- Performance Index -->
-        <div class="md:col-span-4 bg-primary text-white rounded-xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
+        <div class="md:col-span-4 bg-brand-teal text-white rounded-xl p-6 shadow-xl relative overflow-hidden flex flex-col justify-between">
            <div class="space-y-6 relative z-10">
               <div class="flex items-center justify-between">
                  <h4 class="font-bold tracking-tight">Audit Score</h4>
@@ -108,14 +110,14 @@ import { inject, computed, signal } from '@angular/core';
 
         <div class="grid gap-3">
           @for (job of pagedJobs(); track job.id) {
-            <div class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm hover:border-primary transition-all group animate-in slide-in-from-bottom-2 duration-500">
+            <div class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm hover:border-brand-teal transition-all group animate-in slide-in-from-bottom-2 duration-500">
               <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
                  <div class="flex items-center gap-4">
-                    <div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-primary font-black text-sm border border-outline-variant">
+                    <div class="w-12 h-12 rounded-lg bg-surface-container flex items-center justify-center text-brand-teal font-black text-sm border border-outline-variant">
                        {{ job.initials }}
                     </div>
                     <div class="space-y-0.5">
-                       <h3 class="font-bold text-primary">{{ job.client }}</h3>
+                       <h3 class="font-bold text-brand-teal">{{ job.client }}</h3>
                        <div class="flex items-center gap-2">
                           <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest">{{ job.service }}</span>
                           <span class="w-1 h-1 bg-outline-variant rounded-full"></span>
@@ -128,7 +130,7 @@ import { inject, computed, signal } from '@angular/core';
                     <!-- Rating -->
                     <div class="flex flex-col items-center">
                        <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Rating</p>
-                       <div class="flex items-center gap-0.5 text-primary">
+                       <div class="flex items-center gap-0.5 text-brand-teal">
                           @if (job.rating) {
                             @for (s of [1,2,3,4,5]; track s) {
                                <span class="material-symbols-outlined !text-[14px]" [class.material-fill]="s <= job.rating">star</span>
@@ -142,7 +144,7 @@ import { inject, computed, signal } from '@angular/core';
                     <!-- Earnings -->
                     <div class="flex flex-col items-end">
                        <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-0.5">Earnings</p>
-                       <span class="text-xl font-black text-primary">{{ job.earnings }}</span>
+                       <span class="text-xl font-black text-brand-teal">{{ job.earnings }}</span>
                     </div>
 
                     <!-- Status & Actions -->
@@ -160,7 +162,7 @@ import { inject, computed, signal } from '@angular/core';
                              @if (job.status === 'Pending') {
                                <div class="flex gap-2">
                                  <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" 
-                                         class="w-9 h-9 bg-surface-container text-primary rounded-lg hover:bg-primary hover:text-white transition-all flex items-center justify-center shadow-sm border border-outline-variant">
+                                         class="w-9 h-9 bg-surface-container text-brand-teal rounded-lg hover:bg-brand-teal hover:text-white transition-all flex items-center justify-center shadow-sm border border-outline-variant">
                                    <mat-icon class="!text-[18px]">check</mat-icon>
                                  </button>
                                  <button (click)="state.updateJobStatus(job.id, 'REJECTED')" 
@@ -171,7 +173,7 @@ import { inject, computed, signal } from '@angular/core';
                              }
                              @if (job.status === 'Accepted' || job.status === 'Revision Requested' || job.status === 'In Progress') {
                                <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')" 
-                                       class="px-5 py-2.5 bg-primary text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-md shadow-primary/10 flex items-center gap-2">
+                                       class="px-5 py-2.5 bg-brand-teal text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-md shadow-brand-teal/10 flex items-center gap-2">
                                  <mat-icon class="!text-sm">send</mat-icon> Deliver
                                </button>
                              }
@@ -193,14 +195,14 @@ import { inject, computed, signal } from '@angular/core';
         @if (jobs().length > pageSize) {
           <div class="flex justify-center items-center gap-6 pt-6">
             <button (click)="prevPage()" [disabled]="currentPage() === 1" 
-                    class="p-3 bg-white border border-outline-variant rounded-xl text-primary hover:bg-surface-container-low transition-all disabled:opacity-30">
+                    class="p-3 bg-white border border-outline-variant rounded-xl text-brand-teal hover:bg-surface-container-low transition-all disabled:opacity-30">
               <mat-icon>chevron_left</mat-icon>
             </button>
             
             <div class="flex gap-2">
               @for (p of pageNumbers(); track p) {
                 <button (click)="goToPage(p)"
-                        [ngClass]="p === currentPage() ? 'bg-primary text-white shadow-md shadow-primary/10' : 'bg-white text-on-surface-variant hover:text-primary border border-outline-variant'"
+                        [ngClass]="p === currentPage() ? 'bg-brand-teal text-white shadow-md shadow-brand-teal/10' : 'bg-white text-on-surface-variant hover:text-brand-teal border border-outline-variant'"
                         class="w-10 h-10 rounded-lg font-bold text-xs transition-all flex items-center justify-center">
                   {{ p }}
                 </button>
@@ -208,7 +210,7 @@ import { inject, computed, signal } from '@angular/core';
             </div>
             
             <button (click)="nextPage()" [disabled]="currentPage() >= totalPages()" 
-                    class="p-3 bg-white border border-outline-variant rounded-xl text-primary hover:bg-surface-container-low transition-all disabled:opacity-30">
+                    class="p-3 bg-white border border-outline-variant rounded-xl text-brand-teal hover:bg-surface-container-low transition-all disabled:opacity-30">
               <mat-icon>chevron_right</mat-icon>
             </button>
           </div>
@@ -272,16 +274,16 @@ export class WorkerHistoryPage {
         date: b.date,
         earnings: `$${b.earnings.toFixed(2)}`,
         rating: b.rating,
-        statusBg: b.status === 'Approved' ? 'bg-indigo-50' : 
+        statusBg: b.status === 'Approved' ? 'bg-teal-50' : 
                   (b.status === 'Submitted' ? 'bg-teal-50' : 
                   (b.status === 'Revision Requested' ? 'bg-amber-50' : 
                   (b.status === 'Cancelled' ? 'bg-rose-50' : 
-                  (b.status === 'Disputed' ? 'bg-rose-100' : 'bg-blue-50')))),
-        statusColor: b.status === 'Approved' ? 'text-indigo-700' : 
+                  (b.status === 'Disputed' ? 'bg-rose-100' : 'bg-brand-teal-soft')))),
+        statusColor: b.status === 'Approved' ? 'text-teal-700' : 
                      (b.status === 'Submitted' ? 'text-teal-700' : 
                      (b.status === 'Revision Requested' ? 'text-amber-700' : 
-                     (b.status === 'Cancelled' ? 'text-rose-500' : 
-                     (b.status === 'Disputed' ? 'text-rose-700' : 'text-blue-700'))))
+                     (b.status === 'Cancelled' ? 'text-rose-500' :
+                     (b.status === 'Disputed' ? 'text-rose-700' : 'text-brand-teal'))))
       }));
   });
 

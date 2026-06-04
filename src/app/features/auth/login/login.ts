@@ -1,7 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { NavbarComponent } from '../../../shared/components/navbar';
@@ -22,7 +22,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-10 shadow-[0_20px_60px_rgba(46,49,146,0.05)] text-center">
             <!-- Brand Header -->
             <div class="mb-8 flex flex-col items-center">
-              <div class="w-14 h-14 bg-primary-container rounded-full flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
+              <div class="w-14 h-14 bg-primary-container rounded-full flex items-center justify-center mb-4 shadow-lg shadow-brand-teal/20">
                 <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><circle cx="6" cy="18" r="2"></circle><line x1="8" y1="8" x2="10" y2="10"></line><line x1="16" y1="8" x2="14" y2="10"></line><line x1="16" y1="16" x2="14" y2="14"></line><line x1="8" y1="16" x2="10" y2="14"></line></svg>
               </div>
               <h1 class="font-headline-md text-xl md:text-2xl text-on-surface mb-1 leading-tight">Welcome Back</h1>
@@ -37,7 +37,7 @@ import { AuthService } from '../../../core/services/auth.service';
                   <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                   </div>
-                  <input class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                  <input class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all outline-none"
                          id="email" name="email" [(ngModel)]="email" placeholder="name@company.com" type="email" required/>
                 </div>
               </div>
@@ -45,13 +45,13 @@ import { AuthService } from '../../../core/services/auth.service';
               <div class="space-y-1.5">
                 <div class="flex justify-between items-center px-1">
                   <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider" for="password">Password</label>
-                  <a routerLink="/reset-password" class="font-label-sm text-[11px] font-bold text-primary hover:underline cursor-pointer">Forgot?</a>
+                  <a routerLink="/reset-password" class="font-label-sm text-[11px] font-bold text-brand-teal hover:underline cursor-pointer">Forgot?</a>
                 </div>
                 <div class="relative group">
                   <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
                   </div>
-                  <input class="block w-full pl-11 pr-11 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none"
+                  <input class="block w-full pl-11 pr-11 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all outline-none"
                          id="password" name="password" [type]="showPassword ? 'text' : 'password'" [(ngModel)]="password" placeholder="••••••••" required/>
                   <div class="absolute inset-y-0 right-0 pr-4 flex items-center cursor-pointer" (click)="showPassword = !showPassword">
                     @if (showPassword) {
@@ -64,11 +64,11 @@ import { AuthService } from '../../../core/services/auth.service';
               </div>
 
               <div class="flex items-center px-1">
-                <input class="w-3.5 h-3.5 text-primary bg-white border-slate-200 rounded focus:ring-primary focus:ring-offset-0" id="remember" name="remember" type="checkbox"/>
+                <input class="w-3.5 h-3.5 text-brand-teal bg-white border-slate-200 rounded focus:ring-brand-teal focus:ring-offset-0" id="remember" name="remember" type="checkbox"/>
                 <label class="ml-2.5 font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider" for="remember">Stay signed in</label>
               </div>
 
-              <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-primary transition-all active:scale-[0.98] disabled:opacity-50 mt-2"
+              <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98] disabled:opacity-50 mt-2"
                       type="submit" [disabled]="loading()">
                 {{ loading() ? 'AUTHENTICATING...' : 'SIGN IN' }}
               </button>
@@ -96,7 +96,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="mt-8 text-center">
             <p class="font-body-md text-sm text-secondary">
               New to Kazi Konnect? 
-              <a routerLink="/register" class="text-primary font-bold ml-1 hover:underline cursor-pointer">Join Now</a>
+              <a routerLink="/register" class="text-brand-teal font-bold ml-1 hover:underline cursor-pointer">Join Now</a>
             </p>
           </div>
         </div>
@@ -106,15 +106,21 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class LoginPage {
   private auth = inject(AuthService);
+  private route = inject(ActivatedRoute);
 
   email = '';
   password = '';
   showPassword = false;
   loading = signal(false);
+  private returnUrl = '';
+
+  constructor() {
+    this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '';
+  }
 
   onSubmit() {
     this.loading.set(true);
-    this.auth.login(this.email, this.password).subscribe({
+    this.auth.login(this.email, this.password, this.returnUrl).subscribe({
       next: () => {
         this.loading.set(false);
       },

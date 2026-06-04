@@ -36,7 +36,7 @@ import { AuthService }          from '../../../core/services/auth.service';
           <p class="text-slate-500 font-medium text-xs">Track your work and payments here.</p>
         </div>
         <button (click)="showHistory()"
-                class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:border-primary transition-all flex items-center gap-2">
+                class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:border-brand-teal transition-all flex items-center gap-2">
           <mat-icon class="!w-4 !h-4">download</mat-icon> Export
         </button>
       </div>
@@ -183,7 +183,7 @@ import { AuthService }          from '../../../core/services/auth.service';
                   @else if (b.status === 'Approved' && !b.hasReview) {
                     <button (click)="openReviewModal(b)"
                             class="px-4 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
-                                   uppercase tracking-widest hover:bg-primary transition-all">
+                                   uppercase tracking-widest hover:bg-brand-teal transition-all">
                       Feedback
                     </button>
                   }
@@ -216,12 +216,12 @@ import { AuthService }          from '../../../core/services/auth.service';
             <div class="flex gap-2">
               <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"
                       class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200
-                             text-slate-400 disabled:opacity-30 hover:text-primary transition-all">
+                             text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all">
                 <mat-icon class="!text-lg">chevron_left</mat-icon>
               </button>
               <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()"
                       class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200
-                             text-slate-400 disabled:opacity-30 hover:text-primary transition-all">
+                             text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all">
                 <mat-icon class="!text-lg">chevron_right</mat-icon>
               </button>
             </div>
@@ -233,7 +233,7 @@ import { AuthService }          from '../../../core/services/auth.service';
             <h3 class="text-xl font-black text-slate-900 mb-2">No bookings yet</h3>
             <p class="text-slate-400 text-xs mb-8">Start your first project from the marketplace.</p>
             <button mat-flat-button routerLink="/client/marketplace"
-                    class="!bg-primary !text-white !rounded-xl !px-8 !py-4 !font-black !text-[10px] !uppercase !tracking-widest">
+                    class="!bg-brand-teal !text-white !rounded-xl !px-8 !py-4 !font-black !text-[10px] !uppercase !tracking-widest">
               Browse Professionals
             </button>
           </div>
@@ -541,7 +541,7 @@ private refreshBookings() {
       case 'submitted':          return base + 'bg-emerald-50/50 text-emerald-600 border-emerald-100';
       case 'pending':            return base + 'bg-slate-50 text-slate-500 border-slate-200';
       case 'in progress':        return base + 'bg-indigo-50/30 text-indigo-500 border-indigo-100';
-      case 'accepted':           return base + 'bg-blue-50 text-blue-600 border-blue-100';
+      case 'accepted':           return base + 'bg-brand-teal-soft text-brand-teal border-brand-teal/30';
       case 'cancelled':          return base + 'bg-slate-50 text-rose-400 border-rose-100';
       case 'disputed':           return base + 'bg-rose-50 text-rose-600 border-rose-200';
       case 'revision requested': return base + 'bg-amber-50 text-amber-600 border-amber-100';

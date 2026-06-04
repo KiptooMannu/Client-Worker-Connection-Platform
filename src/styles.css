@@ -303,6 +303,10 @@ mat-icon:empty {
   color: var(--brand-text) !important;
 }
 
+.text-brand-teal {
+  color: var(--brand-teal) !important;
+}
+
 .bg-brand-teal {
   background-color: var(--brand-teal) !important;
 }

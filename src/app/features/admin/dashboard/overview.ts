@@ -73,7 +73,7 @@ import { NotificationService } from '../../../core/services/notification.service
               </p>
               
               <div class="flex gap-2 mt-auto">
-                <button routerLink="../verification" class="px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-900/20 hover:scale-105 transition-transform">
+                <button routerLink="../verification" class="px-5 py-2.5 rounded-lg bg-brand-teal text-white font-black text-[10px] uppercase tracking-widest shadow-xl shadow-brand-teal/20 hover:bg-brand-teal-dark hover:scale-105 transition-transform">
                   Access Queue
                 </button>
                 <button (click)="reviewGuidelines()" class="px-5 py-2.5 rounded-lg bg-white/5 text-white font-black text-[10px] uppercase tracking-widest border border-white/10 backdrop-blur-sm hover:bg-white/20 transition-all">
@@ -88,7 +88,7 @@ import { NotificationService } from '../../../core/services/notification.service
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm">
               <div class="flex items-center gap-3 mb-4">
-                <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-xl bg-brand-teal-soft text-brand-teal flex items-center justify-center">
                   <mat-icon class="!text-sm">analytics</mat-icon>
                 </div>
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Platform Load</span>
@@ -107,7 +107,7 @@ import { NotificationService } from '../../../core/services/notification.service
 
             <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm">
               <div class="flex items-center gap-3 mb-4">
-                <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-xl bg-brand-teal-soft text-brand-teal flex items-center justify-center">
                   <mat-icon class="!text-sm">security</mat-icon>
                 </div>
                 <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Trust Index</span>
@@ -115,7 +115,7 @@ import { NotificationService } from '../../../core/services/notification.service
               <div class="space-y-4">
                  <div class="flex items-baseline gap-2">
                     <span class="text-2xl font-black text-slate-900">A+</span>
-                    <span class="text-[10px] font-bold text-emerald-600">Stable</span>
+                    <span class="text-[10px] font-bold text-brand-teal">Stable</span>
                  </div>
                  <p class="text-[10px] text-slate-400 font-medium">Identity verification accuracy is at 99.4%.</p>
               </div>
@@ -131,11 +131,11 @@ import { NotificationService } from '../../../core/services/notification.service
                 <div class="flex items-center gap-3">
                   <h3 class="text-base font-black text-slate-900 tracking-tight">Platform Signals</h3>
                 </div>
-                <button routerLink="../activity" class="text-[9px] font-black uppercase text-blue-600 hover:underline">View activity</button>
+                <button routerLink="../activity" class="text-[9px] font-black uppercase text-brand-teal hover:underline">View activity</button>
               </div>
               <div class="space-y-4">
                  @for (signal of state.activityLogs().slice(0, 3); track signal.id) {
-                    <div class="p-4 rounded-2xl border border-slate-100 hover:border-indigo-100 hover:bg-slate-50 transition-all">
+                    <div class="p-4 rounded-2xl border border-slate-100 hover:border-brand-teal/20 hover:bg-slate-50 transition-all">
                        <p class="text-[10px] uppercase tracking-[0.25em] text-slate-400 font-black mb-2">{{ signal.action | uppercase }}</p>
                        <p class="text-sm font-black text-slate-900 truncate">{{ signal.reason || signal.action }}</p>
                     </div>
@@ -156,7 +156,7 @@ import { NotificationService } from '../../../core/services/notification.service
                     Live
                   </span>
                 </div>
-                <button (click)="exportReport()" class="text-[9px] font-black uppercase text-blue-600 hover:underline">Export</button>
+                <button (click)="exportReport()" class="text-[9px] font-black uppercase text-brand-teal hover:underline">Export</button>
               </div>
  
               <div class="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-grow">
@@ -180,7 +180,7 @@ import { NotificationService } from '../../../core/services/notification.service
                  }
               </div>
  
-              <button routerLink="../activity" class="w-full mt-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 border border-slate-100 hover:bg-slate-50 transition-all">
+              <button routerLink="../activity" class="w-full mt-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest text-brand-teal border border-slate-100 hover:bg-slate-50 transition-all">
                 Audit All Activities
               </button>
            </mat-card>
@@ -209,7 +209,7 @@ import { NotificationService } from '../../../core/services/notification.service
                 <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                   <td class="px-6 py-3">
                     <div class="flex items-center gap-3">
-                      <div class="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-700 flex items-center justify-center font-black text-[9px] uppercase border border-white">{{ job.workerInitials }}</div>
+                      <div class="w-7 h-7 rounded-lg bg-brand-teal-soft text-brand-teal flex items-center justify-center font-black text-[9px] uppercase border border-white">{{ job.workerInitials }}</div>
                       <span class="text-[11px] font-black text-slate-900">{{ job.workerName }}</span>
                     </div>
                   </td>
@@ -233,10 +233,10 @@ import { NotificationService } from '../../../core/services/notification.service
               Page {{ currentPage() }} of {{ totalPages() }}
             </span>
             <div class="flex gap-2">
-              <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30 hover:text-indigo-600 transition-all">
+              <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all">
                 <mat-icon class="!text-lg">chevron_left</mat-icon>
               </button>
-              <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30 hover:text-indigo-600 transition-all">
+              <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()" class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200 text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all">
                 <mat-icon class="!text-lg">chevron_right</mat-icon>
               </button>
             </div>
@@ -282,10 +282,10 @@ export class AdminOverviewPage {
     const pending = this.state.pendingWorkers().length;
     const trustScore = totalUsers > 0 ? Math.round((verified / Math.max(this.state.workers().length, 1)) * 100) : 0;
     return [
-      { label: 'Total Users', value: totalUsers, icon: 'group', bg: 'bg-blue-50', color: 'text-blue-600', trend: 'live', trendBg: 'bg-blue-50', progress: 100, progressBg: 'bg-blue-600' },
-      { label: 'Marketplace Trust', value: `${trustScore}%`, icon: 'shield', bg: 'bg-emerald-50', color: 'text-emerald-600', trend: 'verified', trendBg: 'bg-emerald-50', progress: trustScore, progressBg: 'bg-emerald-600' },
+      { label: 'Total Users', value: totalUsers, icon: 'group', bg: 'bg-brand-teal-soft', color: 'text-brand-teal', trend: 'live', trendBg: 'bg-brand-teal-soft', progress: 100, progressBg: 'bg-brand-teal' },
+      { label: 'Marketplace Trust', value: `${trustScore}%`, icon: 'shield', bg: 'bg-brand-teal-soft', color: 'text-brand-teal', trend: 'verified', trendBg: 'bg-brand-teal-soft', progress: trustScore, progressBg: 'bg-brand-teal' },
       { label: 'Pending Review', value: this.state.pendingWorkers().length, icon: 'priority_high', bg: 'bg-amber-50', color: 'text-amber-600', trend: this.state.pendingWorkers().length > 10 ? 'High' : 'Normal', trendBg: 'bg-amber-50', progress: Math.min(100, this.state.pendingWorkers().length * 4), progressBg: 'bg-amber-600' },
-      { label: 'Verified Workers', value: verified, icon: 'verified', bg: 'bg-indigo-50', color: 'text-indigo-600', trend: 'approved', trendBg: 'bg-indigo-50', progress: Math.min(100, verified === 0 ? 0 : (verified / Math.max(this.state.workers().length, 1)) * 100), progressBg: 'bg-indigo-600' }
+      { label: 'Verified Workers', value: verified, icon: 'verified', bg: 'bg-brand-teal-soft', color: 'text-brand-teal', trend: 'approved', trendBg: 'bg-brand-teal-soft', progress: Math.min(100, verified === 0 ? 0 : (verified / Math.max(this.state.workers().length, 1)) * 100), progressBg: 'bg-brand-teal' }
     ];
   }
 
@@ -299,9 +299,9 @@ export class AdminOverviewPage {
       return {
         id: log.id || idx,
         type: String(log.action).toUpperCase().replace('_', ' '),
-        sevBg: isNegative ? 'bg-rose-50' : 'bg-indigo-50',
-        sevColor: isNegative ? 'text-rose-600' : 'text-indigo-600',
-        accent: isNegative ? 'bg-rose-500' : 'bg-indigo-500',
+        sevBg: isNegative ? 'bg-rose-50' : 'bg-brand-teal-soft',
+        sevColor: isNegative ? 'text-rose-600' : 'text-brand-teal',
+        accent: isNegative ? 'bg-rose-500' : 'bg-brand-teal',
         time: new Date(log.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         desc: `${name} has been ${log.action}`
       };

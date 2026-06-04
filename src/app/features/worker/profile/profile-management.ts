@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, effect } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -10,10 +10,12 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from '../../../core/services/notification.service';
 import { FormsModule } from '@angular/forms';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { toObservable } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-worker-profile',
@@ -29,313 +31,325 @@ import { AuthService } from '../../../core/services/auth.service';
     MatDividerModule,
     MatSelectModule,
     MatSlideToggleModule,
+    MatProgressSpinnerModule,
     FormsModule
   ],
   template: `
-    <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
-      
-      <!-- Rejection Alert -->
-      @if (status === 'Rejected' && rejectionReason) {
-        <div class="bg-error-container border border-error/10 rounded-xl p-6 flex items-start gap-4 animate-in slide-in-from-top duration-500 shadow-sm">
-          <div class="w-12 h-12 rounded-lg bg-error text-white flex items-center justify-center shadow-lg shadow-error/20 shrink-0">
-            <mat-icon>report_problem</mat-icon>
-          </div>
-          <div class="flex-1">
-            <h3 class="font-bold text-on-error-container mb-1">Action Required</h3>
-            <p class="text-sm text-on-error-container/80 leading-relaxed">{{ rejectionReason }}</p>
-            <p class="mt-3 text-[10px] text-error font-black uppercase tracking-widest">Update your profile or documents and resubmit for audit.</p>
-          </div>
+    <!-- Loading State -->
+    @if (isLoading()) {
+      <div class="flex justify-center items-center py-32 animate-in fade-in duration-300">
+        <div class="text-center">
+          <mat-spinner diameter="48" color="accent"></mat-spinner>
+          <p class="mt-6 text-on-surface-variant font-medium">Loading your profile...</p>
         </div>
-      }
+      </div>
+    } @else {
+      <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
+        
+        <!-- Rejection Alert -->
+        @if (status === 'Rejected' && rejectionReason) {
+          <div class="bg-error-container border border-error/10 rounded-xl p-6 flex items-start gap-4 animate-in slide-in-from-top duration-500 shadow-sm">
+            <div class="w-12 h-12 rounded-lg bg-error text-white flex items-center justify-center shadow-lg shadow-error/20 shrink-0">
+              <mat-icon>report_problem</mat-icon>
+            </div>
+            <div class="flex-1">
+              <h3 class="font-bold text-on-error-container mb-1">Action Required</h3>
+              <p class="text-sm text-on-error-container/80 leading-relaxed">{{ rejectionReason }}</p>
+              <p class="mt-3 text-[10px] text-error font-black uppercase tracking-widest">Update your profile or documents and resubmit for audit.</p>
+            </div>
+          </div>
+        }
 
-      <!-- Profile Header & Picture -->
-      <section class="flex flex-col items-center pt-8">
-        <div class="relative group">
-          <div class="w-32 h-32 rounded-xl border border-outline-variant bg-surface overflow-hidden shadow-sm">
+        <!-- Profile Header & Picture -->
+        <section class="flex flex-col items-center pt-8">
+          <div class="relative group overflow-visible">
+            <div class="w-32 h-32 rounded-xl border border-outline-variant bg-surface overflow-hidden shadow-sm">
+              @if (worker().image) {
+                <img [src]="worker().image" alt="Profile" class="w-full h-full object-cover">
+              } @else {
+                <div class="w-full h-full flex items-center justify-center bg-surface-container text-2xl font-black text-brand-teal">
+                  {{ worker().initials }}
+                </div>
+              }
+            </div>
+            <button (click)="avatarInput.click()" class="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 z-20 bg-white text-slate-900 w-11 h-11 rounded-full shadow-2xl active:scale-95 transition-transform hover:bg-slate-100 border border-slate-200 flex items-center justify-center">
+              <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+            </button>
+            <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
+            
             @if (worker().image) {
-              <img [src]="worker().image" alt="Profile" class="w-full h-full object-cover">
-            } @else {
-              <div class="w-full h-full flex items-center justify-center bg-surface-container text-2xl font-black text-primary">
-                {{ worker().initials }}
-              </div>
+              <button (click)="removeProfilePicture()" class="absolute top-0 right-0 -translate-x-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white border border-outline-variant text-error rounded-full flex items-center justify-center shadow-2xl hover:bg-error/10 transition-colors">
+                <mat-icon class="!text-[16px]">delete_outline</mat-icon>
+              </button>
             }
           </div>
-          <button (click)="avatarInput.click()" class="absolute -bottom-5 -right-5 z-20 bg-white text-slate-900 p-3 rounded-2xl shadow-2xl active:scale-95 transition-transform hover:bg-slate-100 border border-slate-200">
-            <span class="material-symbols-outlined text-[20px]">photo_camera</span>
-          </button>
-          <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
-          
-          @if (worker().image) {
-            <button (click)="removeProfilePicture()" class="absolute -top-5 -right-5 z-20 w-8 h-8 bg-white border border-outline-variant text-error rounded-full flex items-center justify-center shadow-2xl hover:bg-error/10 transition-colors">
-              <mat-icon class="!text-[16px]">delete_outline</mat-icon>
+          <div class="text-center mt-6">
+            <h1 class="text-2xl font-black text-brand-teal">{{ worker().name || 'Worker' }}</h1>
+            <p class="text-on-surface-variant text-sm">{{ worker().category }}</p>
+          </div>
+        </section>
+
+        <!-- Tab Interface -->
+        <nav class="flex border-b border-outline-variant overflow-x-auto no-scrollbar scroll-smooth">
+          @for (tab of tabs; track tab.id) {
+            <button (click)="activeTab.set(tab.id)"
+                    class="px-6 py-4 transition-all font-bold text-sm whitespace-nowrap border-b-2"
+                    [class]="activeTab() === tab.id ? 'border-brand-teal text-brand-teal' : 'border-transparent text-on-surface-variant hover:text-brand-teal'">
+              {{ tab.label }}
             </button>
           }
-        </div>
-        <div class="text-center mt-6">
-          <h1 class="text-2xl font-black text-primary">{{ worker().name }}</h1>
-          <p class="text-on-surface-variant text-sm">{{ worker().category || 'Professional Craftsman' }}</p>
-        </div>
-      </section>
+        </nav>
 
-      <!-- Tab Interface -->
-      <nav class="flex border-b border-outline-variant overflow-x-auto no-scrollbar scroll-smooth">
-        @for (tab of tabs; track tab.id) {
-          <button (click)="activeTab.set(tab.id)"
-                  class="px-6 py-4 transition-all font-bold text-sm whitespace-nowrap border-b-2"
-                  [class]="activeTab() === tab.id ? 'border-primary text-primary' : 'border-transparent text-on-surface-variant hover:text-primary'">
-            {{ tab.label }}
+        <!-- Profile Strength Indicator -->
+        <section class="flex flex-col gap-2 px-2">
+          <div class="flex justify-between items-end">
+            <span class="font-label-md text-label-md text-brand-teal uppercase tracking-wider">Profile Readiness</span>
+            <span class="font-bold text-brand-teal">{{ completionPercentage() }}%</span>
+          </div>
+          <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+            <div class="bg-brand-teal h-full transition-all duration-1000" [style.width.%]="completionPercentage()"></div>
+          </div>
+        </section>
+
+        <!-- Form Content Area -->
+        <div class="bg-white border border-outline-variant rounded-xl p-6 md:p-8 shadow-sm">
+          
+          <!-- Identity Tab -->
+          @if (activeTab() === 'identity') {
+            <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name</label>
+                  <input [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" 
+                         class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors" 
+                         placeholder="Julian Thorne">
+                </div>
+                <div class="space-y-2">
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Phone Number</label>
+                  <input [ngModel]="form.phoneNumber()" (ngModelChange)="form.phoneNumber.set($event)" 
+                         class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors" 
+                         placeholder="e.g. +254 700 000000">
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Craft Category</label>
+                  <div class="relative">
+                    <select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)"
+                            class="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors">
+                      <option value="">Select a category</option>
+                      <option value="Plumbing">Plumber</option>
+                      <option value="Electrical Wiring">Electrician</option>
+                      <option value="Carpentry">Carpenter</option>
+                      <option value="Masonry">Mason</option>
+                      <option value="Painting">Painter</option>
+                      <option value="Interior Design">Interior Designer</option>
+                      <option value="HVAC Installation">HVAC Installer</option>
+                      <option value="General Repairs">General Repairs</option>
+                      <option value="Farm Worker">Farm Worker</option>
+                      <option value="Cleaner">Cleaner</option>
+                      <option value="Mechanic">Mechanic</option>
+                      <option value="General Laborer">General Laborer</option>
+                    </select>
+                    <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Hourly Rate (USD)</label>
+                  <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md">$</span>
+                    <input type="number" [ngModel]="form.rate()" (ngModelChange)="form.rate.set($event)"
+                           class="w-full bg-surface border border-outline-variant rounded-lg pl-8 pr-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors">
+                  </div>
+                </div>
+                <div class="space-y-2">
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Base Location</label>
+                  <input [ngModel]="form.location()" (ngModelChange)="form.location.set($event)" 
+                         class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors" 
+                         placeholder="e.g. Nairobi, Kenya">
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Professional Bio</label>
+                <textarea [ngModel]="form.bio()" (ngModelChange)="form.bio.set($event)" rows="4"
+                          class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors resize-none"
+                          placeholder="Detail your expertise and operational background..."></textarea>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="space-y-2">
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Core Skills (Comma separated)</label>
+                  <input [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)"
+                         class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors"
+                         placeholder="e.g. Irrigation, Safety Audits, Harvesting">
+                </div>
+                <div class="space-y-2">
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Preferred Locations (Comma separated)</label>
+                  <input [ngModel]="form.preferredLocations()" (ngModelChange)="form.preferredLocations.set($event)"
+                         class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors"
+                         placeholder="e.g. Westlands, Kilimani, Karen">
+                </div>
+              </div>
+
+              <div class="pt-4">
+                <button (click)="nextTab()" class="w-full bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md active:opacity-90 transition-opacity">
+                  Next Area: Experience
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Experience Tab -->
+          @if (activeTab() === 'experience') {
+            <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div class="flex justify-between items-center mb-2">
+                <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Work History</h2>
+                <button (click)="addWorkHistory()" class="text-brand-teal font-bold text-xs flex items-center gap-1 hover:underline">
+                  <mat-icon class="!text-sm">add</mat-icon> Add Entry
+                </button>
+              </div>
+
+              <div class="space-y-4">
+                @for (work of form.workHistory(); track $index) {
+                  <div class="p-6 border border-outline-variant rounded-lg bg-surface relative group">
+                    <button (click)="removeWorkHistory($index)" class="absolute top-4 right-4 text-outline hover:text-error transition-colors">
+                      <mat-icon class="!text-lg">delete_outline</mat-icon>
+                    </button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-on-surface-variant uppercase">Organization</label>
+                        <input [(ngModel)]="work.company" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-brand-teal">
+                      </div>
+                      <div class="space-y-1">
+                        <label class="text-[10px] font-bold text-on-surface-variant uppercase">Role</label>
+                        <input [(ngModel)]="work.role" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-brand-teal">
+                      </div>
+                    </div>
+                    <div class="space-y-1">
+                       <label class="text-[10px] font-bold text-on-surface-variant uppercase">Details</label>
+                       <textarea [(ngModel)]="work.description" rows="2" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-brand-teal resize-none"></textarea>
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="py-12 text-center border-2 border-dashed border-outline-variant rounded-xl bg-surface-container-low">
+                     <mat-icon class="text-outline !text-4xl mb-2">history_edu</mat-icon>
+                     <p class="text-xs text-on-surface-variant font-bold">No professional history recorded</p>
+                  </div>
+                }
+              </div>
+
+              <div class="pt-4 flex gap-4">
+                <button (click)="activeTab.set('identity')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md">Back</button>
+                <button (click)="nextTab()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md">Continue</button>
+              </div>
+            </div>
+          }
+
+          <!-- Certifications Tab -->
+          @if (activeTab() === 'certifications') {
+            <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div class="flex justify-between items-center mb-2">
+                <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Accreditations</h2>
+                <button (click)="addCertification()" class="text-brand-teal font-bold text-xs flex items-center gap-1 hover:underline">
+                  <mat-icon class="!text-sm">add</mat-icon> Add Award
+                </button>
+              </div>
+
+              <div class="space-y-3">
+                @for (cert of form.certifications(); track $index) {
+                  <div class="flex items-center gap-4 p-4 border border-outline-variant rounded-lg bg-surface group">
+                    <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
+                      <mat-icon>military_tech</mat-icon>
+                    </div>
+                    <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <input [(ngModel)]="cert.name" placeholder="Name" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-brand-teal">
+                      <input [(ngModel)]="cert.issuer" placeholder="Issuer" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-brand-teal">
+                      <input [(ngModel)]="cert.year" placeholder="Year" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-brand-teal">
+                    </div>
+                    <button (click)="removeCertification($index)" class="text-outline hover:text-error">
+                      <mat-icon class="!text-sm">close</mat-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+
+              <div class="pt-4 flex gap-4">
+                <button (click)="activeTab.set('experience')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md">Back</button>
+                <button (click)="nextTab()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md">Continue</button>
+              </div>
+            </div>
+          }
+
+          <!-- Availability Tab -->
+          @if (activeTab() === 'availability') {
+            <div class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
+              <div class="space-y-4">
+                <div class="flex items-center justify-between p-5 bg-surface border border-outline-variant/60 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer group"
+                     (click)="toggleWeekdays()">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all"
+                         [class]="form.availabilityDetails().weekdays ? 'bg-brand-teal text-white' : 'bg-surface-container-high text-on-surface-variant'">
+                      <mat-icon>{{ form.availabilityDetails().weekdays ? 'calendar_today' : 'calendar_month' }}</mat-icon>
+                    </div>
+                    <div>
+                      <p class="font-bold text-brand-teal">Weekdays</p>
+                      <p class="text-[10px] uppercase tracking-widest font-bold opacity-60">Mon - Fri Operational</p>
+                    </div>
+                  </div>
+                  <mat-slide-toggle color="primary" [checked]="form.availabilityDetails().weekdays" (click)="$event.stopPropagation()" (change)="toggleWeekdays()"></mat-slide-toggle>
+                </div>
+
+                <div class="flex items-center justify-between p-5 bg-surface border border-outline-variant/60 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer group"
+                     (click)="toggleWeekends()">
+                  <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all"
+                         [class]="form.availabilityDetails().weekends ? 'bg-brand-teal text-white' : 'bg-surface-container-high text-on-surface-variant'">
+                      <mat-icon>event</mat-icon>
+                    </div>
+                    <div>
+                      <p class="font-bold text-brand-teal">Weekends</p>
+                      <p class="text-[10px] uppercase tracking-widest font-bold opacity-60">Sat - Sun Coverage</p>
+                    </div>
+                  </div>
+                  <mat-slide-toggle color="primary" [checked]="form.availabilityDetails().weekends" (click)="$event.stopPropagation()" (change)="toggleWeekends()"></mat-slide-toggle>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-6 bg-surface-container-high border border-outline-variant rounded-xl shadow-sm">
+                <div class="flex items-center gap-4">
+                  <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-brand-teal border border-outline-variant">
+                    <mat-icon class="!text-2xl">dark_mode</mat-icon>
+                  </div>
+                  <div>
+                    <p class="font-bold text-brand-teal">Late Shift Coverage</p>
+                    <p class="text-xs text-on-surface-variant">Active after 18:00 UTC</p>
+                  </div>
+                </div>
+                <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().evenings" (ngModelChange)="toggleEvenings($event)"></mat-slide-toggle>
+              </div>
+
+              <div class="pt-4 flex gap-4">
+                <button (click)="activeTab.set('certifications')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md">Back</button>
+                <button (click)="saveProfile()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md shadow-lg shadow-brand-teal/10">Save All Changes</button>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Action Footer -->
+        <section class="pt-4 flex flex-col gap-3">
+          <button (click)="saveProfile()" [disabled]="isSaving()" 
+                  class="w-full bg-brand-teal text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-brand-teal/10 hover:bg-opacity-90 active:scale-95 transition-all">
+            {{ isSaving() ? 'Synchronizing...' : 'Commit Profile Changes' }}
           </button>
-        }
-      </nav>
-
-      <!-- Profile Strength Indicator -->
-      <section class="flex flex-col gap-2 px-2">
-        <div class="flex justify-between items-end">
-          <span class="font-label-md text-label-md text-primary uppercase tracking-wider">Profile Readiness</span>
-          <span class="font-bold text-primary">{{ completionPercentage() }}%</span>
-        </div>
-        <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
-          <div class="bg-primary h-full transition-all duration-1000" [style.width.%]="completionPercentage()"></div>
-        </div>
-      </section>
-
-      <!-- Form Content Area -->
-      <div class="bg-white border border-outline-variant rounded-xl p-6 md:p-8 shadow-sm">
-        
-        <!-- Identity Tab -->
-        @if (activeTab() === 'identity') {
-          <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-2">
-                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name</label>
-                <input [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" 
-                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors" 
-                       placeholder="Julian Thorne">
-              </div>
-              <div class="space-y-2">
-                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Phone Number</label>
-                <input [ngModel]="form.phoneNumber()" (ngModelChange)="form.phoneNumber.set($event)" 
-                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors" 
-                       placeholder="e.g. +254 700 000000">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div class="space-y-2">
-                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Craft Category</label>
-                <div class="relative">
-                  <select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)"
-                          class="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors">
-                    <option value="Plumbing">Plumber</option>
-                    <option value="Electrical Wiring">Electrician</option>
-                    <option value="Carpentry">Carpenter</option>
-                    <option value="Masonry">Mason</option>
-                    <option value="Painting">Painter</option>
-                    <option value="Interior Design">Interior Designer</option>
-                    <option value="HVAC Installation">HVAC Installer</option>
-                    <option value="General Repairs">General Repairs</option>
-                    <option value="Farm Worker">Farm Worker</option>
-                    <option value="Cleaner">Cleaner</option>
-                    <option value="Mechanic">Mechanic</option>
-                    <option value="General Laborer">General Laborer</option>
-                  </select>
-                  <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
-                </div>
-              </div>
-              <div class="space-y-2">
-                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Hourly Rate (USD)</label>
-                <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md">$</span>
-                  <input type="number" [ngModel]="form.rate()" (ngModelChange)="form.rate.set($event)"
-                         class="w-full bg-surface border border-outline-variant rounded-lg pl-8 pr-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors">
-                </div>
-              </div>
-              <div class="space-y-2">
-                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Base Location</label>
-                <input [ngModel]="form.location()" (ngModelChange)="form.location.set($event)" 
-                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors" 
-                       placeholder="e.g. Nairobi, Kenya">
-              </div>
-            </div>
-
-            <div class="space-y-2">
-              <label class="font-label-md text-label-md text-on-surface-variant ml-1">Professional Bio</label>
-              <textarea [ngModel]="form.bio()" (ngModelChange)="form.bio.set($event)" rows="4"
-                        class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors resize-none"
-                        placeholder="Detail your expertise and operational background..."></textarea>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="space-y-2">
-                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Core Skills (Comma separated)</label>
-                <input [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)"
-                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors"
-                       placeholder="e.g. Irrigation, Safety Audits, Harvesting">
-              </div>
-              <div class="space-y-2">
-                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Preferred Locations (Comma separated)</label>
-                <input [ngModel]="form.preferredLocations()" (ngModelChange)="form.preferredLocations.set($event)"
-                       class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-primary focus:ring-0 transition-colors"
-                       placeholder="e.g. Westlands, Kilimani, Karen">
-              </div>
-            </div>
-
-            <div class="pt-4">
-              <button (click)="nextTab()" class="w-full bg-primary text-white py-4 rounded-lg font-label-md text-label-md active:opacity-90 transition-opacity">
-                Next Area: Experience
-              </button>
-            </div>
-          </div>
-        }
-
-        <!-- Experience Tab -->
-        @if (activeTab() === 'experience') {
-          <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div class="flex justify-between items-center mb-2">
-              <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Work History</h2>
-              <button (click)="addWorkHistory()" class="text-primary font-bold text-xs flex items-center gap-1 hover:underline">
-                <mat-icon class="!text-sm">add</mat-icon> Add Entry
-              </button>
-            </div>
-
-            <div class="space-y-4">
-              @for (work of form.workHistory(); track $index) {
-                <div class="p-6 border border-outline-variant rounded-lg bg-surface relative group">
-                  <button (click)="removeWorkHistory($index)" class="absolute top-4 right-4 text-outline hover:text-error transition-colors">
-                    <mat-icon class="!text-lg">delete_outline</mat-icon>
-                  </button>
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div class="space-y-1">
-                      <label class="text-[10px] font-bold text-on-surface-variant uppercase">Organization</label>
-                      <input [(ngModel)]="work.company" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-primary">
-                    </div>
-                    <div class="space-y-1">
-                      <label class="text-[10px] font-bold text-on-surface-variant uppercase">Role</label>
-                      <input [(ngModel)]="work.role" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-primary">
-                    </div>
-                  </div>
-                  <div class="space-y-1">
-                     <label class="text-[10px] font-bold text-on-surface-variant uppercase">Details</label>
-                     <textarea [(ngModel)]="work.description" rows="2" class="w-full bg-white border border-outline-variant rounded px-3 py-2 text-sm outline-none focus:border-primary resize-none"></textarea>
-                  </div>
-                </div>
-              } @empty {
-                <div class="py-12 text-center border-2 border-dashed border-outline-variant rounded-xl bg-surface-container-low">
-                   <mat-icon class="text-outline !text-4xl mb-2">history_edu</mat-icon>
-                   <p class="text-xs text-on-surface-variant font-bold">No professional history recorded</p>
-                </div>
-              }
-            </div>
-
-            <div class="pt-4 flex gap-4">
-              <button (click)="activeTab.set('identity')" class="flex-1 py-4 border border-outline-variant text-primary rounded-lg font-label-md text-label-md">Back</button>
-              <button (click)="nextTab()" class="flex-1 bg-primary text-white py-4 rounded-lg font-label-md text-label-md">Continue</button>
-            </div>
-          </div>
-        }
-
-        <!-- Certifications Tab -->
-        @if (activeTab() === 'certifications') {
-          <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div class="flex justify-between items-center mb-2">
-              <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Accreditations</h2>
-              <button (click)="addCertification()" class="text-primary font-bold text-xs flex items-center gap-1 hover:underline">
-                <mat-icon class="!text-sm">add</mat-icon> Add Award
-              </button>
-            </div>
-
-            <div class="space-y-3">
-              @for (cert of form.certifications(); track $index) {
-                <div class="flex items-center gap-4 p-4 border border-outline-variant rounded-lg bg-surface group">
-                  <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
-                    <mat-icon>military_tech</mat-icon>
-                  </div>
-                  <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <input [(ngModel)]="cert.name" placeholder="Name" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-primary">
-                    <input [(ngModel)]="cert.issuer" placeholder="Issuer" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-primary">
-                    <input [(ngModel)]="cert.year" placeholder="Year" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-primary">
-                  </div>
-                  <button (click)="removeCertification($index)" class="text-outline hover:text-error">
-                    <mat-icon class="!text-sm">close</mat-icon>
-                  </button>
-                </div>
-              }
-            </div>
-
-            <div class="pt-4 flex gap-4">
-              <button (click)="activeTab.set('experience')" class="flex-1 py-4 border border-outline-variant text-primary rounded-lg font-label-md text-label-md">Back</button>
-              <button (click)="nextTab()" class="flex-1 bg-primary text-white py-4 rounded-lg font-label-md text-label-md">Continue</button>
-            </div>
-          </div>
-        }
-
-        <!-- Availability Tab -->
-        @if (activeTab() === 'availability') {
-          <div class="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div class="space-y-4">
-              <div class="flex items-center justify-between p-5 bg-surface border border-outline-variant/60 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer group"
-                   (click)="form.availabilityDetails.set({...form.availabilityDetails(), weekdays: !form.availabilityDetails().weekdays})">
-                <div class="flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all"
-                       [class]="form.availabilityDetails().weekdays ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'">
-                    <mat-icon>{{ form.availabilityDetails().weekdays ? 'calendar_today' : 'calendar_month' }}</mat-icon>
-                  </div>
-                  <div>
-                    <p class="font-bold text-primary">Weekdays</p>
-                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-60">Mon - Fri Operational</p>
-                  </div>
-                </div>
-                <mat-slide-toggle color="primary" [checked]="form.availabilityDetails().weekdays"></mat-slide-toggle>
-              </div>
-
-              <div class="flex items-center justify-between p-5 bg-surface border border-outline-variant/60 rounded-xl hover:bg-surface-container-low transition-all cursor-pointer group"
-                   (click)="form.availabilityDetails.set({...form.availabilityDetails(), weekends: !form.availabilityDetails().weekends})">
-                <div class="flex items-center gap-4">
-                  <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all"
-                       [class]="form.availabilityDetails().weekends ? 'bg-primary text-white' : 'bg-surface-container-high text-on-surface-variant'">
-                    <mat-icon>event</mat-icon>
-                  </div>
-                  <div>
-                    <p class="font-bold text-primary">Weekends</p>
-                    <p class="text-[10px] uppercase tracking-widest font-bold opacity-60">Sat - Sun Coverage</p>
-                  </div>
-                </div>
-                <mat-slide-toggle color="primary" [checked]="form.availabilityDetails().weekends"></mat-slide-toggle>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-between p-6 bg-surface-container-high border border-outline-variant rounded-xl shadow-sm">
-              <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-primary border border-outline-variant">
-                  <mat-icon class="!text-2xl">dark_mode</mat-icon>
-                </div>
-                <div>
-                  <p class="font-bold text-primary">Late Shift Coverage</p>
-                  <p class="text-xs text-on-surface-variant">Active after 18:00 UTC</p>
-                </div>
-              </div>
-              <mat-slide-toggle color="primary" [ngModel]="form.availabilityDetails().evenings" (ngModelChange)="form.availabilityDetails.set({...form.availabilityDetails(), evenings: $event})"></mat-slide-toggle>
-            </div>
-
-            <div class="pt-4 flex gap-4">
-              <button (click)="activeTab.set('certifications')" class="flex-1 py-4 border border-outline-variant text-primary rounded-lg font-label-md text-label-md">Back</button>
-              <button (click)="saveProfile()" class="flex-1 bg-primary text-white py-4 rounded-lg font-label-md text-label-md shadow-lg shadow-primary/10">Save All Changes</button>
-            </div>
-          </div>
-        }
+          <button (click)="goToDocuments()" class="w-full bg-surface border border-outline-variant text-brand-teal py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container-low transition-all">
+            Proceed to Vault Audit
+          </button>
+        </section>
       </div>
-
-      <!-- Action Footer -->
-      <section class="pt-4 flex flex-col gap-3">
-        <button (click)="saveProfile()" [disabled]="isSaving()" 
-                class="w-full bg-primary text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-primary/10 hover:bg-opacity-90 active:scale-95 transition-all">
-          {{ isSaving() ? 'Synchronizing...' : 'Commit Profile Changes' }}
-        </button>
-        <button (click)="goToDocuments()" class="w-full bg-surface border border-outline-variant text-primary py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container-low transition-all">
-          Proceed to Vault Audit
-        </button>
-      </section>
-    </div>
+    }
   `,
   styles: [`
     :host { display: block; }
@@ -343,13 +357,15 @@ import { AuthService } from '../../../core/services/auth.service';
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   `]
 })
-export class WorkerProfilePage {
+export class WorkerProfilePage implements OnInit {
   private notification = inject(NotificationService);
   private router = inject(Router);
   public auth = inject(AuthService);
   state = inject(PlatformStateService);
 
   activeTab = signal<'identity' | 'experience' | 'certifications' | 'availability'>('identity');
+  isLoading = signal(true);
+  isSaving = signal(false);
 
   tabs: { id: 'identity' | 'experience' | 'certifications' | 'availability', label: string, icon: string }[] = [
     { id: 'identity', label: 'Identity', icon: 'person' },
@@ -362,7 +378,6 @@ export class WorkerProfilePage {
   get rejectionReason() { return this.state.currentWorker().rejectionReason; }
 
   completionPercentage = computed(() => this.state.currentWorkerCompletion());
-  isSaving = signal(false);
   worker = this.state.currentWorker;
 
   requirements = computed(() => {
@@ -394,23 +409,87 @@ export class WorkerProfilePage {
     image: signal<string | undefined>(undefined)
   };
 
-  constructor() {
-    effect(() => {
-      const w = this.state.currentWorker();
-      if (w && w.id) {
-        this.form.name.set(w.name || '');
-        this.form.phoneNumber.set(w.phoneNumber || '');
-        this.form.category.set(w.category || '');
-        this.form.rate.set(w.rate || 0);
-        this.form.bio.set(w.bio || '');
-        this.form.skills.set((w.skills || []).join(', '));
-        this.form.location.set(w.location || '');
-        this.form.preferredLocations.set((w.preferredLocations || []).join(', '));
-        this.form.workHistory.set(JSON.parse(JSON.stringify(w.workHistory || [])));
-        this.form.certifications.set(JSON.parse(JSON.stringify(w.certifications || [])));
-        this.form.availabilityDetails.set({ ...(w.availabilityDetails || { weekdays: true, weekends: false, evenings: false }) });
-        this.form.image.set(w.image);
+  ngOnInit() {
+    this.loadWorkerData();
+  }
+
+  private loadWorkerData() {
+    const userId = this.auth.currentUser()?.id;
+    
+    if (!userId) {
+      this.notification.error('User not authenticated');
+      this.router.navigate(['/login'], { queryParams: { returnUrl: '/worker/profile' } });
+      return;
+    }
+
+    // If worker data already exists, use it
+    const currentWorker = this.state.currentWorker();
+    if (currentWorker && currentWorker.id) {
+      this.populateForm(currentWorker);
+      this.isLoading.set(false);
+      return;
+    }
+
+    // Otherwise fetch from server
+    this.isLoading.set(true);
+    // fetchWorkerProfile updates the `currentWorker` signal internally and does not return an Observable
+    this.state.fetchWorkerProfile(userId);
+
+    // Listen once to the state signal and populate when data arrives
+    const sub = toObservable(this.state.currentWorker).subscribe({
+      next: (workerData: any) => {
+        if (workerData && workerData.id) {
+          this.populateForm(workerData);
+          this.isLoading.set(false);
+          sub.unsubscribe();
+        }
+      },
+      error: (err: any) => {
+        console.error('Error loading worker profile (from signal):', err);
+        this.notification.error('Failed to load profile data');
+        this.isLoading.set(false);
+        sub.unsubscribe();
       }
+    });
+  }
+
+  private populateForm(w: any) {
+    this.form.name.set(w.name || '');
+    this.form.phoneNumber.set(w.phoneNumber || '');
+    this.form.category.set(w.category || '');
+    this.form.rate.set(w.rate || 0);
+    this.form.bio.set(w.bio || '');
+    this.form.skills.set((w.skills || []).join(', '));
+    this.form.location.set(w.location || '');
+    this.form.preferredLocations.set((w.preferredLocations || []).join(', '));
+    this.form.workHistory.set(JSON.parse(JSON.stringify(w.workHistory || [])));
+    this.form.certifications.set(JSON.parse(JSON.stringify(w.certifications || [])));
+    this.form.availabilityDetails.set({ 
+      weekdays: w.availabilityDetails?.weekdays ?? true, 
+      weekends: w.availabilityDetails?.weekends ?? false, 
+      evenings: w.availabilityDetails?.evenings ?? false 
+    });
+    this.form.image.set(w.image);
+  }
+
+  toggleWeekdays() {
+    this.form.availabilityDetails.set({
+      ...this.form.availabilityDetails(),
+      weekdays: !this.form.availabilityDetails().weekdays
+    });
+  }
+
+  toggleWeekends() {
+    this.form.availabilityDetails.set({
+      ...this.form.availabilityDetails(),
+      weekends: !this.form.availabilityDetails().weekends
+    });
+  }
+
+  toggleEvenings(value: boolean) {
+    this.form.availabilityDetails.set({
+      ...this.form.availabilityDetails(),
+      evenings: value
     });
   }
 
@@ -423,6 +502,7 @@ export class WorkerProfilePage {
       next: (response: any) => {
         const mapped = this.state.mapWorkerProfile(response);
         this.state.currentWorker.set(mapped);
+        this.populateForm(mapped);
         this.notification.success('Profile picture removed!');
       },
       error: (err: any) => {
@@ -447,6 +527,7 @@ export class WorkerProfilePage {
       next: (response: any) => {
         const mapped = this.state.mapWorkerProfile(response);
         this.state.currentWorker.set(mapped);
+        this.populateForm(mapped);
         this.notification.success('Profile picture updated!');
       },
       error: (err: any) => {
