@@ -32,7 +32,7 @@ import { inject, computed, signal } from '@angular/core';
         <div class="space-y-2">
           <div class="flex items-center gap-3 mb-1">
             <div class="w-10 h-10 rounded-full bg-brand-teal/10 text-brand-teal flex items-center justify-center">
-              <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+              <mat-icon class="!text-[18px] flex items-center justify-center">account_balance_wallet</mat-icon>
             </div>
             <span class="font-label-sm text-label-sm text-on-surface-variant tracking-wider uppercase">Financial Audit</span>
           </div>
@@ -42,7 +42,7 @@ import { inject, computed, signal } from '@angular/core';
 
         <div class="flex gap-3">
           <button (click)="exportHistory()" class="px-5 py-3 bg-white border border-outline-variant text-brand-teal rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all shadow-sm flex items-center gap-2">
-            <mat-icon class="!text-sm">receipt_long</mat-icon>
+            <mat-icon class="!text-sm flex items-center justify-center">receipt_long</mat-icon>
             Export
           </button>
         </div>
@@ -81,14 +81,14 @@ import { inject, computed, signal } from '@angular/core';
            <div class="space-y-6 relative z-10">
               <div class="flex items-center justify-between">
                  <h4 class="font-bold tracking-tight">Audit Score</h4>
-                 <span class="material-symbols-outlined text-secondary-container-fixed">monitoring</span>
+                 <mat-icon class="text-secondary-container-fixed flex items-center justify-center">monitoring</mat-icon>
               </div>
 
               <div class="space-y-4">
                  @for (m of metrics; track m.label) {
                    <div class="flex items-center justify-between">
                       <div class="flex items-center gap-3">
-                         <mat-icon class="text-white/40 !text-sm">{{ m.icon }}</mat-icon>
+                         <mat-icon class="text-white/40 !text-sm flex items-center justify-center">{{ m.icon }}</mat-icon>
                          <span class="text-[10px] font-bold tracking-widest uppercase text-white/60">{{ m.label }}</span>
                       </div>
                       <span class="text-lg font-black">{{ m.value }}</span>
@@ -133,7 +133,7 @@ import { inject, computed, signal } from '@angular/core';
                        <div class="flex items-center gap-0.5 text-brand-teal">
                           @if (job.rating) {
                             @for (s of [1,2,3,4,5]; track s) {
-                               <span class="material-symbols-outlined !text-[14px]" [class.material-fill]="s <= job.rating">star</span>
+                               <mat-icon class="!text-[14px] flex items-center justify-center" [class.material-fill]="s <= job.rating">star</mat-icon>
                             }
                           } @else {
                             <span class="text-[9px] font-bold text-on-surface-variant/40 italic">Pending</span>
@@ -144,7 +144,7 @@ import { inject, computed, signal } from '@angular/core';
                     <!-- Earnings -->
                     <div class="flex flex-col items-end">
                        <p class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest mb-0.5">Earnings</p>
-                       <span class="text-xl font-black text-brand-teal">{{ job.earnings }}</span>
+                       <span class="text-xl font-black text-brand-teal">KSh {{ job.earnings }}</span>
                     </div>
 
                     <!-- Status & Actions -->
@@ -163,18 +163,18 @@ import { inject, computed, signal } from '@angular/core';
                                <div class="flex gap-2">
                                  <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')" 
                                          class="w-9 h-9 bg-surface-container text-brand-teal rounded-lg hover:bg-brand-teal hover:text-white transition-all flex items-center justify-center shadow-sm border border-outline-variant">
-                                   <mat-icon class="!text-[18px]">check</mat-icon>
+                                   <mat-icon class="!text-[18px] flex items-center justify-center">check</mat-icon>
                                  </button>
                                  <button (click)="state.updateJobStatus(job.id, 'REJECTED')" 
                                          class="w-9 h-9 bg-surface-container text-error rounded-lg hover:bg-error hover:text-white transition-all flex items-center justify-center shadow-sm border border-outline-variant">
-                                   <mat-icon class="!text-[18px]">close</mat-icon>
+                                   <mat-icon class="!text-[18px] flex items-center justify-center">close</mat-icon>
                                  </button>
                                </div>
                              }
                              @if (job.status === 'Accepted' || job.status === 'Revision Requested' || job.status === 'In Progress') {
                                <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')" 
                                        class="px-5 py-2.5 bg-brand-teal text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:opacity-90 active:scale-95 transition-all shadow-md shadow-brand-teal/10 flex items-center gap-2">
-                                 <mat-icon class="!text-sm">send</mat-icon> Deliver
+                                 <mat-icon class="!text-sm flex items-center justify-center">send</mat-icon> Deliver
                                </button>
                              }
                           }
@@ -185,7 +185,7 @@ import { inject, computed, signal } from '@angular/core';
             </div>
           } @empty {
              <div class="py-20 text-center bg-white rounded-xl border border-dashed border-outline-variant">
-                <mat-icon class="text-on-surface-variant/20 !text-5xl !w-auto !h-auto mb-3">history_edu</mat-icon>
+                <mat-icon class="text-on-surface-variant/20 !text-5xl !w-auto !h-auto mb-3 flex items-center justify-center">history_edu</mat-icon>
                 <p class="text-[10px] font-black text-on-surface-variant/40 uppercase tracking-[0.2em]">No operational records found</p>
              </div>
           }
@@ -195,8 +195,8 @@ import { inject, computed, signal } from '@angular/core';
         @if (jobs().length > pageSize) {
           <div class="flex justify-center items-center gap-6 pt-6">
             <button (click)="prevPage()" [disabled]="currentPage() === 1" 
-                    class="p-3 bg-white border border-outline-variant rounded-xl text-brand-teal hover:bg-surface-container-low transition-all disabled:opacity-30">
-              <mat-icon>chevron_left</mat-icon>
+                    class="p-3 bg-white border border-outline-variant rounded-xl text-brand-teal hover:bg-surface-container-low transition-all disabled:opacity-30 flex items-center justify-center">
+              <mat-icon class="flex items-center justify-center">chevron_left</mat-icon>
             </button>
             
             <div class="flex gap-2">
@@ -210,8 +210,8 @@ import { inject, computed, signal } from '@angular/core';
             </div>
             
             <button (click)="nextPage()" [disabled]="currentPage() >= totalPages()" 
-                    class="p-3 bg-white border border-outline-variant rounded-xl text-brand-teal hover:bg-surface-container-low transition-all disabled:opacity-30">
-              <mat-icon>chevron_right</mat-icon>
+                    class="p-3 bg-white border border-outline-variant rounded-xl text-brand-teal hover:bg-surface-container-low transition-all disabled:opacity-30 flex items-center justify-center">
+              <mat-icon class="flex items-center justify-center">chevron_right</mat-icon>
             </button>
           </div>
         }
@@ -220,6 +220,22 @@ import { inject, computed, signal } from '@angular/core';
   `,
   styles: [`
     :host { display: block; background: #f8fafc; min-height: 100vh; }
+    /* Fix icon alignment globally */
+    mat-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: middle !important;
+      flex-shrink: 0 !important;
+    }
+    /* Ensure buttons with icons have proper spacing */
+    button mat-icon {
+      margin: 0 2px;
+    }
+    /* Material icon fill style */
+    .material-fill {
+      font-variation-settings: 'FILL' 1;
+    }
   `]
 })
 export class WorkerHistoryPage {
@@ -272,7 +288,7 @@ export class WorkerHistoryPage {
         initials: b.clientInitials,
         service: b.service,
         date: b.date,
-        earnings: `$${b.earnings.toFixed(2)}`,
+      earnings: `KSh ${b.earnings.toFixed(2)}`,
         rating: b.rating,
         statusBg: b.status === 'Approved' ? 'bg-teal-50' : 
                   (b.status === 'Submitted' ? 'bg-teal-50' : 

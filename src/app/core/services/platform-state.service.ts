@@ -28,7 +28,7 @@ export interface WorkerProfile {
   initials: string;
   email: string;
   category: string;
-  status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft' | 'Suspended' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT';
+  status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft' | 'Suspended' | 'Approved' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT';
   image?: string;
   phoneNumber?: string;
   rate: number;

@@ -42,8 +42,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
               </div>
             }
           </div>
-          <button (click)="avatarInput.click()" [disabled]="isUploadingAvatar()" class="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 bg-white text-slate-950 p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl active:scale-95 transition-all hover:bg-primary hover:text-white disabled:opacity-50">
-            <mat-icon class="!text-[16px] md:!text-[20px]">photo_camera</mat-icon>
+          <button (click)="avatarInput.click()" [disabled]="isUploadingAvatar()" class="absolute -bottom-1 -right-1 md:-bottom-2 md:-right-2 bg-white text-slate-950 p-2 md:p-3 rounded-xl md:rounded-2xl shadow-xl active:scale-95 transition-all hover:bg-primary hover:text-white disabled:opacity-50 flex items-center justify-center">
+            <mat-icon class="!text-[16px] md:!text-[20px] flex items-center justify-center">photo_camera</mat-icon>
           </button>
           <input #avatarInput type="file" accept="image/*" class="hidden" (change)="onAvatarSelected($event)">
         </div>
@@ -76,7 +76,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
               <div class="w-full bg-slate-100/50 border border-slate-100 rounded-xl px-4 py-3 md:px-5 md:py-4 text-sm font-bold text-slate-400 flex items-center justify-between">
                 {{ auth.currentUser()?.email }}
-                <mat-icon class="!text-sm">lock</mat-icon>
+                <mat-icon class="!text-sm flex items-center justify-center">lock</mat-icon>
               </div>
             </div>
             <div class="space-y-3">
@@ -112,7 +112,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
               <h2 class="text-[10px] md:text-xs font-black text-rose-600 mb-1 md:mb-2 uppercase tracking-[0.2em]">Account Liquidation</h2>
               <p class="text-[10px] md:text-[11px] text-rose-900/60 font-bold uppercase tracking-tight">Permanently remove your identity and data.</p>
             </div>
-            <button (click)="liquidateAccount()" class="w-full md:w-auto px-6 py-3 border border-rose-200 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all">
+            <button (click)="liquidateAccount()" class="w-full md:w-auto px-6 py-3 border border-rose-200 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center gap-2">
+              <mat-icon class="!text-[14px] flex items-center justify-center">delete_forever</mat-icon>
               Liquidate Account
             </button>
           </div>
@@ -120,16 +121,39 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
         <!-- Global Actions -->
         <div class="flex flex-col sm:flex-row justify-end gap-3 md:gap-4 pt-4">
-          <button (click)="resetForm()" class="px-10 py-4 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-900 transition-all">Discard Changes</button>
+          <button (click)="resetForm()" class="px-10 py-4 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-slate-900 transition-all flex items-center justify-center gap-2">
+            <mat-icon class="!text-[14px] flex items-center justify-center">close</mat-icon>
+            Discard Changes
+          </button>
           <button (click)="saveSettings()" [disabled]="isSaving()" 
-                  class="bg-slate-950 text-white px-12 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-2xl shadow-slate-950/20 disabled:opacity-50">
-            {{ isSaving() ? 'Synchronizing...' : 'Update Repository' }}
+                  class="bg-slate-950 text-white px-12 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-2xl shadow-slate-950/20 disabled:opacity-50 flex items-center justify-center gap-2">
+            @if (isSaving()) {
+              <div class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+              <span>Synchronizing...</span>
+            } @else {
+              <mat-icon class="!text-[14px] flex items-center justify-center">save</mat-icon>
+              <span>Update Repository</span>
+            }
           </button>
         </div>
       </div>
     </div>
   `,
-  styles: [`:host { display: block; }`]
+  styles: [`
+    :host { display: block; }
+    /* Fix icon alignment globally */
+    mat-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: middle !important;
+      flex-shrink: 0 !important;
+    }
+    /* Ensure buttons with icons have proper spacing */
+    button mat-icon {
+      margin: 0 2px;
+    }
+  `]
 })
 export class SharedSettingsPage {
   auth = inject(AuthService);

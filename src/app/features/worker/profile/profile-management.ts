@@ -73,13 +73,13 @@ import { toObservable } from '@angular/core/rxjs-interop';
               }
             </div>
             <button (click)="avatarInput.click()" class="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 z-20 bg-white text-slate-900 w-11 h-11 rounded-full shadow-2xl active:scale-95 transition-transform hover:bg-slate-100 border border-slate-200 flex items-center justify-center">
-              <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+              <mat-icon class="!text-[18px] flex items-center justify-center">photo_camera</mat-icon>
             </button>
             <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
             
             @if (worker().image) {
               <button (click)="removeProfilePicture()" class="absolute top-0 right-0 -translate-x-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white border border-outline-variant text-error rounded-full flex items-center justify-center shadow-2xl hover:bg-error/10 transition-colors">
-                <mat-icon class="!text-[16px]">delete_outline</mat-icon>
+                <mat-icon class="!text-[16px] flex items-center justify-center">delete_outline</mat-icon>
               </button>
             }
           </div>
@@ -93,8 +93,9 @@ import { toObservable } from '@angular/core/rxjs-interop';
         <nav class="flex border-b border-outline-variant overflow-x-auto no-scrollbar scroll-smooth">
           @for (tab of tabs; track tab.id) {
             <button (click)="activeTab.set(tab.id)"
-                    class="px-6 py-4 transition-all font-bold text-sm whitespace-nowrap border-b-2"
+                    class="px-6 py-4 transition-all font-bold text-sm whitespace-nowrap border-b-2 flex items-center gap-2"
                     [class]="activeTab() === tab.id ? 'border-brand-teal text-brand-teal' : 'border-transparent text-on-surface-variant hover:text-brand-teal'">
+              <mat-icon class="!text-[18px]">{{ tab.icon }}</mat-icon>
               {{ tab.label }}
             </button>
           }
@@ -152,17 +153,18 @@ import { toObservable } from '@angular/core/rxjs-interop';
                       <option value="Mechanic">Mechanic</option>
                       <option value="General Laborer">General Laborer</option>
                     </select>
-                    <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</span>
+                    <mat-icon class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-on-surface-variant">expand_more</mat-icon>
                   </div>
                 </div>
-                <div class="space-y-2">
-                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Hourly Rate (USD)</label>
-                  <div class="relative">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md">$</span>
-                    <input type="number" [ngModel]="form.rate()" (ngModelChange)="form.rate.set($event)"
-                           class="w-full bg-surface border border-outline-variant rounded-lg pl-8 pr-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors">
-                  </div>
-                </div>
+  <div class="space-y-2">
+  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Hourly Rate (KSH)</label>
+  <div class="relative">
+    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md">KSh</span>
+<input type="number" [ngModel]="form.rate() === null ? null : form.rate()" (ngModelChange)="form.rate.set($event === null ? null : $event)"
+           class="w-full bg-surface border border-outline-variant rounded-lg pl-14 pr-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors"
+           placeholder="Enter hourly rate">
+  </div>
+</div>
                 <div class="space-y-2">
                   <label class="font-label-md text-label-md text-on-surface-variant ml-1">Base Location</label>
                   <input [ngModel]="form.location()" (ngModelChange)="form.location.set($event)" 
@@ -194,8 +196,9 @@ import { toObservable } from '@angular/core/rxjs-interop';
               </div>
 
               <div class="pt-4">
-                <button (click)="nextTab()" class="w-full bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md active:opacity-90 transition-opacity">
+                <button (click)="nextTab()" class="w-full bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md active:opacity-90 transition-opacity flex items-center justify-center gap-2">
                   Next Area: Experience
+                  <mat-icon class="!text-[18px]">arrow_forward</mat-icon>
                 </button>
               </div>
             </div>
@@ -207,7 +210,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
               <div class="flex justify-between items-center mb-2">
                 <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Work History</h2>
                 <button (click)="addWorkHistory()" class="text-brand-teal font-bold text-xs flex items-center gap-1 hover:underline">
-                  <mat-icon class="!text-sm">add</mat-icon> Add Entry
+                  <mat-icon class="!text-sm flex items-center">add</mat-icon> Add Entry
                 </button>
               </div>
 
@@ -215,7 +218,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
                 @for (work of form.workHistory(); track $index) {
                   <div class="p-6 border border-outline-variant rounded-lg bg-surface relative group">
                     <button (click)="removeWorkHistory($index)" class="absolute top-4 right-4 text-outline hover:text-error transition-colors">
-                      <mat-icon class="!text-lg">delete_outline</mat-icon>
+                      <mat-icon class="!text-lg flex items-center">delete_outline</mat-icon>
                     </button>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                       <div class="space-y-1">
@@ -234,15 +237,21 @@ import { toObservable } from '@angular/core/rxjs-interop';
                   </div>
                 } @empty {
                   <div class="py-12 text-center border-2 border-dashed border-outline-variant rounded-xl bg-surface-container-low">
-                     <mat-icon class="text-outline !text-4xl mb-2">history_edu</mat-icon>
+                     <mat-icon class="text-outline !text-4xl mb-2 flex items-center justify-center">history_edu</mat-icon>
                      <p class="text-xs text-on-surface-variant font-bold">No professional history recorded</p>
                   </div>
                 }
               </div>
 
               <div class="pt-4 flex gap-4">
-                <button (click)="activeTab.set('identity')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md">Back</button>
-                <button (click)="nextTab()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md">Continue</button>
+                <button (click)="activeTab.set('identity')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md flex items-center justify-center gap-2">
+                  <mat-icon class="!text-[18px]">arrow_back</mat-icon>
+                  Back
+                </button>
+                <button (click)="nextTab()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md flex items-center justify-center gap-2">
+                  Continue
+                  <mat-icon class="!text-[18px]">arrow_forward</mat-icon>
+                </button>
               </div>
             </div>
           }
@@ -253,7 +262,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
               <div class="flex justify-between items-center mb-2">
                 <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Accreditations</h2>
                 <button (click)="addCertification()" class="text-brand-teal font-bold text-xs flex items-center gap-1 hover:underline">
-                  <mat-icon class="!text-sm">add</mat-icon> Add Award
+                  <mat-icon class="!text-sm flex items-center">add</mat-icon> Add Award
                 </button>
               </div>
 
@@ -261,7 +270,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
                 @for (cert of form.certifications(); track $index) {
                   <div class="flex items-center gap-4 p-4 border border-outline-variant rounded-lg bg-surface group">
                     <div class="w-10 h-10 rounded-lg bg-secondary-container flex items-center justify-center text-on-secondary-container">
-                      <mat-icon>military_tech</mat-icon>
+                      <mat-icon class="flex items-center justify-center">military_tech</mat-icon>
                     </div>
                     <div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                       <input [(ngModel)]="cert.name" placeholder="Name" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-brand-teal">
@@ -269,15 +278,21 @@ import { toObservable } from '@angular/core/rxjs-interop';
                       <input [(ngModel)]="cert.year" placeholder="Year" class="bg-transparent border-b border-outline-variant py-1 text-sm outline-none focus:border-brand-teal">
                     </div>
                     <button (click)="removeCertification($index)" class="text-outline hover:text-error">
-                      <mat-icon class="!text-sm">close</mat-icon>
+                      <mat-icon class="!text-sm flex items-center">close</mat-icon>
                     </button>
                   </div>
                 }
               </div>
 
               <div class="pt-4 flex gap-4">
-                <button (click)="activeTab.set('experience')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md">Back</button>
-                <button (click)="nextTab()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md">Continue</button>
+                <button (click)="activeTab.set('experience')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md flex items-center justify-center gap-2">
+                  <mat-icon class="!text-[18px]">arrow_back</mat-icon>
+                  Back
+                </button>
+                <button (click)="nextTab()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md flex items-center justify-center gap-2">
+                  Continue
+                  <mat-icon class="!text-[18px]">arrow_forward</mat-icon>
+                </button>
               </div>
             </div>
           }
@@ -291,7 +306,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
                   <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all"
                          [class]="form.availabilityDetails().weekdays ? 'bg-brand-teal text-white' : 'bg-surface-container-high text-on-surface-variant'">
-                      <mat-icon>{{ form.availabilityDetails().weekdays ? 'calendar_today' : 'calendar_month' }}</mat-icon>
+                      <mat-icon class="flex items-center justify-center">{{ form.availabilityDetails().weekdays ? 'calendar_today' : 'calendar_month' }}</mat-icon>
                     </div>
                     <div>
                       <p class="font-bold text-brand-teal">Weekdays</p>
@@ -306,7 +321,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
                   <div class="flex items-center gap-4">
                     <div class="w-10 h-10 rounded-lg flex items-center justify-center transition-all"
                          [class]="form.availabilityDetails().weekends ? 'bg-brand-teal text-white' : 'bg-surface-container-high text-on-surface-variant'">
-                      <mat-icon>event</mat-icon>
+                      <mat-icon class="flex items-center justify-center">event</mat-icon>
                     </div>
                     <div>
                       <p class="font-bold text-brand-teal">Weekends</p>
@@ -320,7 +335,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
               <div class="flex items-center justify-between p-6 bg-surface-container-high border border-outline-variant rounded-xl shadow-sm">
                 <div class="flex items-center gap-4">
                   <div class="w-12 h-12 rounded-lg bg-white flex items-center justify-center text-brand-teal border border-outline-variant">
-                    <mat-icon class="!text-2xl">dark_mode</mat-icon>
+                    <mat-icon class="!text-2xl flex items-center justify-center">dark_mode</mat-icon>
                   </div>
                   <div>
                     <p class="font-bold text-brand-teal">Late Shift Coverage</p>
@@ -331,8 +346,14 @@ import { toObservable } from '@angular/core/rxjs-interop';
               </div>
 
               <div class="pt-4 flex gap-4">
-                <button (click)="activeTab.set('certifications')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md">Back</button>
-                <button (click)="saveProfile()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md shadow-lg shadow-brand-teal/10">Save All Changes</button>
+                <button (click)="activeTab.set('certifications')" class="flex-1 py-4 border border-outline-variant text-brand-teal rounded-lg font-label-md text-label-md flex items-center justify-center gap-2">
+                  <mat-icon class="!text-[18px]">arrow_back</mat-icon>
+                  Back
+                </button>
+                <button (click)="saveProfile()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md shadow-lg shadow-brand-teal/10 flex items-center justify-center gap-2">
+                  <mat-icon class="!text-[18px]">save</mat-icon>
+                  Save All Changes
+                </button>
               </div>
             </div>
           }
@@ -341,10 +362,17 @@ import { toObservable } from '@angular/core/rxjs-interop';
         <!-- Action Footer -->
         <section class="pt-4 flex flex-col gap-3">
           <button (click)="saveProfile()" [disabled]="isSaving()" 
-                  class="w-full bg-brand-teal text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-brand-teal/10 hover:bg-opacity-90 active:scale-95 transition-all">
-            {{ isSaving() ? 'Synchronizing...' : 'Commit Profile Changes' }}
+                  class="w-full bg-brand-teal text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-brand-teal/10 hover:bg-opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
+            @if (isSaving()) {
+              <mat-spinner diameter="20" color="accent" class="!inline-block"></mat-spinner>
+              <span>Synchronizing...</span>
+            } @else {
+              <mat-icon class="!text-[18px]">sync</mat-icon>
+              <span>Commit Profile Changes</span>
+            }
           </button>
-          <button (click)="goToDocuments()" class="w-full bg-surface border border-outline-variant text-brand-teal py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container-low transition-all">
+          <button (click)="goToDocuments()" class="w-full bg-surface border border-outline-variant text-brand-teal py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container-low transition-all flex items-center justify-center gap-2">
+            <mat-icon class="!text-[18px]">folder_open</mat-icon>
             Proceed to Vault Audit
           </button>
         </section>
@@ -352,9 +380,32 @@ import { toObservable } from '@angular/core/rxjs-interop';
     }
   `,
   styles: [`
-    :host { display: block; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    :host { 
+      display: block; 
+    }
+    .no-scrollbar::-webkit-scrollbar { 
+      display: none; 
+    }
+    .no-scrollbar { 
+      -ms-overflow-style: none; 
+      scrollbar-width: none; 
+    }
+    /* Fix icon alignment globally */
+    mat-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: middle !important;
+      flex-shrink: 0 !important;
+    }
+    /* Ensure buttons with icons have proper spacing */
+    button mat-icon {
+      margin: 0 2px;
+    }
+    /* Fix select dropdown icon positioning */
+    .relative mat-icon {
+      pointer-events: none;
+    }
   `]
 })
 export class WorkerProfilePage implements OnInit {
@@ -398,7 +449,7 @@ export class WorkerProfilePage implements OnInit {
     name: signal(''),
     phoneNumber: signal(''),
     category: signal(''),
-    rate: signal(0),
+    rate: signal<number | null>(null),
     bio: signal(''),
     skills: signal(''),
     location: signal(''),
@@ -432,7 +483,6 @@ export class WorkerProfilePage implements OnInit {
 
     // Otherwise fetch from server
     this.isLoading.set(true);
-    // fetchWorkerProfile updates the `currentWorker` signal internally and does not return an Observable
     this.state.fetchWorkerProfile(userId);
 
     // Listen once to the state signal and populate when data arrives
@@ -457,7 +507,7 @@ export class WorkerProfilePage implements OnInit {
     this.form.name.set(w.name || '');
     this.form.phoneNumber.set(w.phoneNumber || '');
     this.form.category.set(w.category || '');
-    this.form.rate.set(w.rate || 0);
+    this.form.rate.set(w.rate ?? null);
     this.form.bio.set(w.bio || '');
     this.form.skills.set((w.skills || []).join(', '));
     this.form.location.set(w.location || '');
@@ -553,7 +603,6 @@ export class WorkerProfilePage implements OnInit {
   }
 
   saveProfile() {
-    const updates = this.getProfileUpdates();
     const userId = this.worker().userId || this.auth.currentUser()?.id;
     if (!userId) {
       this.notification.error('User context not found.');
@@ -561,15 +610,64 @@ export class WorkerProfilePage implements OnInit {
     }
 
     this.isSaving.set(true);
+    
+    // Get the current form values
+    const fullName = this.form.name();
+    const phoneNumber = this.form.phoneNumber();
+    const category = this.form.category();
+    const hourlyRate = this.form.rate() !== null ? Number(this.form.rate()) : 0;
+    const bio = this.form.bio();
+    const skillsArray = (this.form.skills() || '').split(',').map(s => s.trim()).filter(s => s);
+    const location = this.form.location();
+    const preferredLocationsArray = (this.form.preferredLocations() || '').split(',').map(l => l.trim()).filter(l => l);
+    
+    // DIRECTLY UPDATE THE SIGNAL with form values
+    this.state.currentWorker.update(current => ({
+      ...current,
+      name: fullName,
+      phoneNumber: phoneNumber,
+      category: category,
+      rate: hourlyRate,
+      bio: bio,
+      skills: skillsArray,
+      location: location,
+      preferredLocations: preferredLocationsArray,
+      workHistory: this.form.workHistory(),
+      certifications: this.form.certifications(),
+      availabilityDetails: this.form.availabilityDetails()
+    }));
+    
+    // Also update local form display
+    this.populateForm(this.state.currentWorker());
+    
+    // Prepare payload for backend
+    const updates = {
+      fullName: fullName,
+      phoneNumber: phoneNumber,
+      category: category,
+      hourlyRate: hourlyRate,
+      bio: bio,
+      skills: skillsArray,
+      location: location,
+      preferredLocations: preferredLocationsArray,
+      workHistory: this.form.workHistory().filter(w => w.company.trim() && w.role.trim()),
+      certifications: this.form.certifications().filter(c => c.name.trim() && c.issuer.trim()),
+      availabilityDetails: this.form.availabilityDetails(),
+      profilePictureUrl: this.form.image()
+    };
+    
     this.state.updateWorkerProfile(userId, updates).subscribe({
       next: () => {
         this.isSaving.set(false);
         this.notification.success('✓ Profile saved successfully!');
+        // Refresh from backend to ensure consistency
         this.state.fetchWorkerProfile(userId);
       },
       error: () => {
         this.isSaving.set(false);
         this.notification.error('❌ Failed to save profile updates.');
+        // Revert by fetching fresh data
+        this.state.fetchWorkerProfile(userId);
       }
     });
   }
@@ -604,7 +702,7 @@ export class WorkerProfilePage implements OnInit {
       fullName: this.form.name(),
       phoneNumber: this.form.phoneNumber(),
       category: this.form.category(),
-      hourlyRate: Number(this.form.rate()) || 0,
+      hourlyRate: this.form.rate() !== null ? Number(this.form.rate()) : undefined,
       bio: this.form.bio(),
       skills: (this.form.skills() || '').split(',').map(s => s.trim()).filter(s => s),
       location: this.form.location(),

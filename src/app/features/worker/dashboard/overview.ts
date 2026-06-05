@@ -24,17 +24,13 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   template: `
     <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 font-manrope">
       
-      <!-- Status Hero Section (Premium Industrial Look) -->
+      <!-- Status Hero Section -->
       <section>
-        <div class="relative overflow-hidden rounded-[1.5rem] bg-brand-teal-soft p-6 md:p-8 min-h-[260px] flex flex-col justify-between group shadow-xl shadow-brand-teal/10 border border-white/5">
-          <!-- Atmospheric Background Image -->
-          <img class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-700" 
-               src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1200&q=80" 
-               alt="Background">
+        <div class="relative overflow-hidden rounded-[1.5rem] bg-brand-teal p-6 md:p-8 min-h-[260px] flex flex-col justify-between group shadow-xl shadow-brand-teal/10">
           
           <div class="relative z-10">
             <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full mb-6 border border-white/10">
-              <span class="w-2 h-2 rounded-full bg-brand-teal animate-pulse"></span>
+              <span class="w-2 h-2 rounded-full bg-white animate-pulse"></span>
               <span class="font-label-sm text-[10px] text-white uppercase tracking-[0.2em] font-black">System Live</span>
             </div>
             
@@ -49,7 +45,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <p class="text-[9px] uppercase tracking-[0.2em] text-white/40 font-black">Profile Status</p>
               <div class="flex items-baseline gap-2">
                 <span class="text-3xl font-black text-white">{{ state.currentWorkerCompletion() }}%</span>
-                <span class="text-[10px] text-brand-teal font-bold uppercase tracking-widest">Complete</span>
+                <span class="text-[10px] text-white/80 font-bold uppercase tracking-widest">Complete</span>
               </div>
             </div>
             <div class="space-y-1">
@@ -58,14 +54,11 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
             
             <div class="ml-auto hidden md:block">
-              <button routerLink="../verification" class="px-8 py-4 bg-white text-brand-teal rounded-xl font-black text-sm hover:scale-105 transition-all active:scale-95 shadow-xl shadow-brand-teal/10">
+              <button routerLink="../verification" class="px-8 py-4 bg-white text-brand-teal rounded-xl font-black text-sm hover:scale-105 transition-all active:scale-95 shadow-xl shadow-black/20">
                 Check Documents
               </button>
             </div>
           </div>
-
-          <!-- Glassmorphic Accent -->
-          <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-brand-teal rounded-full blur-[100px] opacity-20 group-hover:opacity-30 transition-opacity"></div>
         </div>
       </section>
 
@@ -82,7 +75,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 <div class="w-1.5 h-6 bg-brand-teal rounded-full"></div>
                 <h2 class="text-xl font-black tracking-tight text-brand-teal uppercase">New Job Requests</h2>
               </div>
-              <span class="font-label-sm text-[10px] font-black text-brand-teal bg-brand-teal-soft px-3 py-1.5 rounded-full tracking-widest">{{ pendingRequests().length }} NEW</span>
+              <span class="font-label-sm text-[10px] font-black text-brand-teal bg-brand-teal/10 px-3 py-1.5 rounded-full tracking-widest">{{ pendingRequests().length }} NEW</span>
             </div>
             
             <div class="space-y-1">
@@ -101,7 +94,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                   <div class="flex items-center gap-6 shrink-0">
                     <div class="text-right hidden md:block">
                       <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold leading-none mb-1">Fee</p>
-                      <p class="font-black text-sm text-brand-teal">$ {{ req.earnings }}</p>
+                      <p class="font-black text-sm text-brand-teal">KSh {{ req.earnings }}</p>
                     </div>
                     <div class="flex gap-2">
                       <button (click)="state.acceptBooking(req.id)" class="px-5 py-2 bg-brand-teal text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">Accept</button>
@@ -117,11 +110,11 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                     Page {{ requestPage() }} of {{ totalPages() }}
                   </span>
                   <div class="flex gap-2">
-                    <button (click)="goToRequestPage(requestPage() - 1)" [disabled]="requestPage() === 1" class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover-bg-brand-teal hover:text-white transition-all">
-                      <mat-icon class="!text-sm">chevron_left</mat-icon>
+                    <button (click)="goToRequestPage(requestPage() - 1)" [disabled]="requestPage() === 1" class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover:bg-brand-teal hover:text-white transition-all">
+                      <mat-icon class="!text-sm flex items-center justify-center">chevron_left</mat-icon>
                     </button>
-                    <button (click)="goToRequestPage(requestPage() + 1)" [disabled]="requestPage() === totalPages()" class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover-bg-brand-teal hover:text-white transition-all">
-                      <mat-icon class="!text-sm">chevron_right</mat-icon>
+                    <button (click)="goToRequestPage(requestPage() + 1)" [disabled]="requestPage() === totalPages()" class="w-8 h-8 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover:bg-brand-teal hover:text-white transition-all">
+                      <mat-icon class="!text-sm flex items-center justify-center">chevron_right</mat-icon>
                     </button>
                   </div>
                 </div>
@@ -130,7 +123,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               @if (pendingRequests().length === 0) {
                 <div class="py-20 text-center bg-surface-container-low border border-dashed border-outline-variant rounded-[1.5rem]">
                   <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <span class="material-symbols-outlined text-outline text-3xl">cloud_done</span>
+                    <mat-icon class="text-outline !text-3xl flex items-center justify-center">cloud_done</mat-icon>
                   </div>
                   <h3 class="font-black text-brand-teal mb-1 uppercase tracking-widest">No New Requests</h3>
                   <p class="text-[11px] text-on-surface-variant font-bold uppercase tracking-tighter">We'll notify you when new jobs arrive</p>
@@ -149,27 +142,27 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <div routerLink="../profile" class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-low transition-all border-b border-outline-variant/30 cursor-pointer group">
                 <div class="flex items-center gap-4">
                   <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-brand-teal group-hover:bg-brand-teal group-hover:text-white transition-all shadow-sm">
-                    <span class="material-symbols-outlined text-xl">identity_platform</span>
+                    <mat-icon class="!text-xl flex items-center justify-center">identity_platform</mat-icon>
                   </div>
                   <div>
                     <h3 class="font-black text-brand-teal text-xs uppercase tracking-widest">Edit Profile</h3>
                     <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Update your bio and skills</p>
                   </div>
                 </div>
-                <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">chevron_right</span>
+                <mat-icon class="text-outline group-hover:translate-x-1 transition-transform flex items-center justify-center">chevron_right</mat-icon>
               </div>
 
               <div routerLink="../verification" class="flex items-center justify-between p-4 bg-surface hover:bg-surface-container-low transition-all border-b border-outline-variant/30 cursor-pointer group">
                 <div class="flex items-center gap-4">
                   <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center text-brand-teal group-hover:bg-brand-teal group-hover:text-white transition-all shadow-sm">
-                    <span class="material-symbols-outlined text-xl">verified_user</span>
+                    <mat-icon class="!text-xl flex items-center justify-center">verified_user</mat-icon>
                   </div>
                   <div>
                     <h3 class="font-black text-brand-teal text-xs uppercase tracking-widest">Documents</h3>
                     <p class="text-[10px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60">Upload ID and certificates</p>
                   </div>
                 </div>
-                <span class="material-symbols-outlined text-outline group-hover:translate-x-1 transition-transform">chevron_right</span>
+                <mat-icon class="text-outline group-hover:translate-x-1 transition-transform flex items-center justify-center">chevron_right</mat-icon>
               </div>
             </div>
           </section>
@@ -177,7 +170,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
         <!-- System Intelligence Column -->
         <div class="w-full lg:w-80 xl:w-96 space-y-10 shrink-0">
-          <!-- Audit Lifecycle Card -->
+          <!-- Profile Completion Steps Card -->
           <section class="bg-white border border-outline-variant/60 rounded-xl p-6 shadow-sm">
             <h2 class="text-[10px] font-black text-brand-teal mb-6 uppercase tracking-[0.25em]">Profile Completion</h2>
             
@@ -186,26 +179,56 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               
               @for (step of steps; track step.id; let i = $index) {
                 <div class="flex gap-4 relative z-10 items-start">
+                  <!-- Step Circle -->
                   <div class="w-6 h-6 rounded-full flex items-center justify-center transition-all shadow-sm shrink-0"
-                       [ngClass]="currentStep() > i + 1 ? 'bg-brand-teal text-white' : (currentStep() === i + 1 ? 'bg-white border border-brand-teal text-brand-teal' : 'bg-white border border-outline-variant text-outline')">
-                      @if (currentStep() > i + 1) {
-                        <span class="material-symbols-outlined text-[12px] font-black">check</span>
+                       [ngClass]="getStepClass(i + 1)">
+                      @if (isStepCompleted(i + 1)) {
+                        <mat-icon class="!text-[12px] flex items-center justify-center font-black">check</mat-icon>
                       } @else {
                         <span class="text-[9px] font-black">{{ i + 1 }}</span>
                       }
                   </div>
+                  
+                  <!-- Step Label -->
                   <div class="min-w-0">
-                    <h3 class="text-[10px] font-black uppercase tracking-tight" [ngClass]="currentStep() >= i + 1 ? 'text-brand-teal' : 'text-on-surface-variant'">{{ step.label }}</h3>
-                    <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60 truncate">{{ step.desc }}</p>
+                    <h3 class="text-[10px] font-black uppercase tracking-tight" 
+                        [ngClass]="isStepActive(i + 1) ? 'text-brand-teal' : (isStepCompleted(i + 1) ? 'text-brand-teal' : 'text-on-surface-variant')">
+                      {{ step.label }}
+                    </h3>
+                    <p class="text-[9px] text-on-surface-variant font-bold uppercase tracking-widest opacity-60 truncate">
+                      {{ step.desc }}
+                    </p>
                   </div>
                 </div>
               }
             </div>
             
-            <button (click)="submit()" [disabled]="worker().status !== 'Draft' || state.currentWorkerCompletion() < 100"
-                    class="w-full mt-8 py-3 bg-brand-teal text-white rounded-lg font-black text-[10px] uppercase tracking-widest disabled:opacity-20 transition-all shadow-lg shadow-brand-teal/10 active:scale-95">
-              Submit for Review
-            </button>
+            <!-- Submit Button - Shows only when profile is complete and not yet submitted -->
+            @if (canSubmitForReview()) {
+              <button (click)="submit()" 
+                      class="w-full mt-8 py-3 bg-brand-teal text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-brand-teal/10 active:scale-95">
+                Submit for Review
+              </button>
+            }
+            
+            <!-- Status Message -->
+            @if (worker().status === 'PENDING' || worker().status === 'Pending') {
+              <div class="mt-6 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-amber-600 !text-sm">hourglass_empty</mat-icon>
+                  <p class="text-[9px] font-black text-amber-800">Under Review (24-48 hours)</p>
+                </div>
+              </div>
+            }
+            
+            @if (worker().status === 'REJECTED' || worker().status === 'Rejected') {
+              <div class="mt-6 p-3 bg-red-50 rounded-lg border border-red-200">
+                <div class="flex items-center gap-2">
+                  <mat-icon class="text-red-600 !text-sm">error_outline</mat-icon>
+                  <p class="text-[9px] font-black text-red-800">Review Failed - Please update documents</p>
+                </div>
+              </div>
+            }
           </section>
 
           <!-- Dialogues Panel -->
@@ -238,7 +261,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               }
             </div>
 
-            <button routerLink="../messages" class="w-full mt-6 py-3 border border-brand-teal text-brand-teal rounded-lg font-black text-[10px] uppercase tracking-widest hover-bg-brand-teal hover:text-white hover-border-brand-teal transition-all">
+            <button routerLink="../messages" class="w-full mt-6 py-3 border border-brand-teal text-brand-teal rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-brand-teal hover:text-white transition-all">
               Open Messages
             </button>
           </section>
@@ -248,7 +271,18 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
   `,
   styles: [`
     :host { display: block; }
-    .fill-1 { font-variation-settings: 'FILL' 1; }
+    /* Fix icon alignment globally */
+    mat-icon {
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      vertical-align: middle !important;
+      flex-shrink: 0 !important;
+    }
+    /* Ensure buttons with icons have proper spacing */
+    button mat-icon {
+      margin: 0 2px;
+    }
   `]
 })
 export class WorkerDashboardOverviewPage {
@@ -277,29 +311,95 @@ export class WorkerDashboardOverviewPage {
 
   statusTitle = computed(() => {
     const s = this.worker().status;
-    if (s === 'Verified') return 'Ready for New Jobs';
-    if (s === 'Pending') return 'Trust Audit in Progress';
-    return 'Incomplete Profile';
+    if (s === 'APPROVED' || s === 'Verified') return 'Ready for New Jobs';
+    if (s === 'PENDING' || s === 'Pending') return 'Review in Progress';
+    if (s === 'REJECTED' || s === 'Rejected') return 'Review Failed';
+    return 'Complete Your Profile';
   });
 
   statusDesc = computed(() => {
     const s = this.worker().status;
-    if (s === 'Verified') return 'Your profile is live and visible to elite employers. Keep your availability updated.';
-    if (s === 'Pending') return "Admins are currently reviewing your professional credentials. You'll be notified once cleared.";
-    return 'Complete your professional audit to unlock premium marketplace features.';
+    if (s === 'APPROVED' || s === 'Verified') {
+      return 'Your profile is live! You can now accept job offers and message employers.';
+    }
+    if (s === 'PENDING' || s === 'Pending') {
+      return "Our team is reviewing your documents. You'll be notified once approved (usually within 24 hours).";
+    }
+    if (s === 'REJECTED' || s === 'Rejected') {
+      return 'Some documents need attention. Please check the requirements and resubmit.';
+    }
+    return 'Complete your profile and upload documents to start getting job offers.';
   });
 
   steps = [
     { id: 'profile', order: 1, label: 'Professional Profile', desc: 'Bio & Skills', icon: 'person' },
     { id: 'documents', order: 2, label: 'ID Verification', desc: 'Upload Credentials', icon: 'badge' },
     { id: 'review', order: 3, label: 'Admin Approval', desc: 'Trust Audit', icon: 'security' }
-  ].sort((a, b) => a.order - b.order);
+  ];
 
-  currentStep = computed(() => {
+  // Step 1: Profile is complete when user has name, category, bio, and skills
+  isProfileStepComplete = computed(() => {
+    const w = this.worker();
+    return !!(w.name && w.name.length > 2 && 
+               w.category && 
+               w.bio && w.bio.length > 20 &&
+               w.skills && w.skills.length > 0);
+  });
+
+  // Step 2: Documents step is complete when user has uploaded ID front/back
+  isDocumentsStepComplete = computed(() => {
+    const docs = this.worker().uploadedDocuments || [];
+    const hasIdFront = docs.some((d: any) => d.type === 'ID-Front');
+    const hasIdBack = docs.some((d: any) => d.type === 'ID-Back');
+    return hasIdFront && hasIdBack;
+  });
+
+  // Step 3: Review step is complete when status is approved/verified
+  isReviewStepComplete = computed(() => {
     const s = this.worker().status;
-    if (s === 'Verified') return 3;
-    if (s === 'Pending') return 2;
-    return 1;
+    return s === 'APPROVED' || s === 'Verified';
+  });
+
+  // Check if a specific step is completed
+  isStepCompleted = (stepNumber: number): boolean => {
+    if (stepNumber === 1) return this.isProfileStepComplete();
+    if (stepNumber === 2) return this.isDocumentsStepComplete();
+    if (stepNumber === 3) return this.isReviewStepComplete();
+    return false;
+  };
+
+  // Check if a step is the current active step
+  isStepActive = (stepNumber: number): boolean => {
+    if (stepNumber === 1 && !this.isProfileStepComplete()) return true;
+    if (stepNumber === 2 && this.isProfileStepComplete() && !this.isDocumentsStepComplete()) return true;
+    if (stepNumber === 3 && this.isProfileStepComplete() && this.isDocumentsStepComplete() && !this.isReviewStepComplete()) return true;
+    return false;
+  };
+
+  // Get CSS class for step circle
+  getStepClass = (stepNumber: number): string => {
+    if (this.isStepCompleted(stepNumber)) {
+      return 'bg-brand-teal text-white';
+    }
+    if (this.isStepActive(stepNumber)) {
+      return 'bg-white border border-brand-teal text-brand-teal';
+    }
+    return 'bg-white border border-outline-variant text-outline';
+  };
+
+  // Current step number (1, 2, or 3)
+  currentStepNumber = computed(() => {
+    if (this.isReviewStepComplete()) return 3;
+    if (this.isDocumentsStepComplete()) return 3; // Waiting for review
+    if (this.isProfileStepComplete()) return 2; // Ready for documents
+    return 1; // Need to complete profile
+  });
+
+  // Check if user can submit for review
+  canSubmitForReview = computed(() => {
+    const status = this.worker().status;
+    const isNotSubmitted = status !== 'PENDING' && status !== 'Pending' && status !== 'APPROVED' && status !== 'Verified';
+    return this.isProfileStepComplete() && this.isDocumentsStepComplete() && isNotSubmitted;
   });
 
   pendingRequests = computed(() => {
@@ -307,16 +407,31 @@ export class WorkerDashboardOverviewPage {
   });
 
   completionPercentage = computed(() => {
-    return Math.min(Math.round((this.currentStep() / 3) * 100), 100);
+    let score = 0;
+    if (this.isProfileStepComplete()) score += 33;
+    if (this.isDocumentsStepComplete()) score += 34;
+    if (this.isReviewStepComplete()) score += 33;
+    return score;
   });
 
   submit() {
-    if (this.state.currentWorkerCompletion() < 100) {
-      this.notification.error('❌ Please complete your profile details (100%) before submitting for review.');
+    if (!this.isProfileStepComplete()) {
+      this.notification.error('❌ Please complete your profile first (name, category, bio, skills).');
+      return;
+    }
+    
+    if (!this.isDocumentsStepComplete()) {
+      this.notification.error('❌ Please upload both sides of your ID and your certificates.');
+      return;
+    }
+
+    const status = this.worker().status;
+    if (status === 'PENDING' || status === 'Pending') {
+     this.notification.info('Your application is already under review.');
       return;
     }
 
     this.state.submitForVerification();
-    this.notification.success('✓ Application submitted successfully!');
+    this.notification.success('✓ Application submitted for review! You will hear back within 24-48 hours.');
   }
 }
