@@ -373,7 +373,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
           </button>
           <button (click)="goToDocuments()" class="w-full bg-surface border border-outline-variant text-brand-teal py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container-low transition-all flex items-center justify-center gap-2">
             <mat-icon class="!text-[18px]">folder_open</mat-icon>
-            Proceed to Vault Audit
+            
           </button>
         </section>
       </div>
