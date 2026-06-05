@@ -118,82 +118,93 @@ import { NotificationService } from '../../core/services/notification.service';
             </a>
           </nav>
 
-          <!-- ONBOARDING PROGRESS CARD -->
+          <!-- ONBOARDING PROGRESS CARD - WITH COLLAPSE/EXPAND -->
           @if (!isApproved()) {
             <div class="mx-3 mt-4 p-4 rounded-xl" [ngClass]="hasMinimumProfile() ? 'bg-brand-teal/10 border border-brand-teal/20' : 'bg-amber-50 border border-amber-200'">
-              <div class="flex items-center gap-2 mb-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center" [ngClass]="hasMinimumProfile() ? 'bg-brand-teal text-white' : 'bg-amber-500 text-white'">
-                  <mat-icon class="!text-sm flex items-center justify-center">{{ hasMinimumProfile() ? 'checklist' : 'assignment' }}</mat-icon>
+              <!-- Collapsible Header -->
+              <div class="flex items-center justify-between cursor-pointer mb-3" (click)="toggleProgressCard()">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center" [ngClass]="hasMinimumProfile() ? 'bg-brand-teal text-white' : 'bg-amber-500 text-white'">
+                    <mat-icon class="!text-sm flex items-center justify-center">{{ hasMinimumProfile() ? 'checklist' : 'assignment' }}</mat-icon>
+                  </div>
+                  <div>
+                    <p class="text-[10px] font-black uppercase tracking-wider" [ngClass]="hasMinimumProfile() ? 'text-brand-teal' : 'text-amber-800'">
+                      Step {{ currentStep() }} of 4
+                    </p>
+                    <p class="text-[11px] font-black" [ngClass]="hasMinimumProfile() ? 'text-brand-teal' : 'text-amber-800'">
+                      {{ getStepTitle() }}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p class="text-[10px] font-black uppercase tracking-wider" [ngClass]="hasMinimumProfile() ? 'text-brand-teal' : 'text-amber-800'">
-                    Step {{ currentStep() }} of 4
-                  </p>
-                  <p class="text-[11px] font-black" [ngClass]="hasMinimumProfile() ? 'text-brand-teal' : 'text-amber-800'">
-                    {{ getStepTitle() }}
-                  </p>
-                </div>
+                <mat-icon class="!text-sm transition-transform" [class.rotate-180]="isProgressCardExpanded()">
+                  expand_more
+                </mat-icon>
               </div>
               
-              <!-- Progress Steps -->
-              <div class="space-y-3">
-                <div class="flex items-center gap-3">
-                  <div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black" 
-                       [ngClass]="hasMinimumProfile() ? 'bg-brand-teal text-white' : 'bg-amber-500 text-white'">
-                    {{ hasMinimumProfile() ? '✓' : '1' }}
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-[9px] font-black" [ngClass]="hasMinimumProfile() ? 'text-brand-teal' : 'text-amber-800'">Basic Profile (Name + Category)</p>
-                    <div class="h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
-                      <div class="h-full bg-amber-500 rounded-full transition-all" [style.width.%]="basicProfilePercent()"></div>
+              <!-- Collapsible Content -->
+              @if (isProgressCardExpanded()) {
+                <div class="animate-in slide-in-from-top duration-200">
+                  <!-- Progress Steps -->
+                  <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                      <div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black" 
+                           [ngClass]="hasMinimumProfile() ? 'bg-brand-teal text-white' : 'bg-amber-500 text-white'">
+                        {{ hasMinimumProfile() ? '✓' : '1' }}
+                      </div>
+                      <div class="flex-1">
+                        <p class="text-[9px] font-black" [ngClass]="hasMinimumProfile() ? 'text-brand-teal' : 'text-amber-800'">Basic Profile (Name + Category)</p>
+                        <div class="h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                          <div class="h-full bg-amber-500 rounded-full transition-all" [style.width.%]="basicProfilePercent()"></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                      <div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black" 
+                           [ngClass]="isProfileComplete() ? 'bg-brand-teal text-white' : (hasMinimumProfile() ? 'bg-gray-300 text-gray-500' : 'bg-gray-200 text-gray-400')">
+                        {{ isProfileComplete() ? '✓' : '2' }}
+                      </div>
+                      <div class="flex-1">
+                        <p class="text-[9px] font-black" [ngClass]="isProfileComplete() ? 'text-brand-teal' : (hasMinimumProfile() ? 'text-gray-500' : 'text-gray-400')">Complete Profile (Bio + Skills)</p>
+                        <div class="h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
+                          <div class="h-full bg-amber-500 rounded-full transition-all" [style.width.%]="fullProfilePercent()"></div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                      <div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black" 
+                           [ngClass]="hasUploadedDocuments() ? 'bg-brand-teal text-white' : (isProfileComplete() ? 'bg-gray-300 text-gray-500' : 'bg-gray-200 text-gray-400')">
+                        {{ hasUploadedDocuments() ? '✓' : '3' }}
+                      </div>
+                      <div class="flex-1">
+                        <p class="text-[9px] font-black" [ngClass]="hasUploadedDocuments() ? 'text-brand-teal' : (isProfileComplete() ? 'text-gray-500' : 'text-gray-400')">Upload ID & Documents</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3">
+                      <div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black" 
+                           [ngClass]="isApproved() ? 'bg-brand-teal text-white' : (hasUploadedDocuments() ? 'bg-gray-300 text-gray-500' : 'bg-gray-200 text-gray-400')">
+                        {{ isApproved() ? '✓' : '4' }}
+                      </div>
+                      <div class="flex-1">
+                        <p class="text-[9px] font-black" [ngClass]="isApproved() ? 'text-brand-teal' : (hasUploadedDocuments() ? 'text-gray-500' : 'text-gray-400')">Get Approved</p>
+                      </div>
                     </div>
                   </div>
+                  
+                  <!-- Action Button -->
+                  <button (click)="goToNextStep()" 
+                          class="w-full mt-4 py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all"
+                          [ngClass]="getButtonClass()">
+                    {{ getButtonText() }}
+                  </button>
+                  
+                  <p class="text-[8px] text-center mt-2 opacity-60" [ngClass]="hasMinimumProfile() ? 'text-brand-teal' : 'text-amber-700'">
+                    {{ getStepMessage() }}
+                  </p>
                 </div>
-                
-                <div class="flex items-center gap-3">
-                  <div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black" 
-                       [ngClass]="isProfileComplete() ? 'bg-brand-teal text-white' : (hasMinimumProfile() ? 'bg-gray-300 text-gray-500' : 'bg-gray-200 text-gray-400')">
-                    {{ isProfileComplete() ? '✓' : '2' }}
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-[9px] font-black" [ngClass]="isProfileComplete() ? 'text-brand-teal' : (hasMinimumProfile() ? 'text-gray-500' : 'text-gray-400')">Complete Profile (Bio + Skills)</p>
-                    <div class="h-1.5 bg-gray-200 rounded-full mt-1 overflow-hidden">
-                      <div class="h-full bg-amber-500 rounded-full transition-all" [style.width.%]="fullProfilePercent()"></div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="flex items-center gap-3">
-                  <div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black" 
-                       [ngClass]="hasUploadedDocuments() ? 'bg-brand-teal text-white' : (isProfileComplete() ? 'bg-gray-300 text-gray-500' : 'bg-gray-200 text-gray-400')">
-                    {{ hasUploadedDocuments() ? '✓' : '3' }}
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-[9px] font-black" [ngClass]="hasUploadedDocuments() ? 'text-brand-teal' : (isProfileComplete() ? 'text-gray-500' : 'text-gray-400')">Upload ID & Documents</p>
-                  </div>
-                </div>
-                
-                <div class="flex items-center gap-3">
-                  <div class="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black" 
-                       [ngClass]="isApproved() ? 'bg-brand-teal text-white' : (hasUploadedDocuments() ? 'bg-gray-300 text-gray-500' : 'bg-gray-200 text-gray-400')">
-                    {{ isApproved() ? '✓' : '4' }}
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-[9px] font-black" [ngClass]="isApproved() ? 'text-brand-teal' : (hasUploadedDocuments() ? 'text-gray-500' : 'text-gray-400')">Get Approved</p>
-                  </div>
-                </div>
-              </div>
-              
-              <!-- Action Button -->
-              <button (click)="goToNextStep()" 
-                      class="w-full mt-4 py-2.5 rounded-lg font-black text-[10px] uppercase tracking-widest transition-all"
-                      [ngClass]="getButtonClass()">
-                {{ getButtonText() }}
-              </button>
-              
-              <p class="text-[8px] text-center mt-2 opacity-60" [ngClass]="hasMinimumProfile() ? 'text-brand-teal' : 'text-amber-700'">
-                {{ getStepMessage() }}
-              </p>
+              }
             </div>
           }
 
@@ -292,6 +303,10 @@ import { NotificationService } from '../../core/services/notification.service';
       vertical-align: middle !important;
       flex-shrink: 0 !important;
     }
+    
+    .rotate-180 {
+      transform: rotate(180deg);
+    }
   `]
 })
 export class WorkerLayout {
@@ -302,7 +317,14 @@ export class WorkerLayout {
   
   worker = this.state.currentWorker;
   isHandsetMenuOpen = signal(false);
+  isProgressCardExpanded = signal(true); // Default expanded
 
+  // Toggle progress card
+  toggleProgressCard() {
+    this.isProgressCardExpanded.update(prev => !prev);
+  }
+
+  
   // LEVEL 1: MINIMUM PROFILE (Name + Category) - Unlocks Documents
   hasMinimumProfile = computed(() => {
     const w = this.worker();

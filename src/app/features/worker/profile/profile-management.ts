@@ -373,7 +373,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
           </button>
           <button (click)="goToDocuments()" class="w-full bg-surface border border-outline-variant text-brand-teal py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container-low transition-all flex items-center justify-center gap-2">
             <mat-icon class="!text-[18px]">folder_open</mat-icon>
-            
+            Upload Documents
           </button>
         </section>
       </div>
@@ -436,7 +436,7 @@ export class WorkerProfilePage implements OnInit {
     return [
       { label: 'Basic Info & Name', done: !!w.name },
       { label: 'Primary Category', done: !!w.category },
-      { label: 'Professional Bio', done: !!w.bio && w.bio.length > 20 },
+      { label: 'Professional Bio', done: !!w.bio && w.bio.length > 8},
       { label: 'Work History', done: w.workHistory && w.workHistory.length > 0 },
       { label: 'Skills Added', done: w.skills && w.skills.length > 0 },
       { label: 'ID Front Uploaded', done: (w.uploadedDocuments || []).some((d: any) => d.type === 'ID-Front') },
