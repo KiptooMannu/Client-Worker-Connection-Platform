@@ -464,63 +464,84 @@ export class WorkerProfilePage implements OnInit {
     this.loadWorkerData();
   }
 
-  private loadWorkerData() {
-    const userId = this.auth.currentUser()?.id;
-    
-    if (!userId) {
-      this.notification.error('User not authenticated');
-      this.router.navigate(['/login'], { queryParams: { returnUrl: '/worker/profile' } });
-      return;
-    }
+ private loadWorkerData() {
+  const userId = this.auth.currentUser()?.id;
+  
+  if (!userId) {
+    this.notification.error('User not authenticated');
+    this.router.navigate(['/login'], { queryParams: { returnUrl: '/worker/profile' } });
+    return;
+  }
 
-    // If worker data already exists, use it
-    const currentWorker = this.state.currentWorker();
-    if (currentWorker && currentWorker.id) {
-      this.populateForm(currentWorker);
-      this.isLoading.set(false);
-      return;
-    }
+  const currentWorker = this.state.currentWorker();
+  
+  // Check if we have valid cached data (id is not empty and matches the user)
+  const hasValidCachedData = currentWorker && 
+                             currentWorker.id && 
+                             currentWorker.id !== '' && 
+                             currentWorker.userId === userId;
 
-    // Otherwise fetch from server
-    this.isLoading.set(true);
-    this.state.fetchWorkerProfile(userId);
+  if (hasValidCachedData) {
+    this.populateForm(currentWorker);
+    this.isLoading.set(false);
+    return;
+  }
 
-    // Listen once to the state signal and populate when data arrives
-    const sub = toObservable(this.state.currentWorker).subscribe({
-      next: (workerData: any) => {
-        if (workerData && workerData.id) {
-          this.populateForm(workerData);
-          this.isLoading.set(false);
-          sub.unsubscribe();
-        }
-      },
-      error: (err: any) => {
-        console.error('Error loading worker profile (from signal):', err);
-        this.notification.error('Failed to load profile data');
+  // Fetch fresh data from server
+  this.isLoading.set(true);
+  
+  // First, fetch the profile
+  this.state.fetchWorkerProfile(userId);
+  
+  // Set up subscription to wait for the data
+  const sub = toObservable(this.state.currentWorker).subscribe({
+    next: (workerData: any) => {
+      // Check if we have valid data with an ID (not the default empty one)
+      if (workerData && workerData.id && workerData.id !== '' && workerData.userId === userId) {
+        this.populateForm(workerData);
         this.isLoading.set(false);
         sub.unsubscribe();
       }
-    });
-  }
+    },
+    error: (err: any) => {
+      console.error('Error loading worker profile:', err);
+      this.notification.error('Failed to load profile data');
+      this.isLoading.set(false);
+      sub.unsubscribe();
+    }
+  });
+  
+  // Timeout fallback to prevent infinite loading
+  setTimeout(() => {
+    if (this.isLoading()) {
+      this.isLoading.set(false);
+      this.notification.error('Loading took too long. Please refresh the page.');
+      sub.unsubscribe();
+    }
+  }, 10000);
+}
 
-  private populateForm(w: any) {
-    this.form.name.set(w.name || '');
-    this.form.phoneNumber.set(w.phoneNumber || '');
-    this.form.category.set(w.category || '');
-    this.form.rate.set(w.rate ?? null);
-    this.form.bio.set(w.bio || '');
-    this.form.skills.set((w.skills || []).join(', '));
-    this.form.location.set(w.location || '');
-    this.form.preferredLocations.set((w.preferredLocations || []).join(', '));
-    this.form.workHistory.set(JSON.parse(JSON.stringify(w.workHistory || [])));
-    this.form.certifications.set(JSON.parse(JSON.stringify(w.certifications || [])));
-    this.form.availabilityDetails.set({ 
-      weekdays: w.availabilityDetails?.weekdays ?? true, 
-      weekends: w.availabilityDetails?.weekends ?? false, 
-      evenings: w.availabilityDetails?.evenings ?? false 
-    });
-    this.form.image.set(w.image);
-  }
+ private populateForm(w: any) {
+  this.form.name.set(w.name || '');
+  this.form.phoneNumber.set(w.phoneNumber || '');
+  this.form.category.set(w.category || '');
+  this.form.rate.set(w.rate ?? null);
+  this.form.bio.set(w.bio || '');
+  // Handle skills safely - ensure it's an array before joining
+  const skillsArray = w.skills || [];
+  this.form.skills.set(Array.isArray(skillsArray) ? skillsArray.join(', ') : '');
+  this.form.location.set(w.location || '');
+  const preferredLocationsArray = w.preferredLocations || [];
+  this.form.preferredLocations.set(Array.isArray(preferredLocationsArray) ? preferredLocationsArray.join(', ') : '');
+  this.form.workHistory.set(w.workHistory && Array.isArray(w.workHistory) ? JSON.parse(JSON.stringify(w.workHistory)) : []);
+  this.form.certifications.set(w.certifications && Array.isArray(w.certifications) ? JSON.parse(JSON.stringify(w.certifications)) : []);
+  this.form.availabilityDetails.set({ 
+    weekdays: w.availabilityDetails?.weekdays ?? true, 
+    weekends: w.availabilityDetails?.weekends ?? false, 
+    evenings: w.availabilityDetails?.evenings ?? false 
+  });
+  this.form.image.set(w.image);
+}
 
   toggleWeekdays() {
     this.form.availabilityDetails.set({

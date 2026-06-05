@@ -24,11 +24,13 @@ export interface User {
 })
 export class AuthService {
   private userSignal = signal<User | null>(null);
+  private authReadySignal = signal<boolean>(false);
 
   currentUser = computed(() => this.userSignal());
   user$ = toObservable(this.currentUser);
   isAuthenticated = computed(() => !!this.userSignal());
   userRole = computed(() => this.userSignal()?.role || null);
+  isAuthReady = computed(() => this.authReadySignal());
 
   private users: User[] = [];
   private apiUrl = environment.authUrl;
@@ -38,27 +40,51 @@ export class AuthService {
   private notification = inject(NotificationService);
 
   constructor(private router: Router) {
+    this.restoreAuthState();
+  }
+
+  private restoreAuthState() {
     if (isPlatformBrowser(this.platformId)) {
+      // Restore user immediately and synchronously
       const savedUser = sessionStorage.getItem('pro_user');
-      if (savedUser) {
+      const token = sessionStorage.getItem('auth_token');
+      
+      if (savedUser && token) {
         try {
           const user = JSON.parse(savedUser);
-
-          if (!user.token) {
-            user.token = sessionStorage.getItem('auth_token');
-          }
+          user.token = token;
           this.userSignal.set(user);
           console.log('[AuthService] User restored from sessionStorage with role:', user.role);
         } catch (e) {
           console.error('[AuthService] Failed to parse saved user:', e);
+          this.clearAuthData();
         }
       }
 
+      // Restore users list
       const storedUsers = sessionStorage.getItem('kazi_konnect_users') || sessionStorage.getItem('nestfind_users');
       if (storedUsers) {
-        this.users = [...this.users, ...JSON.parse(storedUsers).filter((su: any) => !this.users.find(u => u.email === su.email))];
+        try {
+          this.users = [...this.users, ...JSON.parse(storedUsers).filter((su: any) => !this.users.find(u => u.email === su.email))];
+        } catch (e) {
+          console.error('[AuthService] Failed to parse saved users:', e);
+        }
       }
+      
+      // Mark auth as ready
+      this.authReadySignal.set(true);
+    } else {
+      // Server-side - mark as ready immediately
+      this.authReadySignal.set(true);
     }
+  }
+
+  private clearAuthData() {
+    if (isPlatformBrowser(this.platformId)) {
+      sessionStorage.removeItem('pro_user');
+      sessionStorage.removeItem('auth_token');
+    }
+    this.userSignal.set(null);
   }
 
   login(email: string, password: string): Observable<any> {
@@ -269,4 +295,3 @@ export class AuthService {
     );
   }
 }
-
