@@ -64,20 +64,22 @@ export class AuthService {
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
+        // Unwrap ApiResponse<AuthResponse> - response.data contains the actual AuthResponse
+        const authData = response.data || response;
         const user: User = {
-          id: response.userId,
-          email: response.email,
-          role: this.mapRole(response.role),
-          name: response.name || response.username || 'User',
-          avatarUrl: response.profilePictureUrl || response.image,
-          phoneNumber: response.phoneNumber,
-          token: response.accessToken
+          id: authData.userId,
+          email: authData.email,
+          role: this.mapRole(authData.role),
+          name: authData.name || authData.username || 'User',
+          avatarUrl: authData.profilePictureUrl || authData.image,
+          phoneNumber: authData.phoneNumber,
+          token: authData.accessToken
         };
 
         this.userSignal.set(user);
         if (isPlatformBrowser(this.platformId)) {
           // Store token separately for interceptor access
-          sessionStorage.setItem('auth_token', response.accessToken);
+          sessionStorage.setItem('auth_token', authData.accessToken);
           sessionStorage.setItem('pro_user', JSON.stringify(user));
           console.log('[AuthService] User logged in with role:', user.role, 'Token stored');
         }
