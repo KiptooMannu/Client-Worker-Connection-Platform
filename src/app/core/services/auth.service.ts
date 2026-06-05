@@ -24,13 +24,11 @@ export interface User {
 })
 export class AuthService {
   private userSignal = signal<User | null>(null);
-  private authReadySignal = signal<boolean>(false);
 
   currentUser = computed(() => this.userSignal());
   user$ = toObservable(this.currentUser);
   isAuthenticated = computed(() => !!this.userSignal());
   userRole = computed(() => this.userSignal()?.role || null);
-  isAuthReady = computed(() => this.authReadySignal());
 
   private users: User[] = [];
   private apiUrl = environment.authUrl;
@@ -40,74 +38,63 @@ export class AuthService {
   private notification = inject(NotificationService);
 
   constructor(private router: Router) {
-    this.restoreAuthState();
-  }
-
-  private restoreAuthState() {
     if (isPlatformBrowser(this.platformId)) {
-      // Restore user immediately and synchronously
       const savedUser = sessionStorage.getItem('pro_user');
-      const token = sessionStorage.getItem('auth_token');
-      
-      if (savedUser && token) {
+      if (savedUser) {
         try {
           const user = JSON.parse(savedUser);
-          user.token = token;
+
+          if (!user.token) {
+            user.token = sessionStorage.getItem('auth_token');
+          }
           this.userSignal.set(user);
           console.log('[AuthService] User restored from sessionStorage with role:', user.role);
         } catch (e) {
           console.error('[AuthService] Failed to parse saved user:', e);
-          this.clearAuthData();
         }
       }
 
-      // Restore users list
       const storedUsers = sessionStorage.getItem('kazi_konnect_users') || sessionStorage.getItem('nestfind_users');
       if (storedUsers) {
-        try {
-          this.users = [...this.users, ...JSON.parse(storedUsers).filter((su: any) => !this.users.find(u => u.email === su.email))];
-        } catch (e) {
-          console.error('[AuthService] Failed to parse saved users:', e);
-        }
+        this.users = [...this.users, ...JSON.parse(storedUsers).filter((su: any) => !this.users.find(u => u.email === su.email))];
       }
-      
-      // Mark auth as ready
-      this.authReadySignal.set(true);
-    } else {
-      // Server-side - mark as ready immediately
-      this.authReadySignal.set(true);
     }
-  }
-
-  private clearAuthData() {
-    if (isPlatformBrowser(this.platformId)) {
-      sessionStorage.removeItem('pro_user');
-      sessionStorage.removeItem('auth_token');
-    }
-    this.userSignal.set(null);
   }
 
   login(email: string, password: string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/login`, { email, password }).pipe(
       tap(response => {
-        // Unwrap ApiResponse<AuthResponse> - response.data contains the actual AuthResponse
+        // Extract the actual auth data from ApiResponse wrapper
         const authData = response.data || response;
+        
+        // Extract token from multiple possible field names
+        const token = authData.accessToken || authData.token || authData.jwtToken;
+        
+        if (!token) {
+          console.error('[AuthService] Login response missing token field', { response, authData });
+          throw new Error('Token should not be null on login - backend did not return accessToken');
+        }
+
         const user: User = {
-          id: authData.userId,
+          id: authData.userId || authData.id,
           email: authData.email,
           role: this.mapRole(authData.role),
           name: authData.name || authData.username || 'User',
           avatarUrl: authData.profilePictureUrl || authData.image,
           phoneNumber: authData.phoneNumber,
-          token: authData.accessToken
+          token: token
         };
+
+        if (!user.role) {
+          console.warn('[AuthService] Login response has null role', { response });
+        }
 
         this.userSignal.set(user);
         if (isPlatformBrowser(this.platformId)) {
           // Store token separately for interceptor access
-          sessionStorage.setItem('auth_token', authData.accessToken);
+          sessionStorage.setItem('auth_token', token);
           sessionStorage.setItem('pro_user', JSON.stringify(user));
-          console.log('[AuthService] User logged in with role:', user.role, 'Token stored');
+          console.log('[AuthService] User logged in with role:', user.role, 'Token stored:', token.substring(0, 20) + '...');
         }
 
         this.notification.success('Welcome back, ' + user.name + '!');
@@ -295,3 +282,4 @@ export class AuthService {
     );
   }
 }
+
