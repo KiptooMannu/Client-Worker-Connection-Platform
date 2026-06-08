@@ -44,40 +44,50 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
       <!-- Advanced Filter Bar -->
       <div class="mb-12 bg-white border border-outline-variant/30 p-6 rounded-3xl shadow-sm">
-        <div class="space-y-1 sm:space-y-0 sm:grid sm:grid-cols-4 gap-4">
-          <div class="relative group">
-            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-brand-teal transition-colors !text-base">search</mat-icon>
-            <input type="text" class="w-full pl-11 pr-4 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-brand-teal transition-all outline-none" 
-                   placeholder="Name or email..."
-                   [ngModel]="nameQuery()" (ngModelChange)="nameQuery.set($event)">
-          </div>
-          
-          <div class="relative">
-            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 !text-base">work_outline</mat-icon>
-            <select class="w-full pl-11 pr-10 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-brand-teal transition-all outline-none cursor-pointer appearance-none" 
-                    [ngModel]="selectedSkill()" (ngModelChange)="selectedSkill.set($event)">
-              <option [value]="null">All Categories</option>
+        <div class="space-y-4 sm:space-y-0 grid grid-cols-1 lg:grid-cols-4 gap-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Name or email</mat-label>
+            <mat-icon matPrefix class="text-slate-300">search</mat-icon>
+            <input matInput type="text" placeholder="Name or email..."
+                   [ngModel]="nameQuery()" (ngModelChange)="onNameChange($event)">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>All Categories</mat-label>
+            <mat-icon matPrefix class="text-slate-300">work_outline</mat-icon>
+            <mat-select [value]="selectedSkill()" (selectionChange)="selectedSkill.set($event.value); onFilterChange()" panelClass="marketplace-select-panel">
+              <mat-option [value]="null">All Categories</mat-option>
               @for (skill of state.availableSkills(); track skill) {
-                <option [value]="skill">{{ skill }}</option>
+                <mat-option [value]="skill">{{ skill }}</mat-option>
               }
-            </select>
-          </div>
+            </mat-select>
+          </mat-form-field>
 
-          <div class="relative">
-            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 !text-base">location_on</mat-icon>
-            <select class="w-full pl-11 pr-10 py-3 bg-surface border border-outline-variant/30 rounded-xl text-xs font-bold focus:border-brand-teal transition-all outline-none cursor-pointer appearance-none" 
-                    [ngModel]="locationQuery()" (ngModelChange)="locationQuery.set($event)">
-              <option [value]="null">All Locations</option>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>All Locations</mat-label>
+            <mat-icon matPrefix class="text-slate-300">location_on</mat-icon>
+            <mat-select [value]="locationQuery()" (selectionChange)="locationQuery.set($event.value); onFilterChange()" panelClass="marketplace-select-panel">
+              <mat-option [value]="null">All Locations</mat-option>
               @for (loc of state.availableLocations(); track loc) {
-                <option [value]="loc">{{ loc }}</option>
+                <mat-option [value]="loc">{{ loc }}</mat-option>
               }
-            </select>
-          </div>
+            </mat-select>
+          </mat-form-field>
 
-          <button (click)="performSearch()" class="w-full bg-slate-900 text-white h-11 rounded-xl font-black text-[10px] uppercase tracking-widest hover-bg-brand-teal-dark active:scale-95 transition-all shadow-xl shadow-slate-900/10">
-            Search
-          </button>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Experience</mat-label>
+            <mat-icon matPrefix class="text-slate-300">trending_up</mat-icon>
+            <mat-select [value]="selectedExperience()" (selectionChange)="selectedExperience.set($event.value); onFilterChange()" panelClass="marketplace-select-panel">
+              <mat-option [value]="null">Any Level</mat-option>
+              <mat-option value="Junior">Junior</mat-option>
+              <mat-option value="Mid">Mid</mat-option>
+              <mat-option value="Senior">Senior</mat-option>
+              <mat-option value="Lead">Lead</mat-option>
+              <mat-option value="Master">Master</mat-option>
+            </mat-select>
+          </mat-form-field>
         </div>
+        <p class="mt-4 text-[11px] text-slate-500 font-medium uppercase tracking-[0.2em]">Filters apply automatically.</p>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -205,7 +215,15 @@ import { PlatformStateService } from '../../core/services/platform-state.service
   styles: [`
     :host { display: block; background-color: var(--color-surface); }
     :ng-deep .mat-mdc-form-field-subscript-wrapper { display: none; }
-    
+    :ng-deep .marketplace-select-panel {
+      min-width: 14rem !important;
+      max-width: 22rem !important;
+      white-space: normal !important;
+    }
+    :ng-deep .marketplace-select-panel .mat-option-text {
+      white-space: normal !important;
+      overflow-wrap: anywhere !important;
+    }
     @media (max-width: 1024px) {
       .text-7xl { font-size: 3.5rem !important; }
       .p-8 { padding: 1.5rem !important; }
@@ -301,8 +319,16 @@ export class ClientDashboardPage {
     this.state.fetchMarketplaceWorkers(
       this.selectedSkill() || undefined,
       this.locationQuery() || undefined,
-      this.selectedExperience() === 'Senior' ? 5 : (this.selectedExperience() === 'Lead' ? 8 : (this.selectedExperience() === 'Master' ? 12 : undefined))
+      this.selectedExperience() === 'Junior' ? 1 : (this.selectedExperience() === 'Mid' ? 3 : (this.selectedExperience() === 'Senior' ? 5 : (this.selectedExperience() === 'Lead' ? 8 : (this.selectedExperience() === 'Master' ? 12 : undefined))))
     );
+  }
+
+  onFilterChange() {
+    this.performSearch();
+  }
+
+  onNameChange(value: string) {
+    this.nameQuery.set(value);
   }
 
   loadMore() {

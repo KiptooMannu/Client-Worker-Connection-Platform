@@ -31,6 +31,7 @@ export interface WorkerProfile {
   status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft' | 'Suspended' | 'Approved' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT';
   image?: string;
   phoneNumber?: string;
+  experienceYears?: number;
   rate: number;
   rating: number;
   reviews: number;
@@ -412,7 +413,7 @@ export class PlatformStateService {
 
     if (params.length > 0) url += `?${params.join('&')}`;
 
-    this.http.get<any[]>(url).subscribe({
+    this.http.get<any[]>(url).pipe(timeout(30000)).subscribe({
       next: (data) => {
         const mapped = data.map(w => this.mapWorkerProfile(w));
         this.workers.set(mapped);
@@ -420,7 +421,8 @@ export class PlatformStateService {
       error: (err: HttpErrorResponse | any) => {
         console.error('Error fetching marketplace workers', err);
         if (err.name === 'TimeoutError') {
-          this.notification.info('Marketplace search is taking longer than expected. Please try again.');
+          console.warn('[PlatformState] Marketplace search request timed out:', url);
+          this.notification.info('Marketplace search took too long. Please refresh or try a narrower filter.');
         } else {
           this.notification.error('Failed to load marketplace. Please check your connection.');
         }
@@ -736,6 +738,7 @@ export class PlatformStateService {
       isAvailable: data.isOnline,
       location: data.location || '',
       preferredLocations: Array.from(data.preferredLocations || []),
+      experienceYears: data.experienceYears || 0,
       workHistory: (data.workHistory || []).map((wh: any) => ({
         id: wh.id,
         company: wh.company,
@@ -994,8 +997,9 @@ export class PlatformStateService {
       return;
     }
 
-    const payload = {
-      description: `Hire request for ${worker.category} service`
+    const payload: any = {
+      description: `Hire request for ${worker.category} service`,
+      requiredExperience: worker.experienceYears ?? undefined
     };
     this.http.post<any>(`${this.apiUrl}/jobs/request?clientId=${user.id}&workerUserId=${worker.userId}`, payload).subscribe({
       next: () => {

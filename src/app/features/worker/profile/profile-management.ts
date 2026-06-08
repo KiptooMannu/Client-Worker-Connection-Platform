@@ -214,6 +214,24 @@ import { toObservable } from '@angular/core/rxjs-interop';
                 </button>
               </div>
 
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <mat-form-field appearance="outline" class="w-full profile-experience-field">
+                  <mat-label>Experience Level</mat-label>
+                  <mat-select class="font-body-md text-body-md" [value]="form.experienceYears()" (selectionChange)="form.experienceYears.set($event.value)">
+                    <mat-option [value]="null">Select experience</mat-option>
+                    <mat-option [value]="1">Junior (1-2 years)</mat-option>
+                    <mat-option [value]="3">Mid (3-5 years)</mat-option>
+                    <mat-option [value]="5">Senior (5+ years)</mat-option>
+                    <mat-option [value]="8">Lead (8+ years)</mat-option>
+                    <mat-option [value]="12">Master (12+ years)</mat-option>
+                  </mat-select>
+                </mat-form-field>
+                <div class="space-y-2">
+                  <p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant">Why this matters</p>
+                  <p class="text-sm text-slate-600">Employers use this experience level when filtering the marketplace, so selecting it helps your profile appear for the right jobs.</p>
+                </div>
+              </div>
+
               <div class="space-y-4">
                 @for (work of form.workHistory(); track $index) {
                   <div class="p-6 border border-outline-variant rounded-lg bg-surface relative group">
@@ -406,6 +424,14 @@ import { toObservable } from '@angular/core/rxjs-interop';
     .relative mat-icon {
       pointer-events: none;
     }
+    .profile-experience-field .mat-form-field-infix,
+    .profile-experience-field .mat-select-trigger,
+    .profile-experience-field .mat-form-field-label {
+      font-family: inherit !important;
+      font-size: inherit !important;
+      line-height: 1.5 !important;
+      font-weight: 500 !important;
+    }
   `]
 })
 export class WorkerProfilePage implements OnInit {
@@ -454,6 +480,7 @@ export class WorkerProfilePage implements OnInit {
     skills: signal(''),
     location: signal(''),
     preferredLocations: signal(''),
+    experienceYears: signal<number | null>(null),
     workHistory: signal<any[]>([]),
     certifications: signal<any[]>([]),
     availabilityDetails: signal({ weekdays: true, weekends: false, evenings: false }),
@@ -652,6 +679,7 @@ export class WorkerProfilePage implements OnInit {
       bio: bio,
       skills: skillsArray,
       location: location,
+      experienceYears: this.form.experienceYears() ?? undefined,
       preferredLocations: preferredLocationsArray,
       workHistory: this.form.workHistory(),
       certifications: this.form.certifications(),
@@ -671,6 +699,7 @@ export class WorkerProfilePage implements OnInit {
       skills: skillsArray,
       location: location,
       preferredLocations: preferredLocationsArray,
+      experienceYears: this.form.experienceYears(),
       workHistory: this.form.workHistory().filter(w => w.company.trim() && w.role.trim()),
       certifications: this.form.certifications().filter(c => c.name.trim() && c.issuer.trim()),
       availabilityDetails: this.form.availabilityDetails(),
@@ -728,6 +757,7 @@ export class WorkerProfilePage implements OnInit {
       skills: (this.form.skills() || '').split(',').map(s => s.trim()).filter(s => s),
       location: this.form.location(),
       preferredLocations: (this.form.preferredLocations() || '').split(',').map(l => l.trim()).filter(l => l),
+      experienceYears: this.form.experienceYears() ?? undefined,
       workHistory: this.form.workHistory()
         .filter(w => w.company.trim() && w.role.trim())
         .map(w => ({ ...w })),
