@@ -70,7 +70,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
             <div class="space-y-3">
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
-              <input [(ngModel)]="form.name" class="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 md:px-5 md:py-4 text-sm font-bold text-slate-900 focus:bg-white focus:border-blue-600 focus:ring-4 focus:ring-blue-600/5 transition-all outline-none" placeholder="Enter your full name">
+              <input [(ngModel)]="form.name" disabled class="w-full bg-slate-100 border border-slate-100 rounded-xl px-4 py-3 md:px-5 md:py-4 text-sm font-bold text-slate-400 transition-all outline-none" placeholder="Full name cannot be edited" title="Full name is managed by your account">
             </div>
             <div class="space-y-3">
               <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
@@ -239,30 +239,38 @@ export class SharedSettingsPage {
     }
 
     this.isSaving.set(true);
-    
-    // 1. Update Profile Name / Phone if changed
-    const profilePayload = {
-      name: this.form.name,
-      phoneNumber: this.form.phoneNumber
-    };
 
-    if (this.form.name !== this.auth.currentUser()?.name || this.form.phoneNumber !== this.auth.currentUser()?.phoneNumber) {
-      this.state.updateAccountProfile(profilePayload.name, profilePayload.phoneNumber).subscribe({
-        next: (res: any) => {
-          this.auth.updateUser({ name: res.name || profilePayload.name, phoneNumber: res.phoneNumber || profilePayload.phoneNumber });
-          this.notification.success('Profile details updated');
-          if (!this.form.newPassword) {
+    const user = this.auth.currentUser();
+    const phoneHasChanged = this.form.phoneNumber !== user?.phoneNumber;
+    const shouldUpdatePhone = phoneHasChanged && this.form.phoneNumber?.trim().length > 0;
+
+    if (shouldUpdatePhone && user) {
+      const payload = { phoneNumber: this.form.phoneNumber };
+      let profileUpdate$;
+
+      if (user.role === 'Client') {
+        profileUpdate$ = this.state.updateClientProfile(user.id, payload);
+      } else if (user.role === 'Worker') {
+        profileUpdate$ = this.state.updateWorkerProfile(user.id, payload);
+      }
+
+      if (profileUpdate$) {
+        profileUpdate$.subscribe({
+          next: (res: any) => {
+            this.auth.updateUser({ phoneNumber: res.phoneNumber || this.form.phoneNumber });
+            this.notification.success('Profile details updated');
+            if (!this.form.newPassword) {
+              this.isSaving.set(false);
+            }
+          },
+          error: (err) => {
+            this.notification.error('Failed to update profile details');
             this.isSaving.set(false);
           }
-        },
-        error: (err) => {
-          this.notification.error('Failed to update profile details');
-          this.isSaving.set(false);
-        }
-      });
+        });
+      }
     }
 
-    // 2. Update Password if provided
     if (this.form.newPassword) {
       this.state.updateAccountPassword(this.form.newPassword).subscribe({
         next: () => {
@@ -276,7 +284,7 @@ export class SharedSettingsPage {
           this.isSaving.set(false);
         }
       });
-    } else {
+    } else if (!shouldUpdatePhone) {
       setTimeout(() => this.isSaving.set(false), 800);
     }
   }

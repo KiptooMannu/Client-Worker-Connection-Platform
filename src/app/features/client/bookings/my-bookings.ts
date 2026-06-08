@@ -119,7 +119,7 @@ import { AuthService }          from '../../../core/services/auth.service';
                 <div class="flex flex-col items-center">
                   <span class="text-sm font-black text-slate-900">KES {{ b.earnings | number }}</span>
                   <span class="text-[9px] font-black uppercase text-slate-400">
-                    {{ b.status === 'Approved' ? 'Released' : 'Escrowed' }}
+                    {{ b.status === 'Approved' ? 'Released' : 'Pending Payment' }}
                   </span>
                 </div>
               </td>
@@ -149,7 +149,7 @@ import { AuthService }          from '../../../core/services/auth.service';
                     <button (click)="openPayModal(b)"
                             class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-[9px] font-black
                                    uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
-                      Pay Escrow
+                      Pay
                     </button>
                   }
 
@@ -162,14 +162,14 @@ import { AuthService }          from '../../../core/services/auth.service';
                     </button>
                   }
 
-                  <!-- RELEASE button — work submitted, client must approve -->
+                  <!-- APPROVE button — work submitted, client approves work completion -->
                   @else if (b.status === 'Submitted') {
                     <button (click)="openReleaseConfirm(b)"
                             [disabled]="releasingJobId() === b.id"
                             class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
                                    uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-sm
                                    disabled:opacity-50 disabled:cursor-wait">
-                      {{ releasingJobId() === b.id ? 'Releasing...' : 'Release Funds' }}
+                      {{ releasingJobId() === b.id ? 'Approving...' : 'Approve Work' }}
                     </button>
                     <button (click)="state.updateJobStatus(b.id, 'REVISION_REQUESTED')"
                             title="Request revision"
@@ -232,7 +232,7 @@ import { AuthService }          from '../../../core/services/auth.service';
           <div class="p-20 text-center">
             <h3 class="text-xl font-black text-slate-900 mb-2">No bookings yet</h3>
             <p class="text-slate-400 text-xs mb-8">Start your first project from the marketplace.</p>
-            <button mat-flat-button routerLink="/client/marketplace"
+            <button mat-flat-button routerLink="/employer/marketplace"
                     class="!bg-brand-teal !text-white !rounded-xl !px-8 !py-4 !font-black !text-[10px] !uppercase !tracking-widest">
               Browse Professionals
             </button>
@@ -247,11 +247,11 @@ import { AuthService }          from '../../../core/services/auth.service';
           <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 animate-in zoom-in-95 duration-300">
 
             <h3 class="text-2xl font-black text-slate-900 mb-1">
-              {{ payModal.retrying ? 'Retry Payment' : 'Fund Escrow' }}
+              {{ payModal.retrying ? 'Retry Payment' : 'Pay via M-Pesa' }}
             </h3>
             <p class="text-slate-400 text-sm mb-8">
               KES <span class="font-black text-slate-800">{{ payModal.booking.earnings | number }}</span>
-              will be held securely until you approve the work.
+              will be charged via M-Pesa. If the transaction fails you'll see clear messages such as "Insufficient funds" or "Wrong PIN".
             </p>
 
             <div class="space-y-4 mb-8">
@@ -299,11 +299,11 @@ import { AuthService }          from '../../../core/services/auth.service';
             <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6">
               <mat-icon class="text-emerald-600 !text-2xl">verified</mat-icon>
             </div>
-            <h3 class="text-2xl font-black text-slate-900 mb-2">Release Funds?</h3>
+            <h3 class="text-2xl font-black text-slate-900 mb-2">Approve Work?</h3>
             <p class="text-slate-400 text-sm mb-2">
-              You are about to release
+              You are about to approve
               <span class="font-black text-slate-800">KES {{ releaseConfirm.earnings | number }}</span>
-              to <span class="font-black text-slate-800">{{ releaseConfirm.workerName }}</span>.
+              for <span class="font-black text-slate-800">{{ releaseConfirm.workerName }}</span>.
             </p>
             <p class="text-slate-400 text-xs mb-8">
               This confirms the work is complete and satisfactory. This action cannot be undone.
@@ -459,7 +459,7 @@ private refreshBookings() {
 
     this.pollSub = this.payment.pollPaymentStatus(jobId).subscribe({
       next: (resp) => {
-        if (resp.status === 'ESCROWED') {
+        if (resp.status === 'PAID') {
           this.pollingJobId.set(null);
           this.snack.open('Payment confirmed! Work is now in progress.', 'OK', { duration: 6000 });
           this.refreshBookings();
@@ -489,17 +489,11 @@ private refreshBookings() {
     this.releaseConfirm = null;
     this.releasingJobId.set(booking.id);
 
-    this.payment.releaseEscrow(booking.id).subscribe({
-      next: () => {
-        this.releasingJobId.set(null);
-        this.snack.open('Funds released to worker successfully!', 'OK', { duration: 5000 });
-        this.refreshBookings();
-      },
-      error: (err) => {
-        this.releasingJobId.set(null);
-        this.snack.open(err?.error || 'Failed to release funds. Please try again.', 'OK', { duration: 5000 });
-      }
-    });
+    // Escrow flows removed: update job status to APPROVED which triggers settlement logic server-side.
+    this.state.updateJobStatus(booking.id, 'APPROVED');
+    this.releasingJobId.set(null);
+    this.snack.open('Funds release requested; payment settlement will follow.', 'OK', { duration: 5000 });
+    this.refreshBookings();
   }
 
   // ── Review ──────────────────────────────────────────────────────────────

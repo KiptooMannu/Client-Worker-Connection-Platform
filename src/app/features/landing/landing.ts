@@ -44,8 +44,8 @@ export class LandingPage implements OnInit {
     },
     settlement: {
       title: 'Secure Settlement',
-      highlight: 'Institutional-grade escrow systems ensure equitable value exchange—releasing funds only upon verified milestone success.',
-      description: 'The Kazi Konnect settlement layer is built on transparent governance. We eliminate financial risk for both parties by holding funds in secure accounts and automating release cycles based on multi-signature project approval.',
+      highlight: 'Secure payments ensure equitable value exchange—releasing funds only after verified milestone success.',
+      description: 'The Kazi Konnect settlement layer is built on transparent governance. We eliminate financial risk for both parties by validating payments and automating settlement once work is approved.',
       footer: 'Total Managed Volume: $4.2M+'
     }
   };

@@ -20,7 +20,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     <div class="max-w-4xl mx-auto pb-24 font-manrope animate-in fade-in duration-700">
       <!-- Breadcrumb Navigation -->
       <nav class="p-4 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-        <a routerLink="/client" class="hover:text-slate-900 transition-colors">Marketplace</a>
+        <a routerLink="/employer" class="hover:text-slate-900 transition-colors">Marketplace</a>
         <mat-icon class="!text-[10px] !w-auto !h-auto">chevron_right</mat-icon>
         <span class="text-slate-900">{{ worker()?.name }}</span>
       </nav>
@@ -179,7 +179,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <div class="mt-6 text-center">
               <p class="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center justify-center gap-1.5">
                 <mat-icon class="!text-xs !w-auto !h-auto">lock</mat-icon>
-                Secure Escrow Enabled
+                Secure Payments Enabled
               </p>
             </div>
           </div>
@@ -265,7 +265,7 @@ export class ClientWorkerProfilePage {
     const w = this.worker();
     if (w) {
       this.state.hireWorker(w.id);
-      this.router.navigate(['/client/bookings']);
+      this.router.navigate(['employer/bookings']);
     }
   }
 
@@ -273,7 +273,7 @@ export class ClientWorkerProfilePage {
     const w = this.worker();
     if (w) {
       this.state.startChat(w.id);
-      this.router.navigate(['/client/messages']);
+      this.router.navigate(['/employer/messages']);
     }
   }
 }

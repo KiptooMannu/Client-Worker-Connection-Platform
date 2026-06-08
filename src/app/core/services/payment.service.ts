@@ -3,7 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, interval, switchMap, takeWhile, tap, timeout, catchError, of } from 'rxjs';
 
 export interface PaymentStatusResponse {
-  status: 'PENDING' | 'ESCROWED' | 'RELEASED' | 'REFUNDED' | 'FAILED' | 'NO_PAYMENT';
+  status: 'PENDING' | 'PAID' | 'FAILED' | 'NO_PAYMENT';
   id?: string;
   jobId?: string;
   amount?: number;
@@ -31,19 +31,16 @@ export class PaymentService {
    * Initiates STK push. Idempotent — safe to call twice.
    */
   initiateStkPush(jobId: string, phoneNumber: string): Observable<StkPushResponse> {
-    const params = new HttpParams()
-      .set('jobId', jobId)
-      .set('phoneNumber', phoneNumber);
-    return this.http.post<StkPushResponse>(`${this.BASE}/mpesa/stkpush`, null, { params });
+    return this.http.post<StkPushResponse>(`${this.BASE}/mpesa/stkpush`, { jobId, phoneNumber });
   }
 
   /**
    * Polls payment status every 3 seconds.
-   * Stops when status reaches a terminal state (ESCROWED, FAILED, RELEASED, REFUNDED)
+   * Stops when status reaches a terminal state (PAID, FAILED)
    * or when the caller unsubscribes (e.g. component destroy).
    */
   pollPaymentStatus(jobId: string): Observable<PaymentStatusResponse> {
-    const terminal = new Set(['ESCROWED', 'FAILED', 'RELEASED', 'REFUNDED']);
+    const terminal = new Set(['PAID', 'FAILED']);
     return interval(3000).pipe(
       switchMap(() => this.getPaymentStatus(jobId)),
       takeWhile(resp => !terminal.has(resp.status), /* inclusive = */ true)
@@ -57,13 +54,13 @@ export class PaymentService {
   }
 
   releaseEscrow(jobId: string): Observable<any> {
-    const params = new HttpParams().set('jobId', jobId);
-    return this.http.post(`${this.BASE}/escrow/release`, null, { params });
+    // Escrow endpoints deprecated — kept only for compatibility.
+    return this.http.post(`${this.BASE}/escrow/release`, {});
   }
 
   refundEscrow(jobId: string): Observable<any> {
-    const params = new HttpParams().set('jobId', jobId);
-    return this.http.post(`${this.BASE}/escrow/refund`, null, { params });
+    // Escrow endpoints deprecated — keep stub for compatibility.
+    return this.http.post(`${this.BASE}/escrow/refund`, {});
   }
 
   getWalletBalance(): Observable<any> {

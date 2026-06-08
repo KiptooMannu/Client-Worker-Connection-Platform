@@ -57,8 +57,8 @@ import { NavbarComponent } from '../../shared/components/navbar';
                 <div class="w-16 h-16 bg-brand-teal-soft rounded-2xl flex items-center justify-center text-brand-teal group-hover:bg-brand-teal group-hover:text-white transition-all duration-500 shadow-sm">
                   <mat-icon class="!text-3xl">account_balance_wallet</mat-icon>
                 </div>
-                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Financial Escrow</h3>
-                <p class="text-slate-500 font-medium leading-relaxed">Secure multi-party payment flows with automated milestone-based fund releasing.</p>
+                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Secure Settlement</h3>
+                <p class="text-slate-500 font-medium leading-relaxed">Secure M-Pesa payment flows with automated milestone-based approval and settlement.</p>
               </div>
             </div>
           </div>

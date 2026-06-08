@@ -28,7 +28,7 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/verify-email/verify-email').then(m => m.VerifyEmailPage)
   },
 
-  { path: 'workers', redirectTo: 'client/marketplace', pathMatch: 'full' },
+  { path: 'workers', redirectTo: 'workers/marketplace', pathMatch: 'full' },
   { path: 'clients', redirectTo: 'client', pathMatch: 'full' },
   { path: 'admins', redirectTo: 'admin', pathMatch: 'full' },
   {

@@ -386,6 +386,9 @@ export class PlatformStateService {
       next: (data) => {
         const mapped = this.mapWorkerProfile(data);
         this.currentWorker.set(mapped);
+        if (mapped.phoneNumber) {
+          this.auth.updateUser({ phoneNumber: mapped.phoneNumber });
+        }
         if (mapped.userId) {
           this.fetchWorkerJobs(mapped.userId);
         }
@@ -429,9 +432,13 @@ export class PlatformStateService {
     const backendPayload = this.mapToBackendUpdate(updates);
     return this.http.put<any>(`${this.apiUrl}/workers/profile/${userId}`, backendPayload).pipe(
       tap(res => {
-        if (res.workerProfile) {
-          const mapped = this.mapWorkerProfile(res.workerProfile);
+        const profileData = res.workerProfile || res;
+        if (profileData) {
+          const mapped = this.mapWorkerProfile(profileData);
           this.currentWorker.set(mapped);
+          if (mapped.phoneNumber) {
+            this.auth.updateUser({ phoneNumber: mapped.phoneNumber });
+          }
         }
       }),
       catchError((err: HttpErrorResponse) => {
@@ -463,7 +470,21 @@ export class PlatformStateService {
   }
 
   updateClientProfile(userId: string, updates: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/clients/profile/user/${userId}`, updates);
+    return this.http.put<any>(`${this.apiUrl}/clients/profile/user/${userId}`, updates).pipe(
+      tap(res => {
+        const profileData = res.clientProfile || res;
+        if (profileData) {
+          const mapped = this.mapClientProfile(profileData);
+          this.currentClient.set(mapped);
+          if (mapped.phoneNumber) {
+            this.auth.updateUser({ phoneNumber: mapped.phoneNumber });
+          }
+        }
+      }),
+      catchError((err: HttpErrorResponse) => {
+        return throwError(() => err);
+      })
+    );
   }
 
   submitProfile(userId: string): Observable<any> {
@@ -485,6 +506,9 @@ export class PlatformStateService {
       next: (data) => {
         const mapped = this.mapClientProfile(data);
         this.currentClient.set(mapped);
+        if (mapped.phoneNumber) {
+          this.auth.updateUser({ phoneNumber: mapped.phoneNumber });
+        }
       },
       error: (err: HttpErrorResponse) => {
         console.error('Error fetching client profile', err);

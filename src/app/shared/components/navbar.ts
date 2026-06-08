@@ -62,7 +62,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
                 </a>
               }
               @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
-                <a routerLink="/client/marketplace" routerLinkActive="active-link" 
+                <a routerLink="/employer/marketplace" routerLinkActive="active-link" 
                    class="nav-link text-sm font-black text-slate-500 hover:text-brand-teal transition-all py-2 border-b-2 border-transparent hover:border-brand-teal">
                   Hire Workers
                 </a>
@@ -78,7 +78,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
                 </a>
               }
               @if (auth.userRole() === 'Client') {
-                <a routerLink="/client/bookings" routerLinkActive="active-link"
+                <a routerLink="/employer/bookings" routerLinkActive="active-link"
                    class="nav-link text-sm font-black text-slate-500 hover:text-brand-teal transition-all py-2 border-b-2 border-transparent hover:border-brand-teal">
                   My Bookings
                 </a>
@@ -272,7 +272,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
               </a>
             }
             @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
-              <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
+              <a routerLink="/employer/marketplace" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
                 Hire Workers
               </a>
             }
@@ -428,21 +428,21 @@ export class NavbarComponent implements OnInit, OnDestroy {
     const role = this.auth.userRole();
     if (role === 'Admin') return '/admin/settings';
     if (role === 'Worker') return '/worker/settings';
-    return '/client/settings';
+    return '/employer/settings';
   }
 
   getDashboardPath(): string {
     const role = this.auth.userRole();
     if (role === 'Admin') return '/admin';
     if (role === 'Worker') return '/worker/dashboard';
-    return '/client/marketplace';
+    return '/employer/marketplace';
   }
 
   getMessagesPath(): string {
     const role = this.auth.userRole();
     if (role === 'Admin') return '/admin/messages';
     if (role === 'Worker') return '/worker/messages';
-    return '/client/messages';
+    return '/employer/messages';
   }
 
   formatRole(): string {

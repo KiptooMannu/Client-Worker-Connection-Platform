@@ -38,7 +38,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
             Verified Workers
           </div>
           <h1 class="text-5xl md:text-7xl font-black text-slate-900 mb-6 tracking-tighter leading-[1.1]">Find Professional <br> <span class="text-brand-teal">Workers</span></h1>
-          <p class="text-lg text-slate-500 font-medium leading-relaxed max-w-2xl">Search for local experts, track your work, and pay safely through our escrow system.</p>
+          <p class="text-lg text-slate-500 font-medium leading-relaxed max-w-2xl">Search for local experts, track your work, and pay safely through M-Pesa with secure settlement.</p>
         </div>
       </section>
 

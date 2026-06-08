@@ -86,7 +86,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
             <div class="space-y-4">
               <div class="text-5xl font-black text-brand-teal mb-6 opacity-40 italic">03.</div>
               <h3 class="text-2xl font-black tracking-tight">Secure Delivery</h3>
-              <p class="text-slate-400 font-medium">Work is completed, verified, and funds are released through secure escrow.</p>
+              <p class="text-slate-400 font-medium">Work is completed, verified, and payments are settled via M-Pesa on successful confirmation.</p>
             </div>
           </div>
         </section>
