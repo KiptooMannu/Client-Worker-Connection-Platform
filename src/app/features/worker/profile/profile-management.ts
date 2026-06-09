@@ -157,12 +157,12 @@ import { toObservable } from '@angular/core/rxjs-interop';
                   </div>
                 </div>
   <div class="space-y-2">
-  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Hourly Rate (KSH)</label>
+  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Rate (KSh)</label>
   <div class="relative">
     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant font-body-md">KSh</span>
 <input type="number" [ngModel]="form.rate() === null ? null : form.rate()" (ngModelChange)="form.rate.set($event === null ? null : $event)"
            class="w-full bg-surface border border-outline-variant rounded-lg pl-14 pr-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors"
-           placeholder="Enter hourly rate">
+           placeholder="Enter rate">
   </div>
 </div>
                 <div class="space-y-2">

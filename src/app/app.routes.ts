@@ -85,6 +85,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/client/client-dashboard').then(m => m.ClientDashboardPage)
       },
       {
+        path: 'negotiate/:id',
+        loadComponent: () => import('./features/client/negotiation/negotiation').then(m => m.NegotiationPage)
+      },
+      {
         path: 'profile/:id',
         loadComponent: () => import('./features/client/worker-profile/worker-profile').then(m => m.ClientWorkerProfilePage)
       },

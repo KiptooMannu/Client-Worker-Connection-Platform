@@ -97,7 +97,7 @@ import { AuthService } from '../../../core/services/auth.service';
                           <mat-icon class="!text-sm">payments</mat-icon>
                         </div>
                         <div>
-                          <p class="text-sm font-black text-slate-900 leading-none mb-1">\${{ selectedUser().totalSpend }}</p>
+                          <p class="text-sm font-black text-slate-900 leading-none mb-1">KSh {{ selectedUser().totalSpend }}</p>
                           <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">Total Volume</p>
                         </div>
                       </div>

@@ -236,8 +236,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
                   <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Base Compensation</span>
                   <div class="flex items-baseline gap-1">
-                    <span class="text-2xl font-black text-slate-900">\${{ detailedReview.rate }}</span>
-                    <span class="text-xs font-bold text-slate-400">/hr</span>
+                    <span class="text-2xl font-black text-slate-900">KSh {{ detailedReview.rate }}</span>
                   </div>
                 </div>
                 <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">

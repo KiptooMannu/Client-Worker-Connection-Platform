@@ -104,8 +104,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                 <p class="text-3xl font-black text-slate-900 tracking-tighter">{{ state.verifiedWorkers().length }}</p>
               </div>
               <div>
-                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg. Rate</p>
-                <p class="text-3xl font-black text-slate-900 tracking-tighter">\${{ averageRate() }}<span class="text-[10px] text-slate-400 font-medium ml-1">/hr</span></p>
+                <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg. Price</p>
+                <p class="text-3xl font-black text-slate-900 tracking-tighter">KSh {{ averageRate() }}</p>
               </div>
             </div>
           </div>
@@ -170,8 +170,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
                 <!-- Price & Action (Ultra Compact) -->
                 <div class="flex items-center gap-6 shrink-0 border-l border-slate-50 pl-6">
                   <div class="text-right">
-                    <span class="text-sm font-black text-slate-900 tracking-tighter">$\{{ worker.rate }}</span>
-                    <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">/hr</span>
+                    <span class="text-sm font-black text-slate-900 tracking-tighter">KSh {{ worker.rate }}</span>
                   </div>
                   <button [routerLink]="['/client/profile', worker.id]" 
                           class="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-[8px] uppercase tracking-widest hover-bg-brand-teal active:scale-95 transition-all shadow-sm">

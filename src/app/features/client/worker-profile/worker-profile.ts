@@ -60,11 +60,12 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 
             <!-- Mobile Primary Action -->
             <div class="w-full flex gap-2 sm:hidden">
-              <button (click)="hire()" [disabled]="hasPendingRequest()" class="flex-1 bg-white text-slate-900 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl disabled:opacity-50">
-                {{ hasPendingRequest() ? 'PENDING' : 'HIRE NOW' }}
+              <button (click)="message()" class="flex-1 bg-blue-100 border-2 border-blue-400 text-blue-600 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-1.5">
+                <mat-icon class="!text-xs !w-auto !h-auto">chat_bubble</mat-icon>
+                Negotiate
               </button>
-              <button (click)="message()" class="w-14 bg-white/10 border border-white/20 rounded-xl flex items-center justify-center text-white active:scale-95 transition-all">
-                <mat-icon>chat_bubble</mat-icon>
+              <button (click)="hire()" [disabled]="hasPendingRequest()" class="flex-1 bg-white text-slate-900 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl disabled:opacity-50">
+                {{ hasPendingRequest() ? 'PENDING' : 'HIRE' }}
               </button>
             </div>
           </div>
@@ -78,8 +79,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
           <!-- Quick Stats (Injected for mobile parity but hidden on very small screens) -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
-              <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Hourly Rate</p>
-              <p class="text-lg font-black text-slate-900">$\{{ worker()?.rate }}</p>
+              <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Rate</p>
+              <p class="text-lg font-black text-slate-900">KSh {{ worker()?.rate }}</p>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
               <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Reviews</p>
@@ -154,11 +155,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
 
             <div class="flex items-baseline gap-1 mb-6">
-              <span class="text-3xl font-black text-slate-900 tracking-tighter">$\{{ worker()?.rate }}</span>
-              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">/ hr</span>
+              <span class="text-3xl font-black text-slate-900 tracking-tighter">KSh {{ worker()?.rate }}</span>
             </div>
 
-            <!-- Stars Rating -->
+            <!-- Rating & CTA Intro -->
             <div class="flex items-center gap-0.5 mb-8 bg-slate-50 p-3 rounded-xl border border-slate-100">
               @for (s of [1,2,3,4,5]; track s) {
                 <mat-icon class="!text-sm !w-auto !h-auto text-amber-400" [class.material-fill]="s <= (worker()?.rating || 0)">star</mat-icon>
@@ -166,13 +166,18 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <span class="text-[10px] font-black text-slate-500 ml-2 tracking-tighter">{{ worker()?.reviews }} reviews</span>
             </div>
 
+            <!-- Helper Text -->
+            <p class="text-[9px] text-slate-500 font-medium mb-4 italic">💡 Tip: Message first to discuss rates, timeline, or specific requirements before hiring.</p>
+
             <div class="space-y-3">
-              <button (click)="hire()" [disabled]="hasPendingRequest()" 
-                      class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30">
-                {{ hasPendingRequest() ? 'REQUEST PENDING' : 'HIRE NOW' }}
+              <button (click)="message()" class="w-full bg-blue-50 border-2 border-blue-400 text-blue-600 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest hover:bg-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2">
+                <mat-icon class="!text-sm !w-auto !h-auto">chat_bubble_outline</mat-icon>
+                Negotiate Terms
               </button>
-              <button (click)="message()" class="w-full bg-white border border-slate-200 text-slate-900 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all active:scale-95">
-                SEND MESSAGE
+              <button (click)="hire()" [disabled]="hasPendingRequest()" 
+                      class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30 flex items-center justify-center gap-2">
+                <mat-icon class="!text-sm !w-auto !h-auto">check_circle</mat-icon>
+                {{ hasPendingRequest() ? 'REQUEST PENDING' : 'HIRE NOW' }}
               </button>
             </div>
 
@@ -184,27 +189,31 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
           </div>
 
-          <!-- Credentials -->
-          <section class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-            <div class="flex items-center gap-2 mb-6">
-              <div class="w-1 h-4 bg-slate-900 rounded-full"></div>
-              <h2 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Certificates</h2>
-            </div>
-            
-            <div class="space-y-6">
-              @for (c of displayCerts(); track c.name) {
-                <div class="flex items-start gap-4">
-                  <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 shrink-0">
-                    <mat-icon class="!text-slate-400 !text-lg">workspace_premium</mat-icon>
-                  </div>
-                  <div>
-                    <h4 class="text-[11px] font-black text-slate-900 leading-tight">{{ c.name }}</h4>
-                    <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ c.issuer }} · {{ c.year }}</p>
-                  </div>
-                </div>
-              }
-            </div>
-          </section>
+           <!-- Credentials -->
+           <section class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+             <div class="flex items-center gap-2 mb-6">
+               <div class="w-1 h-4 bg-slate-900 rounded-full"></div>
+               <h2 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Certificates</h2>
+             </div>
+
+             <div class="space-y-6">
+               @if (displayCerts().length) {
+                 @for (c of displayCerts(); track c.name) {
+                   <div class="flex items-start gap-4">
+                     <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 shrink-0">
+                       <mat-icon class="!text-slate-400 !text-lg">workspace_premium</mat-icon>
+                     </div>
+                     <div>
+                       <h4 class="text-[11px] font-black text-slate-900 leading-tight">{{ c.name }}</h4>
+                       <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ c.issuer }} · {{ c.year }}</p>
+                     </div>
+                   </div>
+                 }
+               } @else {
+                 <p class="text-[9px] text-slate-500 italic">No certifications added.</p>
+               }
+             </div>
+           </section>
         </aside>
       </div>
 
@@ -213,8 +222,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         <div class="max-w-md mx-auto flex items-center justify-between gap-4">
           <div>
             <div class="flex items-baseline gap-1">
-              <span class="text-xl font-black text-slate-900 tracking-tighter">$\{{ worker()?.rate }}</span>
-              <span class="text-[10px] font-black text-slate-400 uppercase tracking-tighter">/ hr</span>
+              <span class="text-xl font-black text-slate-900 tracking-tighter">KSh {{ worker()?.rate }}</span>
             </div>
             <div class="flex items-center gap-0.5 mt-0.5">
               <mat-icon class="!text-xs !w-auto !h-auto text-amber-400" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
@@ -273,7 +281,7 @@ export class ClientWorkerProfilePage {
     const w = this.worker();
     if (w) {
       this.state.startChat(w.id);
-      this.router.navigate(['/employer/messages']);
+      this.router.navigate(['/client','messages']);
     }
   }
 }

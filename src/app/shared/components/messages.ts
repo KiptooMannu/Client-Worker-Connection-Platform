@@ -75,7 +75,8 @@ interface UserContact {
             </div>
           }
 
-          @for (user of filteredUsers(); track user.id) {
+          <!-- FIXED: Added $index to track expression to prevent duplicate key errors -->
+          @for (user of filteredUsers(); track user.id + '_' + $index) {
             <button
               class="contact-item"
               [class.contact-item--active]="selectedUser()?.id === user.id"
@@ -985,22 +986,30 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     return sel ? !!this.state.typingUsers()[sel.id] : false;
   });
 
+  // FIXED: Deduplicate users to prevent duplicate IDs in the list
   recentUsers = computed<UserContact[]>(() => {
     const allU = this.allUsers();
-    return this.state.chats().map(chat => {
-      // Use email/role from chat if available, otherwise look up in allUsers
+    const chats = this.state.chats();
+
+    // Use Map to ensure unique IDs
+    const uniqueUsers = new Map<string, UserContact>();
+
+    chats.forEach(chat => {
       const found = allU.find(u => u.id === chat.id);
       const email = chat.email || found?.email || '';
       const role = chat.role || found?.role || '';
-      return {
+
+      uniqueUsers.set(chat.id, {
         id: chat.id,
         username: chat.name,
         email: email,
         role: role,
         unread: chat.unread || 0,
         image: chat.image || found?.image
-      };
+      });
     });
+
+    return Array.from(uniqueUsers.values());
   });
 
   filteredUsers = computed<UserContact[]>(() => {
@@ -1032,7 +1041,12 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       ...this.state.clients().map(c => ({ id: c.id, username: c.name, email: c.email, role: 'Client' }))
     ];
 
-    return directory.filter(u => {
+    // Also deduplicate directory results
+    const uniqueDirectory = Array.from(
+      new Map(directory.map(u => [u.id, u])).values()
+    );
+
+    return uniqueDirectory.filter(u => {
       const name = (u.username || u.fullName || u.name || '').toLowerCase();
       const email = (u.email || '').toLowerCase();
       const role = (u.role || '').toLowerCase();
@@ -1537,13 +1551,13 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     if (!timestamp) return 'Today';
     const date = new Date(timestamp);
     const now = new Date();
-    
+
     if (date.toDateString() === now.toDateString()) return 'Today';
-    
+
     const yesterday = new Date();
     yesterday.setDate(now.getDate() - 1);
     if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
-    
+
     return date.toLocaleDateString([], { month: 'long', day: 'numeric', year: 'numeric' });
   }
 

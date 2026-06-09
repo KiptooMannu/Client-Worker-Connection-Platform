@@ -3,8 +3,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { AuthService, User } from './auth.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
-import { Observable, throwError, filter, take, timeout } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { Observable, throwError, filter, take, timeout, of } from 'rxjs';
+import { catchError, tap, retry } from 'rxjs/operators';
 import { NotificationService } from './notification.service';
 import { Client } from '@stomp/stompjs';
 
@@ -234,6 +234,7 @@ export class PlatformStateService {
 
   currentMessagePage = signal(0);
   private appRef = inject(ApplicationRef);
+  private initializedUserId: string | null = null;
 
   currentWorker = signal<WorkerProfile>(this.getInitialWorkerState());
   currentClient = signal<ClientProfile | null>(this.getInitialClientState());
@@ -345,6 +346,11 @@ export class PlatformStateService {
 
       const user = this.auth.currentUser();
       if (user && user.role) {
+        if (this.initializedUserId === user.id) {
+          return;
+        }
+        this.initializedUserId = user.id;
+
         // Defer initialization to allow hydration to complete first
         // Using multiple setTimeout(0) calls ensures this runs after current event loop
         setTimeout(() => {
@@ -355,6 +361,7 @@ export class PlatformStateService {
           }
         }, 500);
       } else {
+        this.initializedUserId = null;
         this.clearState();
       }
     });
@@ -404,31 +411,7 @@ export class PlatformStateService {
     });
   }
 
-  fetchMarketplaceWorkers(skill?: string, location?: string, minExp?: number) {
-    let url = `${this.apiUrl}/marketplace/search`;
-    const params: string[] = [];
-    if (skill) params.push(`skill=${encodeURIComponent(skill)}`);
-    if (location) params.push(`location=${encodeURIComponent(location)}`);
-    if (minExp) params.push(`minExp=${minExp}`);
 
-    if (params.length > 0) url += `?${params.join('&')}`;
-
-    this.http.get<any[]>(url).pipe(timeout(30000)).subscribe({
-      next: (data) => {
-        const mapped = data.map(w => this.mapWorkerProfile(w));
-        this.workers.set(mapped);
-      },
-      error: (err: HttpErrorResponse | any) => {
-        console.error('Error fetching marketplace workers', err);
-        if (err.name === 'TimeoutError') {
-          console.warn('[PlatformState] Marketplace search request timed out:', url);
-          this.notification.info('Marketplace search took too long. Please refresh or try a narrower filter.');
-        } else {
-          this.notification.error('Failed to load marketplace. Please check your connection.');
-        }
-      }
-    });
-  }
 
   updateWorkerProfile(userId: string, updates: any): Observable<any> {
     const backendPayload = this.mapToBackendUpdate(updates);
@@ -864,6 +847,38 @@ export class PlatformStateService {
         this.workers.set(mapped);
       },
       error: (err: HttpErrorResponse) => console.error('Error fetching admin workers', err)
+    });
+  }
+
+  fetchMarketplaceWorkers(
+    skill?: string,
+    location?: string,
+    minExp?: number,
+    page: number = 0,
+    size: number = 50
+  ) {
+    const params = new URLSearchParams();
+    if (skill) params.append('skill', skill);
+    if (location) params.append('location', location);
+    if (minExp !== undefined && minExp !== null) params.append('minExp', String(minExp));
+    params.append('page', String(page));
+    params.append('size', String(size));
+    const url = `${this.apiUrl}/marketplace/search?${params.toString()}`;
+
+    // REMOVE THE .pipe(timeout()) COMPLETELY
+    this.http.get<any>(url).subscribe({
+      next: (res) => {
+        const data: any[] = res.content || res || [];
+        const mapped = data.map((w) => this.mapWorkerProfile(w));
+        this.workers.set(mapped);
+      },
+      error: (err: HttpErrorResponse) => {
+        console.error('[PlatformState] Error fetching marketplace workers', err);
+        if (err.status === 401) {
+          this.auth.logout();
+        }
+        this.workers.set([]); // Set empty array on error
+      }
     });
   }
 
