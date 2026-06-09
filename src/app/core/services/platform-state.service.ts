@@ -90,6 +90,7 @@ export interface Chat {
   active: boolean;
   online: boolean;
   unread?: number;
+  archived?: boolean;
   messages: ChatMessage[];
 }
 
@@ -1277,6 +1278,126 @@ export class PlatformStateService {
     });
   }
 
+  /**
+   * Delete a conversation (soft delete client-side persistent)
+   */
+  deleteConversation(userId: string, otherUserId: string): Observable<any> {
+    try {
+      const deletedKey = `deleted_chats_${userId}`;
+      const deletedSet = new Set<string>(JSON.parse(localStorage.getItem(deletedKey) || '[]'));
+      deletedSet.add(otherUserId);
+      localStorage.setItem(deletedKey, JSON.stringify(Array.from(deletedSet)));
+
+      // Remove the chat from the local state
+      this.chats.update(chats => chats.filter(c => c.id !== otherUserId));
+      this.notification.success('Conversation deleted');
+      return of({ success: true });
+    } catch (err) {
+      console.error('Error deleting conversation', err);
+      this.notification.error('Failed to delete conversation');
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * Archive a conversation (client-side persistent)
+   */
+  archiveConversation(userId: string, otherUserId: string): Observable<any> {
+    try {
+      const archivedKey = `archived_chats_${userId}`;
+      const archivedSet = new Set<string>(JSON.parse(localStorage.getItem(archivedKey) || '[]'));
+      archivedSet.add(otherUserId);
+      localStorage.setItem(archivedKey, JSON.stringify(Array.from(archivedSet)));
+
+      // Update local state to mark as archived
+      this.chats.update(chats =>
+        chats.map(c =>
+          c.id === otherUserId
+            ? { ...c, archived: true, active: false }
+            : c
+        )
+      );
+      this.notification.success('Conversation archived');
+      return of({ success: true });
+    } catch (err) {
+      console.error('Error archiving conversation', err);
+      this.notification.error('Failed to archive conversation');
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * Unarchive a conversation (client-side persistent)
+   */
+  unarchiveConversation(userId: string, otherUserId: string): Observable<any> {
+    try {
+      const archivedKey = `archived_chats_${userId}`;
+      const archivedSet = new Set<string>(JSON.parse(localStorage.getItem(archivedKey) || '[]'));
+      archivedSet.delete(otherUserId);
+      localStorage.setItem(archivedKey, JSON.stringify(Array.from(archivedSet)));
+
+      this.chats.update(chats =>
+        chats.map(c =>
+          c.id === otherUserId
+            ? { ...c, archived: false }
+            : c
+        )
+      );
+      this.notification.success('Conversation restored from archive');
+      return of({ success: true });
+    } catch (err) {
+      console.error('Error unarchiving conversation', err);
+      this.notification.error('Failed to restore conversation');
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * Get archived conversations (client-side persistent)
+   */
+  fetchArchivedConversations(userId: string): Observable<any> {
+    try {
+      const archivedKey = `archived_chats_${userId}`;
+      const archivedSet = new Set<string>(JSON.parse(localStorage.getItem(archivedKey) || '[]'));
+      
+      // Update matching chats in our local signal to ensure they have archived: true
+      this.chats.update(chats => 
+        chats.map(c => ({
+          ...c,
+          archived: archivedSet.has(c.id)
+        }))
+      );
+      return of({ success: true });
+    } catch (err) {
+      console.error('Error fetching archived conversations', err);
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * Mark all conversations as read
+   */
+  markAllConversationsAsRead(userId: string): Observable<any> {
+    try {
+      const unreadChats = this.chats().filter(c => (c.unread || 0) > 0);
+      unreadChats.forEach(chat => {
+        this.http.put(`${this.apiUrl}/messages/conversation/read?senderId=${chat.id}&receiverId=${userId}`, {}, { responseType: 'text' }).subscribe({
+          error: (err) => console.error('Failed to sync read status for chat: ' + chat.id, err)
+        });
+      });
+
+      this.chats.update(chats =>
+        chats.map(c => ({ ...c, unread: 0 }))
+      );
+      this.notification.success('All messages marked as read');
+      return of({ success: true });
+    } catch (err) {
+      console.error('Error marking all as read', err);
+      this.notification.error('Failed to mark all as read');
+      return throwError(() => err);
+    }
+  }
+
   fetchConversation(otherId: string, otherName?: string): Observable<any> {
     const user = this.auth.currentUser();
     if (!user) {
@@ -1295,8 +1416,9 @@ export class PlatformStateService {
           time: this.parseMessageDate(m.sentAt),
           rawDate: m.sentAt ? (Array.isArray(m.sentAt) ? new Date(m.sentAt[0], m.sentAt[1] - 1, m.sentAt[2], m.sentAt[3], m.sentAt[4]).getTime() : new Date(m.sentAt).getTime()) : Date.now(),
           sent: m.senderId?.toString() === user.id?.toString(),
-          isRead: m.isRead || false
-        })).reverse(); // Reverse so newest are at the end (bottom of chat)
+          isRead: m.isRead || false,
+          attachment: m.attachmentUrl ? { name: m.attachmentName || 'File', url: m.attachmentUrl, size: m.attachmentSize || '...' } : undefined
+        })).reverse();
 
         this.chats.update(chats => {
           const existing = chats.find(c => c.id === otherId || c.workerId === otherId);

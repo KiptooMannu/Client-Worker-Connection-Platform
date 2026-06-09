@@ -42,6 +42,55 @@ interface UserContact {
             </button>
           }
         </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+          @if (!showBulkActions()) {
+            <button 
+              class="action-btn" 
+              [class.active]="showArchive()" 
+              (click)="toggleArchiveView()"
+              title="Toggle archive">
+              <mat-icon>{{ showArchive() ? 'inbox' : 'archive' }}</mat-icon>
+              <span>{{ showArchive() ? 'Inbox' : 'Archive' }}</span>
+            </button>
+            
+            <button 
+              class="action-btn" 
+              (click)="showBulkActions.set(true)"
+              title="Select multiple">
+              <mat-icon>checklist</mat-icon>
+              <span>Select</span>
+            </button>
+          } @else {
+            <div class="bulk-select-header">
+              <button class="action-btn" (click)="toggleSelectAll()" title="Toggle Select All">
+                <mat-icon>{{ isAllSelected() ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+              </button>
+              <span class="selected-count">{{ selectedConversations().size }} selected</span>
+              
+              <div class="bulk-actions-group">
+                @if (selectedConversations().size > 0) {
+                  <button class="action-btn danger-pill" (click)="bulkDelete()" title="Delete selected">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                  @if (showArchive()) {
+                    <button class="action-btn pill" (click)="bulkUnarchive()" title="Unarchive selected">
+                      <mat-icon>unarchive</mat-icon>
+                    </button>
+                  } @else {
+                    <button class="action-btn pill" (click)="bulkArchive()" title="Archive selected">
+                      <mat-icon>archive</mat-icon>
+                    </button>
+                  }
+                }
+                <button class="action-btn close-pill" (click)="exitSelectMode()" title="Exit select mode">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
         
         <!-- Search bar - Restricted to Admins for global search, Clients/Workers can filter existing chats -->
         <div class="search-wrap">
@@ -70,35 +119,90 @@ interface UserContact {
             </div>
           } @else if (filteredUsers().length === 0) {
             <div class="empty-state">
-              <mat-icon>forum</mat-icon>
-              <p>{{ searchQuery() ? 'No results' : 'No conversations yet' }}</p>
+              <mat-icon>{{ showArchive() ? 'archive' : 'forum' }}</mat-icon>
+              <p>{{ searchQuery() ? 'No results' : (showArchive() ? 'No archived conversations' : 'No conversations yet') }}</p>
             </div>
           }
 
-          <!-- FIXED: Added $index to track expression to prevent duplicate key errors -->
           @for (user of filteredUsers(); track user.id + '_' + $index) {
-            <button
-              class="contact-item"
-              [class.contact-item--active]="selectedUser()?.id === user.id"
-              [class.contact-item--unread]="(user.unread || 0) > 0"
-              (click)="selectUser(user)">
-              <div class="avatar" [attr.data-initials]="initials(user.username)">
-                <span class="online-dot"></span>
-              </div>
-              <div class="contact-meta">
-                <span class="contact-name">{{ user.username }}</span>
-                <span class="contact-preview">{{ (user.unread || 0) > 0 ? 'New message' : (user.role || 'Participant') }}</span>
-              </div>
-              @if ((user.unread || 0) > 0) {
-                <span class="contact-unread-indicator"></span>
-              } @else if (selectedUser()?.id === user.id) {
-                <span class="contact-active-dot"></span>
+            <div class="contact-item-wrapper">
+              @if (showBulkActions() && !isSearching()) {
+                <div class="contact-checkbox">
+                  <input 
+                    type="checkbox" 
+                    [checked]="selectedConversations().has(user.id)"
+                    (change)="toggleSelectConversation(user.id)" />
+                </div>
               }
-            </button>
+              <button
+                class="contact-item"
+                [class.contact-item--active]="selectedUser()?.id === user.id"
+                [class.contact-item--unread]="(user.unread || 0) > 0"
+                (click)="!showBulkActions() ? selectUser(user) : toggleSelectConversation(user.id)">
+                <div class="avatar" [attr.data-initials]="initials(user.username)">
+                  <span class="online-dot"></span>
+                </div>
+                <div class="contact-meta">
+                  <span class="contact-name">{{ user.username }}</span>
+                  <span class="contact-preview">{{ (user.unread || 0) > 0 ? 'New message' : (user.role || 'Participant') }}</span>
+                </div>
+                <div class="contact-actions">
+                  @if ((user.unread || 0) > 0) {
+                    <span class="contact-unread-indicator"></span>
+                  }
+                  @if (!showBulkActions()) {
+                    <button 
+                      class="contact-menu-btn" 
+                      (click)="$event.stopPropagation(); toggleMenu(user.id)"
+                      title="More options">
+                      <mat-icon>more_vert</mat-icon>
+                    </button>
+                  }
+                </div>
+              </button>
+              
+              <!-- Context Menu -->
+              @if (activeMenu() === user.id) {
+                <div class="context-menu" (click)="$event.stopPropagation()">
+                  <button (click)="markConversationAsRead(user.id); closeMenu()">
+                    <mat-icon>mark_email_read</mat-icon>
+                    Mark as read
+                  </button>
+                  @if (showArchive()) {
+                    <button (click)="unarchiveConversation(user.id); closeMenu()">
+                      <mat-icon>unarchive</mat-icon>
+                      Unarchive
+                    </button>
+                  } @else {
+                    <button (click)="archiveConversation(user.id); closeMenu()">
+                      <mat-icon>archive</mat-icon>
+                      Archive
+                    </button>
+                  }
+                  <button class="danger" (click)="deleteConversation(user.id); closeMenu()">
+                    <mat-icon>delete</mat-icon>
+                    Delete
+                  </button>
+                </div>
+              }
+            </div>
           }
-
         </div>
       </aside>
+
+      <!-- Delete Confirmation Modal -->
+      @if (showDeleteConfirm()) {
+        <div class="modal-overlay" (click)="cancelDelete()">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <h3>Delete Conversation</h3>
+            <p>Are you sure you want to delete this conversation? This action cannot be undone.</p>
+            <div class="modal-actions">
+              <button class="btn-secondary" (click)="cancelDelete()">Cancel</button>
+              <button class="btn-danger" (click)="confirmDelete(showDeleteConfirm()!)">Delete</button>
+            </div>
+          </div>
+        </div>
+      }
 
       <!-- ── Chat Pane ─────────────────────────────────────────────── -->
       <section class="chat-pane" [class.chat-pane--visible]="selectedUser() || !isMobile()">
@@ -190,7 +294,7 @@ interface UserContact {
                       } @else {
                         <div class="bubble__attachment">
                           <mat-icon>insert_drive_file</mat-icon>
-                          <span class="attachment-name">Attachment</span>
+                          <span class="attachment-name">{{ getFileName($any(msg.attachment).url) }}</span>
                           <a [href]="$any(msg.attachment).url" target="_blank" class="attachment-download">
                             <mat-icon>download</mat-icon>
                           </a>
@@ -940,6 +1044,275 @@ interface UserContact {
       border-top-color: #0f172a;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Action Bar */
+    .action-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f5f9;
+      background: #fff;
+      min-height: 58px;
+      box-sizing: border-box;
+    }
+
+    .action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #475569;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .action-btn mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      line-height: 16px;
+      flex-shrink: 0;
+    }
+
+    .action-btn:hover {
+      background: #f1f5f9;
+      color: #4f46e5;
+    }
+
+    .action-btn.active {
+      background: #eef2ff;
+      color: #4f46e5;
+      border-color: #4f46e5;
+    }
+
+    .bulk-select-header {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      gap: 8px;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .bulk-actions-group {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+    }
+
+    .action-btn.pill {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+    }
+    .action-btn.pill:hover {
+      background: #e2e8f0;
+    }
+    
+    .action-btn.danger-pill {
+      background: #fee2e2;
+      border: 1px solid #fca5a5;
+      color: #dc2626;
+      border-radius: 20px;
+    }
+    .action-btn.danger-pill:hover {
+      background: #fecaca;
+      color: #b91c1c;
+    }
+
+    .action-btn.close-pill {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 20px;
+      color: #64748b;
+    }
+    .action-btn.close-pill:hover {
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .selected-count {
+      font-size: 12px;
+      font-weight: 600;
+      color: #4f46e5;
+      background: #eef2ff;
+      padding: 4px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .contact-item-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+
+    .contact-checkbox {
+      padding-left: 12px;
+      flex-shrink: 0;
+    }
+
+    .contact-checkbox input {
+      cursor: pointer;
+      width: 18px;
+      height: 18px;
+    }
+
+    .contact-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .contact-menu-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #94a3b8;
+      display: flex;
+      padding: 4px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: all .2s;
+    }
+
+    .contact-item-wrapper:hover .contact-menu-btn {
+      opacity: 1;
+    }
+
+    .contact-menu-btn:hover {
+      background: #e2e8f0;
+      color: #475569;
+    }
+
+    /* Context Menu */
+    .context-menu {
+      position: absolute;
+      right: 20px;
+      top: 45px;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.1);
+      z-index: 1000;
+      min-width: 160px;
+      overflow: hidden;
+      animation: fadeIn 0.15s ease-in-out;
+    }
+
+    .context-menu button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      text-align: left;
+      font-size: 13px;
+      color: #475569;
+      cursor: pointer;
+      transition: background .2s;
+    }
+
+    .context-menu button:hover {
+      background: #f1f5f9;
+    }
+
+    .context-menu button.danger {
+      color: #dc2626;
+    }
+
+    .context-menu button.danger:hover {
+      background: #fee2e2;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,.1);
+    }
+
+    .modal h3 {
+      margin: 0 0 12px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .modal p {
+      margin: 0 0 20px 0;
+      font-size: 14px;
+      color: #475569;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .btn-secondary, .btn-danger {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   `]
 })
 export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
@@ -972,6 +1345,13 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
   // Attachments
   pendingFile = signal<File | null>(null);
+
+  // New signals for Archive, Delete and Bulk actions
+  showArchive = signal(false);
+  showDeleteConfirm = signal<string | null>(null); // Stores ID of conversation to delete
+  showBulkActions = signal(false);
+  selectedConversations = signal<Set<string>>(new Set());
+  activeMenu = signal<string | null>(null);
 
   // FIX BUG 1: track whether the initial user load has been started
   // to prevent the search effect from triggering a duplicate/cancelled request
@@ -1012,27 +1392,57 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     return Array.from(uniqueUsers.values());
   });
 
+  archivedUsers = computed<UserContact[]>(() => {
+    const allU = this.allUsers();
+    const archivedChats = this.state.chats().filter(c => c.archived);
+    
+    const uniqueArchived = new Map<string, UserContact>();
+    
+    archivedChats.forEach(chat => {
+      const found = allU.find(u => u.id === chat.id);
+      const email = chat.email || found?.email || '';
+      const role = chat.role || found?.role || '';
+      
+      uniqueArchived.set(chat.id, {
+        id: chat.id,
+        username: chat.name,
+        email: email,
+        role: role,
+        unread: chat.unread || 0,
+        image: chat.image || found?.image
+      });
+    });
+    
+    return Array.from(uniqueArchived.values());
+  });
+
+  activeUsers = computed<UserContact[]>(() => {
+    return this.recentUsers().filter(u => {
+      const chat = this.state.chats().find(c => c.id === u.id);
+      return !chat?.archived;
+    });
+  });
+
   filteredUsers = computed<UserContact[]>(() => {
     const q = this.searchQuery().trim();
     const all = this.allUsers();
-    const recent = this.recentUsers();
+    const source = this.showArchive() ? this.archivedUsers() : this.activeUsers();
 
     if (!q) {
-      // DEFAULT: Only show active conversations (Email Inbox style)
-      return recent;
+      return source;
     }
 
     // SEARCH ACTIVE: Only Admins can search the global directory.
-    // Clients and Workers can only filter their existing recent chats.
+    // Clients and Workers can only filter their existing recent/archived chats.
     const qLower = q.toLowerCase();
-    const filteredRecent = recent.filter(u => {
+    const filteredSource = source.filter(u => {
       const name = (u.username || '').toLowerCase();
       const email = (u.email || '').toLowerCase();
       return name.includes(qLower) || email.includes(qLower);
     });
 
     if (this.currentUserRole() !== 'Admin') {
-      return filteredRecent;
+      return filteredSource;
     }
 
     // Admins: search across the entire directory (Fallbacks included)
@@ -1204,6 +1614,11 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     if (isPlatformBrowser(this.platformId)) {
       this.isMobile.set(window.innerWidth < 768);
     }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event) {
+    this.closeMenu();
   }
 
   ngAfterViewInit() {
@@ -1494,12 +1909,195 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   }
 
   markAllAsRead() {
-    this.state.chats().forEach(chat => {
-      if ((chat.unread || 0) > 0) {
-        this.state.markConversationAsRead(chat.id);
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    this.state.markAllConversationsAsRead(user.id).subscribe();
+  }
+
+  toggleArchiveView() {
+    this.showArchive.update(v => !v);
+    this.selectedUser.set(null); // Clear selected user when switching views
+    this.selectedConversations.set(new Set()); // Clear selections
+    this.showBulkActions.set(false);
+    
+    if (this.showArchive()) {
+      const user = this.auth.currentUser();
+      if (user) {
+        this.state.fetchArchivedConversations(user.id).subscribe();
+      }
+    }
+  }
+
+  toggleSelectConversation(userId: string) {
+    this.selectedConversations.update(selected => {
+      const newSet = new Set(selected);
+      if (newSet.has(userId)) {
+        newSet.delete(userId);
+      } else {
+        newSet.add(userId);
+      }
+      return newSet;
+    });
+  }
+
+  isAllSelected(): boolean {
+    const currentList = this.showArchive() ? this.archivedUsers() : this.activeUsers();
+    return currentList.length > 0 && 
+           currentList.every(u => this.selectedConversations().has(u.id));
+  }
+
+  toggleSelectAll() {
+    if (this.isAllSelected()) {
+      this.selectedConversations.set(new Set());
+    } else {
+      const currentList = this.showArchive() ? this.archivedUsers() : this.activeUsers();
+      this.selectedConversations.set(new Set(currentList.map(u => u.id)));
+    }
+  }
+
+  bulkDelete() {
+    const conversationIds = Array.from(this.selectedConversations());
+    if (conversationIds.length === 0) return;
+    
+    if (confirm(`Delete ${conversationIds.length} conversation(s)? This action cannot be undone.`)) {
+      const user = this.auth.currentUser();
+      if (!user) return;
+      
+      const deletePromises = conversationIds.map(id => 
+        new Promise((resolve, reject) => {
+          this.state.deleteConversation(user.id, id).subscribe({
+            next: resolve,
+            error: reject
+          });
+        })
+      );
+      
+      Promise.all(deletePromises).then(() => {
+        this.selectedConversations.set(new Set());
+        this.showBulkActions.set(false);
+        this.notification.success(`${conversationIds.length} conversation(s) deleted`);
+      }).catch(err => {
+        console.error('Bulk delete failed', err);
+        this.notification.error('Failed to delete some conversations');
+      });
+    }
+  }
+
+  bulkArchive() {
+    const conversationIds = Array.from(this.selectedConversations());
+    if (conversationIds.length === 0) return;
+    
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    const archivePromises = conversationIds.map(id => 
+      new Promise((resolve, reject) => {
+        this.state.archiveConversation(user.id, id).subscribe({
+          next: resolve,
+          error: reject
+        });
+      })
+    );
+    
+    Promise.all(archivePromises).then(() => {
+      this.selectedConversations.set(new Set());
+      this.showBulkActions.set(false);
+      this.notification.success(`${conversationIds.length} conversation(s) archived`);
+    }).catch(err => {
+      console.error('Bulk archive failed', err);
+      this.notification.error('Failed to archive some conversations');
+    });
+  }
+
+  bulkUnarchive() {
+    const conversationIds = Array.from(this.selectedConversations());
+    if (conversationIds.length === 0) return;
+    
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    const unarchivePromises = conversationIds.map(id => 
+      new Promise((resolve, reject) => {
+        this.state.unarchiveConversation(user.id, id).subscribe({
+          next: resolve,
+          error: reject
+        });
+      })
+    );
+    
+    Promise.all(unarchivePromises).then(() => {
+      this.selectedConversations.set(new Set());
+      this.showBulkActions.set(false);
+      this.notification.success(`${conversationIds.length} conversation(s) unarchived`);
+    }).catch(err => {
+      console.error('Bulk unarchive failed', err);
+      this.notification.error('Failed to unarchive some conversations');
+    });
+  }
+
+  deleteConversation(userId: string) {
+    this.showDeleteConfirm.set(userId);
+  }
+
+  confirmDelete(userId: string) {
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    this.state.deleteConversation(user.id, userId).subscribe({
+      next: () => {
+        if (this.selectedUser()?.id === userId) {
+          this.selectedUser.set(null);
+        }
+        this.showDeleteConfirm.set(null);
+      },
+      error: (err) => {
+        console.error('Delete failed', err);
+        this.showDeleteConfirm.set(null);
       }
     });
-    this.notification.success('All messages marked as read');
+  }
+
+  cancelDelete() {
+    this.showDeleteConfirm.set(null);
+  }
+
+  archiveConversation(userId: string) {
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    this.state.archiveConversation(user.id, userId).subscribe({
+      next: () => {
+        if (this.selectedUser()?.id === userId) {
+          this.selectedUser.set(null);
+        }
+      }
+    });
+  }
+
+  unarchiveConversation(userId: string) {
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    this.state.unarchiveConversation(user.id, userId).subscribe({
+      next: () => {
+        if (this.selectedUser()?.id === userId) {
+          this.selectedUser.set(null);
+        }
+      }
+    });
+  }
+
+  toggleMenu(userId: string) {
+    this.activeMenu.set(this.activeMenu() === userId ? null : userId);
+  }
+
+  closeMenu() {
+    this.activeMenu.set(null);
+  }
+
+  markConversationAsRead(userId: string) {
+    this.state.markConversationAsRead(userId);
   }
 
   onKeydown(event: KeyboardEvent) {
@@ -1520,10 +2118,33 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   }
 
+  exitSelectMode() {
+    this.showBulkActions.set(false);
+    this.selectedConversations.set(new Set());
+  }
+
   isImage(url: string): boolean {
     if (!url) return false;
     const lower = url.toLowerCase();
-    return lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.gif') || lower.endsWith('.webp') || url.includes('cloudinary');
+    const isImageExt = lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.gif') || lower.endsWith('.webp') || lower.endsWith('.svg');
+    if (isImageExt) return true;
+    if (url.includes('cloudinary')) {
+      return url.includes('/image/upload/') && !lower.endsWith('.pdf') && !lower.endsWith('.docx') && !lower.endsWith('.doc');
+    }
+    return false;
+  }
+
+  getFileName(url: string): string {
+    if (!url) return 'Document';
+    try {
+      const decoded = decodeURIComponent(url);
+      const parts = decoded.split('/');
+      const lastPart = parts[parts.length - 1];
+      const filename = lastPart.split('?')[0];
+      return filename || 'Document';
+    } catch {
+      return 'Document';
+    }
   }
 
   openFullImage(url: string) {
