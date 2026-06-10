@@ -114,6 +114,7 @@ export interface Booking {
   workerInitials: string;
   service: string;
   date: string;
+  rawDate: number;  // epoch ms — for reliable date sorting
   earnings: number;
   rating?: number;
   hasReview?: boolean;
@@ -214,6 +215,8 @@ export class PlatformStateService {
       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
 
+    const createdAtMs = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+
     return {
       id: b.id,
       clientId: b.clientId,
@@ -224,6 +227,7 @@ export class PlatformStateService {
       clientInitials: (b.clientName || 'U').split(' ').filter((n: string) => n).map((n: any) => n[0]).join('').toUpperCase(),
       service: b.service || b.description || 'General Service',
       date: b.createdAt ? new Date(b.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A',
+      rawDate: createdAtMs,
       status: displayStatus as any,
       earnings: b.totalCost || 0,
       rating: b.rating,
@@ -1137,8 +1141,6 @@ export class PlatformStateService {
 
     return this.http.post<any>(`${this.apiUrl}/messages`, payload).pipe(
       tap(data => {
-        // Update the temporary message with the real one from server
-        // Also update chat name, email, role if server provides them
         this.chats.update(chats => {
           return chats.map(c => {
             if (c.id === receiverId) {
@@ -1159,7 +1161,7 @@ export class PlatformStateService {
       }),
       timeout(30000),
       catchError((err: any) => {
-        // Rollback optimistic update on error
+
         this.chats.update(chats =>
           chats.map(c =>
             c.id === receiverId ? { ...c, messages: c.messages.filter(m => m.id !== tempId) } : c
@@ -1186,8 +1188,7 @@ export class PlatformStateService {
   uploadMessageAttachment(file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    // Use existing Cloudinary endpoint or similar if available
-    // For now, let's assume a generic media upload exists or we add it
+
     return this.http.post<any>(`${this.apiUrl}/media/upload`, formData);
   }
 
@@ -1359,9 +1360,9 @@ export class PlatformStateService {
     try {
       const archivedKey = `archived_chats_${userId}`;
       const archivedSet = new Set<string>(JSON.parse(localStorage.getItem(archivedKey) || '[]'));
-      
+
       // Update matching chats in our local signal to ensure they have archived: true
-      this.chats.update(chats => 
+      this.chats.update(chats =>
         chats.map(c => ({
           ...c,
           archived: archivedSet.has(c.id)
@@ -1555,6 +1556,7 @@ export class PlatformStateService {
       workerInitials: workerName.split(' ').filter((n: string) => n).map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'WK',
       service: job.description || 'Service Request',
       date: job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A',
+      rawDate: job.createdAt ? new Date(job.createdAt).getTime() : 0,
       earnings: job.totalCost || 0,
       status: formattedStatus as any,
       rating: job.rating,

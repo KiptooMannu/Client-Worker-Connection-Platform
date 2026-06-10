@@ -126,6 +126,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/users/user-management').then(m => m.AdminUserManagementPage)
       },
       {
+        path: 'jobs',
+        loadComponent: () => import('./features/admin/jobs/job-tracker').then(m => m.AdminJobTrackerPage)
+      },
+      {
         path: 'activity',
         loadComponent: () => import('./features/admin/activity/platform-activity').then(m => m.AdminActivityPage)
       },

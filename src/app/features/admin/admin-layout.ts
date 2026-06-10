@@ -131,12 +131,13 @@ export class AdminLayout {
   private breakpointObserver = inject(BreakpointObserver);
 
   menuItems = [
-    { path: 'dashboard', label: 'Overview', icon: 'grid_view' },
+    { path: 'dashboard',    label: 'Overview',     icon: 'grid_view' },
+    { path: 'jobs',         label: 'Job Tracker',  icon: 'track_changes' },
     { path: 'verification', label: 'Verify Users', icon: 'fact_check' },
-    { path: 'users', label: 'Users', icon: 'people_alt' },
-    { path: 'activity', label: 'Activity', icon: 'insights' },
-    { path: 'messages', label: 'Messages', icon: 'forum' },
-    { path: 'settings', label: 'Settings', icon: 'settings' }
+    { path: 'users',        label: 'Users',        icon: 'people_alt' },
+    { path: 'activity',     label: 'Activity',     icon: 'insights' },
+    { path: 'messages',     label: 'Messages',     icon: 'forum' },
+    { path: 'settings',     label: 'Settings',     icon: 'settings' }
   ];
 
   isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
