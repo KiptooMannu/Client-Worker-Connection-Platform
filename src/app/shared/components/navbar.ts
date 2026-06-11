@@ -14,18 +14,18 @@ import { WebSocketService } from '../../core/services/websocket.service';
   selector: 'app-navbar',
   standalone: true,
   imports: [
-    CommonModule, 
-    RouterLink, 
-    RouterLinkActive, 
-    MatIconModule, 
-    MatButtonModule, 
+    CommonModule,
+    RouterLink,
+    RouterLinkActive,
+    MatIconModule,
+    MatButtonModule,
     MatMenuModule
   ],
   template: `
     <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm fixed top-0 left-0 right-0 z-[99999] backdrop-blur-md bg-white/90 transition-all duration-300"
             [class.scrolled]="isScrolled()">
       <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 md:px-12 h-16 md:h-20 gap-8">
-        
+
         <!-- Logo Section -->
         <div class="flex items-center gap-4 md:gap-8 shrink-0">
           <a routerLink="/" class="flex items-center gap-3 group shrink-0">
@@ -56,29 +56,31 @@ import { WebSocketService } from '../../core/services/websocket.service';
           @if (!pageTitle) {
             <nav class="flex items-center gap-8">
               @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
-                <a routerLink="/worker/dashboard" routerLinkActive="active-link" 
+                <a routerLink="/worker/dashboard" routerLinkActive="active-link"
                    class="nav-link text-sm font-black text-slate-500 hover:text-brand-teal transition-all py-2 border-b-2 border-transparent hover:border-brand-teal">
                   Find Jobs
                 </a>
               }
               @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
-                <a routerLink="/employer/marketplace" routerLinkActive="active-link" 
+                <!-- FIX: was /employer/marketplace -->
+                <a routerLink="/client/marketplace" routerLinkActive="active-link"
                    class="nav-link text-sm font-black text-slate-500 hover:text-brand-teal transition-all py-2 border-b-2 border-transparent hover:border-brand-teal">
                   Hire Workers
                 </a>
               }
               @if (!auth.isAuthenticated()) {
-                <a routerLink="/enterprise" routerLinkActive="active-link" 
+                <a routerLink="/enterprise" routerLinkActive="active-link"
                    class="nav-link text-sm font-black text-slate-500 hover:text-brand-teal transition-all py-2 border-b-2 border-transparent hover:border-brand-teal">
                   For Business
                 </a>
-                <a routerLink="/solutions" routerLinkActive="active-link" 
+                <a routerLink="/solutions" routerLinkActive="active-link"
                    class="nav-link text-sm font-black text-slate-500 hover:text-brand-teal transition-all py-2 border-b-2 border-transparent hover:border-brand-teal">
                   How it Works
                 </a>
               }
               @if (auth.userRole() === 'Client') {
-                <a routerLink="/employer/bookings" routerLinkActive="active-link"
+                <!-- FIX: was /employer/bookings -->
+                <a routerLink="/client/bookings" routerLinkActive="active-link"
                    class="nav-link text-sm font-black text-slate-500 hover:text-brand-teal transition-all py-2 border-b-2 border-transparent hover:border-brand-teal">
                   My Bookings
                 </a>
@@ -98,7 +100,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
           @if (auth.isAuthenticated()) {
             <!-- Notifications & Messages -->
             <div class="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2 border-r border-slate-100 pr-2 sm:pr-4">
-              <button (click)="toggleNotifications()" 
+              <button (click)="toggleNotifications()"
                       class="relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-all rounded-full hover:bg-slate-100 cursor-pointer">
                 <mat-icon class="!text-xl sm:!text-2xl">notifications_none</mat-icon>
                 @if (unreadNotificationsCount() > 0) {
@@ -107,9 +109,10 @@ import { WebSocketService } from '../../core/services/websocket.service';
                   </span>
                 }
               </button>
-              
+
               @if (showMessages) {
-                <button [routerLink]="getMessagesPath()" 
+                <!-- FIX: getMessagesPath() now returns correct /client/messages -->
+                <button [routerLink]="getMessagesPath()"
                         class="hidden lg:inline-flex relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-all rounded-full hover:bg-slate-100 cursor-pointer"
                         aria-label="Messages">
                   <mat-icon class="!text-xl sm:!text-2xl">chat_bubble_outline</mat-icon>
@@ -149,12 +152,13 @@ import { WebSocketService } from '../../core/services/websocket.service';
                 <p class="text-sm font-black text-slate-900 truncate">{{ auth.currentUser()?.name }}</p>
                 <p class="text-[10px] text-slate-500 font-medium truncate">{{ auth.currentUser()?.email }}</p>
               </div>
-              
+
+              <!-- FIX: getDashboardPath() now returns /client/marketplace for Client role -->
               <button mat-menu-item [routerLink]="getDashboardPath()" class="!h-11">
                 <mat-icon class="text-slate-500 !text-lg">dashboard</mat-icon>
                 <span class="text-xs font-bold text-slate-700">Dashboard</span>
               </button>
-              
+
               @if (auth.userRole() === 'Worker') {
                 <button mat-menu-item routerLink="/worker/profile" class="!h-11">
                   <mat-icon class="text-slate-500 !text-lg">person_edit</mat-icon>
@@ -172,13 +176,14 @@ import { WebSocketService } from '../../core/services/websocket.service';
                 </button>
               }
 
+              <!-- FIX: getSettingsPath() now returns /client/settings for Client role -->
               <button mat-menu-item [routerLink]="getSettingsPath()" class="!h-11">
                 <mat-icon class="text-slate-500 !text-lg">settings</mat-icon>
                 <span class="text-xs font-bold text-slate-700">Account Settings</span>
               </button>
 
               <div class="h-px bg-slate-100 my-1"></div>
-              
+
               <button mat-menu-item (click)="logout()" class="!h-11 !text-rose-600 hover:!bg-rose-50">
                 <mat-icon class="text-rose-500 !text-lg">logout</mat-icon>
                 <span class="text-xs font-bold">Log Out</span>
@@ -211,11 +216,13 @@ import { WebSocketService } from '../../core/services/websocket.service';
     @if (auth.isAuthenticated()) {
       <nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-2 shadow-[0_-8px_40px_-24px_rgba(15,23,42,0.15)] safe-bottom">
         <div class="flex items-center justify-around">
+          <!-- FIX: getDashboardPath() used here too -->
           <button [routerLink]="getDashboardPath()" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-teal transition-colors py-1">
             <mat-icon class="!text-xl">home</mat-icon>
             <span class="text-[9px] font-black uppercase tracking-wide mt-0.5">Home</span>
           </button>
-          
+
+          <!-- FIX: getMessagesPath() returns correct route -->
           <button [routerLink]="getMessagesPath()" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-teal transition-colors relative py-1">
             <mat-icon class="!text-xl">chat_bubble_outline</mat-icon>
             @if (state.unreadMessagesCount() > 0) {
@@ -225,7 +232,8 @@ import { WebSocketService } from '../../core/services/websocket.service';
             }
             <span class="text-[9px] font-black uppercase tracking-wide mt-0.5">Chat</span>
           </button>
-          
+
+          <!-- FIX: getSettingsPath() returns correct route -->
           <button [routerLink]="getSettingsPath()" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-teal transition-colors py-1">
             <mat-icon class="!text-xl">person</mat-icon>
             <span class="text-[9px] font-black uppercase tracking-wide mt-0.5">Profile</span>
@@ -251,7 +259,7 @@ import { WebSocketService } from '../../core/services/websocket.service';
               <mat-icon>close</mat-icon>
             </button>
           </div>
-          
+
           <div class="flex flex-col gap-2">
             @if (!auth.isAuthenticated()) {
               <a [routerLink]="['/']" fragment="about" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 transition-all">
@@ -265,18 +273,19 @@ import { WebSocketService } from '../../core/services/websocket.service';
               </a>
               <div class="h-px bg-white/20 my-2"></div>
             }
-            
+
             @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
               <a routerLink="/worker/dashboard" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
                 Find Jobs
               </a>
             }
             @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
-              <a routerLink="/employer/marketplace" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
+              <!-- FIX: was /employer/marketplace -->
+              <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
                 Hire Workers
               </a>
             }
-            
+
             @if (!auth.isAuthenticated()) {
               <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
                 For Business
@@ -294,13 +303,21 @@ import { WebSocketService } from '../../core/services/websocket.service';
             }
 
             @if (auth.userRole() === 'Client') {
+              <!-- FIX: was /client/bookings (this one was already correct in mobile menu) -->
               <a routerLink="/client/bookings" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
                 My Bookings
+              </a>
+              <!-- FIX: added missing messages link for mobile menu -->
+              <a routerLink="/client/messages" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
+                Messages
               </a>
             }
             @if (auth.userRole() === 'Worker') {
               <a routerLink="/worker/history" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
                 My Jobs
+              </a>
+              <a routerLink="/worker/messages" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
+                Messages
               </a>
             }
 
@@ -316,16 +333,16 @@ import { WebSocketService } from '../../core/services/websocket.service';
     }
   `,
   styles: [`
-    .active-link { 
-      color: var(--brand-teal, #0f766e) !important; 
-      border-bottom-color: var(--brand-teal, #0f766e) !important; 
+    .active-link {
+      color: var(--brand-teal, #0f766e) !important;
+      border-bottom-color: var(--brand-teal, #0f766e) !important;
     }
     :host { display: block; width: 100%; }
-    
+
     .nav-link {
       position: relative;
     }
-    
+
     .nav-link::after {
       content: '';
       position: absolute;
@@ -336,17 +353,17 @@ import { WebSocketService } from '../../core/services/websocket.service';
       background-color: var(--brand-teal, #0f766e);
       transition: width 0.3s ease;
     }
-    
+
     .nav-link:hover::after {
       width: 100%;
     }
-    
+
     .scrolled {
       backdrop-filter: blur(12px);
       background-color: rgba(255, 255, 255, 0.95) !important;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
     }
-    
+
     .safe-bottom {
       padding-bottom: env(safe-area-inset-bottom, 0.5rem);
     }
@@ -356,26 +373,24 @@ export class NavbarComponent implements OnInit, OnDestroy {
   @Input() showHireTalent = true;
   @Input() showMessages = true;
   @Input() pageTitle = '';
-  @Input() bottomNavHeight = 64; 
+  @Input() bottomNavHeight = 64;
   @Input() badge = '';
-  
+
   auth = inject(AuthService);
   state = inject(PlatformStateService);
-  ws = inject(WebSocketService); 
+  ws = inject(WebSocketService);
   router = inject(Router);
-  
+
   isMobileMenuOpen = signal(false);
   isScrolled = signal(false);
   private routerSubscription?: Subscription;
-  
+
   unreadNotificationsCount = signal(0);
 
   ngOnInit() {
-    // Listen to scroll events for header styling
     if (typeof window !== 'undefined') {
       window.addEventListener('scroll', this.handleScroll.bind(this));
-      
-      // Close mobile menu on route change
+
       this.routerSubscription = this.router.events.pipe(
         filter(event => event instanceof NavigationEnd)
       ).subscribe(() => {
@@ -419,30 +434,33 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   toggleNotifications() {
-    // Implement notification panel toggle
-    // You can add a notification drawer/sidebar here
     console.log('Toggle notifications');
   }
 
+  // FIX: All path methods now return correct /client/ routes instead of /employer/
   getSettingsPath(): string {
     const role = this.auth.userRole();
     if (role === 'Admin') return '/admin/settings';
     if (role === 'Worker') return '/worker/settings';
-    return '/employer/settings';
+    if (role === 'Client') return '/client/settings';
+    return '/';
   }
 
   getDashboardPath(): string {
     const role = this.auth.userRole();
     if (role === 'Admin') return '/admin';
     if (role === 'Worker') return '/worker/dashboard';
-    return '/employer/marketplace';
+    if (role === 'Client') return '/client/marketplace';
+    return '/';
   }
 
+  // FIX: Was returning /employer/messages — now returns /client/messages
   getMessagesPath(): string {
     const role = this.auth.userRole();
     if (role === 'Admin') return '/admin/messages';
     if (role === 'Worker') return '/worker/messages';
-    return '/employer/messages';
+    if (role === 'Client') return '/client/messages';
+    return '/';
   }
 
   formatRole(): string {
