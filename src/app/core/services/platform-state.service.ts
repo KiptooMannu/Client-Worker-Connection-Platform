@@ -104,6 +104,24 @@ export interface ActivityLog {
   adminName?: string;
 }
 
+export interface JobOffer {
+  id: string;
+  jobId: string;
+  senderName?: string;
+  amount: number;
+  message?: string;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'COUNTERED';
+  createdAt?: string;
+}
+
+export interface JobProgress {
+  id: string;
+  jobId: string;
+  description: string;
+  attachmentUrl?: string;
+  createdAt?: string;
+}
+
 export interface Booking {
   id: string;
   clientId: string;
@@ -114,11 +132,31 @@ export interface Booking {
   workerInitials: string;
   service: string;
   date: string;
-  rawDate: number;  // epoch ms — for reliable date sorting
+  rawDate: number;
   earnings: number;
   rating?: number;
   hasReview?: boolean;
-  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Revision Requested' | 'In Progress' | 'Submitted' | 'Disputed' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED' | 'SUBMITTED' | 'APPROVED' | 'DISPUTED' | 'REVISION_REQUESTED';
+  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Revision Requested' | 'In Progress' | 'Submitted' | 'Disputed' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED' | 'SUBMITTED' | 'APPROVED' | 'DISPUTED' | 'REVISION_REQUESTED' | 'Assigned' | 'Negotiating' | 'Partially Settled' | 'Force Completed' | 'Refunded';
+
+  startedAt?: string;
+  submittedAt?: string;
+  approvedAt?: string;
+  disputedAt?: string;
+  resolvedAt?: string;
+  deadline?: string;
+  // Dispute details
+  disputeReason?: string;
+  disputeEvidence?: string;
+  disputeAttachmentUrl?: string;
+  // Dispute response
+  disputeResponse?: string;
+  disputeResponseEvidence?: string;
+  disputeResponseAttachmentUrl?: string;
+  // Admin decision
+  adminDecisionReason?: string;
+  adminEvidenceNotes?: string;
+  workerPartialAmount?: number;
+  clientPartialAmount?: number;
 }
 
 export interface ClientProfile {
@@ -177,7 +215,7 @@ export class PlatformStateService {
       next: () => {
         this.notification.success(`Job status updated to ${status}`);
 
-        // Refresh appropriate data
+
         if (user.role === 'Worker') {
           this.fetchWorkerJobs(this.currentWorker().userId || user.id);
         } else if (user.role === 'Client') {
@@ -186,7 +224,6 @@ export class PlatformStateService {
           this.fetchAllJobs();
         }
 
-        // Clear loading state
         this.updatingJobIds.update(set => {
           const next = new Set(set);
           next.delete(jobId);
@@ -197,7 +234,7 @@ export class PlatformStateService {
         console.error('Error updating job status', err);
         this.notification.error('Failed to update job status');
 
-        // Clear loading state on error
+
         this.updatingJobIds.update(set => {
           const next = new Set(set);
           next.delete(jobId);
@@ -210,7 +247,6 @@ export class PlatformStateService {
   private mapBooking(b: any): Booking {
     let status = b.status || 'PENDING';
 
-    // Format status for display: replace underscore with space and capitalize words
     const displayStatus = status.split('_')
       .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');
@@ -231,7 +267,17 @@ export class PlatformStateService {
       status: displayStatus as any,
       earnings: b.totalCost || 0,
       rating: b.rating,
-      hasReview: b.rating !== undefined && b.rating !== null
+      hasReview: b.rating !== undefined && b.rating !== null,
+      // lifecycle
+      startedAt: b.startedAt, submittedAt: b.submittedAt, approvedAt: b.approvedAt,
+      disputedAt: b.disputedAt, resolvedAt: b.resolvedAt, deadline: b.deadline,
+      // dispute
+      disputeReason: b.disputeReason, disputeEvidence: b.disputeEvidence, disputeAttachmentUrl: b.disputeAttachmentUrl,
+      disputeResponse: b.disputeResponse, disputeResponseEvidence: b.disputeResponseEvidence,
+      disputeResponseAttachmentUrl: b.disputeResponseAttachmentUrl,
+      // admin
+      adminDecisionReason: b.adminDecisionReason, adminEvidenceNotes: b.adminEvidenceNotes,
+      workerPartialAmount: b.workerPartialAmount, clientPartialAmount: b.clientPartialAmount
     };
   }
 
@@ -1560,7 +1606,17 @@ export class PlatformStateService {
       earnings: job.totalCost || 0,
       status: formattedStatus as any,
       rating: job.rating,
-      hasReview: job.rating !== undefined && job.rating !== null
+      hasReview: job.rating !== undefined && job.rating !== null,
+      // lifecycle
+      startedAt: job.startedAt, submittedAt: job.submittedAt, approvedAt: job.approvedAt,
+      disputedAt: job.disputedAt, resolvedAt: job.resolvedAt, deadline: job.deadline,
+      // dispute
+      disputeReason: job.disputeReason, disputeEvidence: job.disputeEvidence, disputeAttachmentUrl: job.disputeAttachmentUrl,
+      disputeResponse: job.disputeResponse, disputeResponseEvidence: job.disputeResponseEvidence,
+      disputeResponseAttachmentUrl: job.disputeResponseAttachmentUrl,
+      // admin
+      adminDecisionReason: job.adminDecisionReason, adminEvidenceNotes: job.adminEvidenceNotes,
+      workerPartialAmount: job.workerPartialAmount, clientPartialAmount: job.clientPartialAmount
     };
   }
 
@@ -1697,5 +1753,57 @@ export class PlatformStateService {
 
   liquidateAccount() {
     return this.http.delete(`${this.apiUrl}/settings/account`);
+  }
+
+  // ─── Offer / Negotiation ───────────────────────────────────────────────────
+
+  submitOffer(jobId: string, amount: number, message: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/offers`, { amount, message });
+  }
+
+  acceptOffer(jobId: string, offerId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/offers/${offerId}/accept`, {});
+  }
+
+  rejectOffer(jobId: string, offerId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/offers/${offerId}/reject`, {});
+  }
+
+  getOffers(jobId: string): Observable<JobOffer[]> {
+    return this.http.get<JobOffer[]>(`${this.apiUrl}/jobs/${jobId}/offers`);
+  }
+
+  // ─── Progress Updates ─────────────────────────────────────────────────────
+
+  submitProgress(jobId: string, description: string, attachmentUrl?: string): Observable<any> {
+    let url = `${this.apiUrl}/jobs/${jobId}/progress?description=${encodeURIComponent(description)}`;
+    if (attachmentUrl) url += `&attachmentUrl=${encodeURIComponent(attachmentUrl)}`;
+    return this.http.post(url, {});
+  }
+
+  getProgress(jobId: string): Observable<JobProgress[]> {
+    return this.http.get<JobProgress[]>(`${this.apiUrl}/jobs/${jobId}/progress`);
+  }
+
+  // ─── Dispute ──────────────────────────────────────────────────────────────
+
+  openDispute(jobId: string, reason: string, evidence: string, attachmentUrl?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/dispute`, { reason, evidence, attachmentUrl });
+  }
+
+  respondToDispute(jobId: string, response: string, evidence: string, attachmentUrl?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/dispute/respond`, { response, evidence, attachmentUrl });
+  }
+
+  // ─── Admin Dispute Resolution ─────────────────────────────────────────────
+
+  adminResolveDispute(jobId: string, payload: {
+    decisionType: string;
+    reason: string;
+    evidenceNotes: string;
+    workerAmount?: number;
+    clientRefund?: number;
+  }): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/admin/resolve`, payload);
   }
 }

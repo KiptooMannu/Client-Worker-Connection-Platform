@@ -115,11 +115,11 @@ import { AuthService }          from '../../../core/services/auth.service';
                   class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">
                 Amount
               </th>
-              <td mat-cell *matCellDef="let b" class="!px-6 !py-4 text-center">
-                <div class="flex flex-col items-center">
+              <td mat-cell *matCellDef="let b" class="!px-6 !py-4 text-center whitespace-nowrap">
+                <div class="flex items-center justify-center gap-1.5">
                   <span class="text-sm font-black text-slate-900">KES {{ b.earnings | number }}</span>
                   <span class="text-[9px] font-black uppercase text-slate-400">
-                    {{ b.status === 'Approved' ? 'Released' : 'Pending Payment' }}
+                    · {{ getPaymentStatusLabel(b.status) }}
                   </span>
                 </div>
               </td>
@@ -446,7 +446,11 @@ private refreshBookings() {
       },
       error: (err) => {
         this.payModal!.loading = false;
-        this.payModal!.error = err?.error || 'Failed to send STK push. Please try again.';
+        const body = err?.error;
+        const msg = typeof body === 'string'
+          ? body
+          : body?.message || body?.error || 'Failed to send STK push. Please try again.';
+        this.payModal!.error = msg;
       }
     });
   }
@@ -527,6 +531,15 @@ private refreshBookings() {
   get activeCount()  { return this.state.bookings().filter((b: any) => ['Accepted','In Progress','Submitted'].includes(b.status)).length; }
   get pendingCount() { return this.state.bookings().filter((b: any) => b.status === 'Pending').length; }
   get totalSpent()   { return this.state.bookings().filter((b: any) => ['Approved','Completed'].includes(b.status)).reduce((s: number, b: any) => s + b.earnings, 0); }
+
+  getPaymentStatusLabel(status: string): string {
+    const s = (status || '').toLowerCase().trim();
+    if (['approved', 'completed', 'force completed'].includes(s)) return 'Released';
+    if (['cancelled', 'refunded', 'rejected'].includes(s)) return 'Cancelled';
+    if (s === 'partially settled') return 'Partially Settled';
+    if (['in progress', 'submitted', 'disputed', 'revision requested'].includes(s)) return 'Escrowed';
+    return 'Pending Payment';
+  }
 
   getStatusClasses(status: string) {
     const base = 'px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-wider border transition-colors ';

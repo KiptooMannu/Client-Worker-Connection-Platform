@@ -55,10 +55,10 @@ import { PlatformStateService } from '../../core/services/platform-state.service
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>All Categories</mat-label>
             <mat-icon matPrefix class="text-slate-300">work_outline</mat-icon>
-            <mat-select [value]="selectedSkill()" (selectionChange)="selectedSkill.set($event.value); onFilterChange()" panelClass="marketplace-select-panel">
+            <mat-select [value]="selectedCategory()" (selectionChange)="selectedCategory.set($event.value); onFilterChange()" panelClass="marketplace-select-panel">
               <mat-option [value]="null">All Categories</mat-option>
-              @for (skill of state.availableSkills(); track skill) {
-                <mat-option [value]="skill">{{ skill }}</mat-option>
+              @for (category of availableCategories(); track category) {
+                <mat-option [value]="category">{{ category }}</mat-option>
               }
             </mat-select>
           </mat-form-field>
@@ -234,13 +234,22 @@ export class ClientDashboardPage {
   private notification = inject(NotificationService);
   
   nameQuery = signal('');
-  selectedSkill = signal<string | null>(null);
+  selectedCategory = signal<string | null>(null);  // Changed from selectedSkill
   locationQuery = signal<string | null>(null);
   selectedExperience = signal<string | null>(null);
   selectedSort = signal<string>('Highest Rated');
   
   currentPage = signal(1);
   itemsPerPage = signal(6);
+
+  // NEW: Get unique categories from workers
+  availableCategories = computed(() => {
+    const categories = this.state.verifiedWorkers()
+      .map(worker => worker.category)
+      .filter((category, index, arr) => category && arr.indexOf(category) === index)
+      .sort();
+    return categories;
+  });
 
   totalPages = computed(() => Math.ceil(this.filteredWorkers().length / this.itemsPerPage()));
 
@@ -275,11 +284,12 @@ export class ClientDashboardPage {
       );
     }
 
-    // Skill Filter
-    if (this.selectedSkill() && this.selectedSkill() !== 'null') {
-      const q = this.selectedSkill()!.toLowerCase();
-      list = list.filter(w => (w.category && w.category.toLowerCase().includes(q)) || 
-                              (w.skills && w.skills.some(s => s.toLowerCase().includes(q))));
+    // Category Filter (Updated - only checks category, not skills)
+    if (this.selectedCategory() && this.selectedCategory() !== 'null') {
+      const q = this.selectedCategory()!.toLowerCase();
+      list = list.filter(w => 
+        w.category && w.category.toLowerCase().includes(q)
+      );
     }
 
     // Location Search
@@ -316,7 +326,7 @@ export class ClientDashboardPage {
 
   performSearch() {
     this.state.fetchMarketplaceWorkers(
-      this.selectedSkill() || undefined,
+      this.selectedCategory() || undefined,  // Changed from selectedSkill
       this.locationQuery() || undefined,
       this.selectedExperience() === 'Junior' ? 1 : (this.selectedExperience() === 'Mid' ? 3 : (this.selectedExperience() === 'Senior' ? 5 : (this.selectedExperience() === 'Lead' ? 8 : (this.selectedExperience() === 'Master' ? 12 : undefined))))
     );
