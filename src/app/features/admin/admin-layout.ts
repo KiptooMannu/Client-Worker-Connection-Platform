@@ -27,10 +27,7 @@ import { NavbarComponent } from '../../shared/components/navbar';
                        [opened]="(isHandset$ | async) === false"
                        class="admin-sidenav">
             <div class="flex flex-col h-full px-4 py-6">
-              <div class="px-4 py-4 mb-8 rounded-3xl bg-slate-900 text-white shadow-lg border border-slate-800/60">
-                <p class="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Admin Center</p>
-                <h2 class="mt-3 text-lg font-black tracking-tight">Kazi Konnect</h2>
-              </div>
+           
 
               <nav class="space-y-2">
                 @for (item of menuItems; track item.path) {
@@ -133,6 +130,7 @@ export class AdminLayout {
   menuItems = [
     { path: 'dashboard',    label: 'Overview',     icon: 'grid_view' },
     { path: 'jobs',         label: 'Job Tracker',  icon: 'track_changes' },
+    { path: 'fees',         label: 'Platform Fees', icon: 'payments' },
     { path: 'verification', label: 'Verify Users', icon: 'fact_check' },
     { path: 'users',        label: 'Users',        icon: 'people_alt' },
     { path: 'activity',     label: 'Activity',     icon: 'insights' },

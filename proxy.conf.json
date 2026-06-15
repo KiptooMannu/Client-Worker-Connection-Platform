@@ -1,8 +1,0 @@
-{
-  "/api": {
-    "target": "https://client-search-backend.onrender.com",
-    "secure": false,
-    "changeOrigin": true,
-    "logLevel": "debug"
-  }
-}

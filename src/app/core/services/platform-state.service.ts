@@ -4,7 +4,7 @@ import { AuthService, User } from './auth.service';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 import { Observable, throwError, filter, take, timeout, of } from 'rxjs';
-import { catchError, tap, retry } from 'rxjs/operators';
+import { catchError, finalize, tap, retry } from 'rxjs/operators';
 import { NotificationService } from './notification.service';
 import { Client } from '@stomp/stompjs';
 
@@ -122,6 +122,16 @@ export interface JobProgress {
   createdAt?: string;
 }
 
+export interface WalletTransaction {
+  id: string;
+  txnType: 'CREDIT' | 'DEBIT';
+  amount: number;
+  balanceAfter: number;
+  referenceId?: string | null;
+  description?: string;
+  createdAt?: string;
+}
+
 export interface Booking {
   id: string;
   clientId: string;
@@ -157,6 +167,12 @@ export interface Booking {
   adminEvidenceNotes?: string;
   workerPartialAmount?: number;
   clientPartialAmount?: number;
+  paymentStatus?: string;
+  paymentAmount?: number;
+  platformFee?: number;
+  workerNetAmount?: number;
+  escrowMessage?: string;
+  mpesaReceiptNumber?: string;
 }
 
 export interface ClientProfile {
@@ -199,49 +215,82 @@ export class PlatformStateService {
   availableLocations = signal<string[]>([]);
   isLoadingWorkers = signal(false);
   updatingJobIds = signal<Set<string>>(new Set());
+  walletBalance = signal(0);
+  walletTransactions = signal<WalletTransaction[]>([]);
+  walletLoading = signal(false);
 
   updateJobStatus(jobId: string, status: string) {
-    const user = this.auth.currentUser();
-    if (!user) return;
+    this.updateJobStatusRequest(jobId, status).subscribe({
+      next: () => this.notification.success(`Job status updated to ${status}`)
+    });
+  }
 
-    // Set loading state
+  updateJobStatusRequest(jobId: string, status: string): Observable<any> {
+    const user = this.auth.currentUser();
+    if (!user) return throwError(() => new Error('You must be logged in to update a job.'));
+
     this.updatingJobIds.update(set => {
       const next = new Set(set);
       next.add(jobId);
       return next;
     });
 
-    this.http.put(`${this.apiUrl}/jobs/${jobId}/status?status=${status}`, {}).subscribe({
-      next: () => {
-        this.notification.success(`Job status updated to ${status}`);
-
-
+    return this.http.put(`${this.apiUrl}/jobs/${jobId}/status?status=${status}`, {}).pipe(
+      tap(() => {
         if (user.role === 'Worker') {
           this.fetchWorkerJobs(this.currentWorker().userId || user.id);
+          this.fetchWalletSummary();
         } else if (user.role === 'Client') {
           this.fetchClientJobs(user.id);
         } else if (user.role === 'Admin') {
           this.fetchAllJobs();
         }
-
+      }),
+      catchError((err: HttpErrorResponse) => {
+        console.error('Error updating job status', err);
+        const body = err.error;
+        const message = typeof body === 'string'
+          ? body
+          : body?.message || body?.error || 'Failed to update job status';
+        this.notification.error(message);
+        return throwError(() => err);
+      }),
+      finalize(() => {
         this.updatingJobIds.update(set => {
           const next = new Set(set);
           next.delete(jobId);
           return next;
         });
+      })
+    );
+  }
+
+  fetchWalletSummary() {
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    this.walletLoading.set(true);
+    this.http.get<{ balance: number }>(`${this.apiUrl}/wallet/balance`).subscribe({
+      next: (response) => this.walletBalance.set(Number(response.balance || 0)),
+      error: (err: HttpErrorResponse) => console.error('Error fetching wallet balance', err)
+    });
+
+    this.http.get<WalletTransaction[]>(`${this.apiUrl}/wallet/transactions`).subscribe({
+      next: (transactions) => {
+        this.walletTransactions.set(transactions || []);
+        this.walletLoading.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        console.error('Error updating job status', err);
-        this.notification.error('Failed to update job status');
-
-
-        this.updatingJobIds.update(set => {
-          const next = new Set(set);
-          next.delete(jobId);
-          return next;
-        });
+        console.error('Error fetching wallet transactions', err);
+        this.walletLoading.set(false);
       }
     });
+  }
+
+  withdrawWallet(amount: number, destinationPhoneNumber: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/wallet/withdraw`, { amount, destinationPhoneNumber }).pipe(
+      tap(() => this.fetchWalletSummary())
+    );
   }
 
   private mapBooking(b: any): Booking {
@@ -1049,34 +1098,39 @@ export class PlatformStateService {
     });
   }
 
-  hireWorker(workerId: string) {
+  hireWorker(workerId: string, description?: string): Observable<any> {
     const worker = this.workers().find(w => w.id === workerId);
     const user = this.auth.currentUser();
-    if (!worker || !user || user.role !== 'Client') return;
+    if (!worker || !user || user.role !== 'Client') {
+      return throwError(() => new Error('Unauthorized or worker not found'));
+    }
 
     const alreadyRequested = this.bookings().some(b =>
-      b.workerId === worker.id && (b.status === 'PENDING' || b.status === 'ACCEPTED')
+      b.workerId === worker.id && 
+      (b.status.toLowerCase() === 'pending' || b.status.toLowerCase() === 'accepted')
     );
 
     if (alreadyRequested) {
       this.notification.info(`You already have an active request with ${worker.name}.`);
-      return;
+      return throwError(() => new Error('Duplicate request'));
     }
 
     const payload: any = {
-      description: `Hire request for ${worker.category} service`,
+      description: description || `Hire request for ${worker.category} service`,
       requiredExperience: worker.experienceYears ?? undefined
     };
-    this.http.post<any>(`${this.apiUrl}/jobs/request?clientId=${user.id}&workerUserId=${worker.userId}`, payload).subscribe({
-      next: () => {
+    return this.http.post<any>(`${this.apiUrl}/jobs/request?clientId=${user.id}&workerUserId=${worker.userId}`, payload).pipe(
+      tap(() => {
         this.fetchClientJobs(user.id);
         this.notification.success(`Hire request sent to ${worker.name}.`);
-      },
-      error: (err: HttpErrorResponse) => {
-        this.notification.error('Failed to create hire request.');
+      }),
+      catchError((err: HttpErrorResponse) => {
+        const errorMsg = err.error?.message || err.error || 'Failed to create hire request.';
+        this.notification.error(errorMsg);
         console.error('Error creating hire request', err);
-      }
-    });
+        return throwError(() => err);
+      })
+    );
   }
 
   acceptBooking(bookingId: string) {
@@ -1546,7 +1600,7 @@ export class PlatformStateService {
     }
 
     const newChat: Chat = {
-      id: worker.userId || worker.id, // FIX: Use real userId or id instead of Math.random()
+      id: worker.userId || worker.id,
       workerId: worker.id,
       name: worker.name,
       initials: worker.initials,
@@ -1590,7 +1644,12 @@ export class PlatformStateService {
     const clientName = job.clientName || 'Client';
     const workerName = job.workerName || 'Worker';
     const status = (job.status || 'PENDING').replace(/_/g, ' ');
-    const formattedStatus = status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    const formattedStatus = status
+      .toLowerCase()
+      .split(' ')
+      .filter(Boolean)
+      .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(' ');
 
     return {
       id: job.id,
@@ -1616,7 +1675,13 @@ export class PlatformStateService {
       disputeResponseAttachmentUrl: job.disputeResponseAttachmentUrl,
       // admin
       adminDecisionReason: job.adminDecisionReason, adminEvidenceNotes: job.adminEvidenceNotes,
-      workerPartialAmount: job.workerPartialAmount, clientPartialAmount: job.clientPartialAmount
+      workerPartialAmount: job.workerPartialAmount, clientPartialAmount: job.clientPartialAmount,
+      paymentStatus: job.paymentStatus,
+      paymentAmount: job.paymentAmount,
+      platformFee: job.platformFee,
+      workerNetAmount: job.workerNetAmount,
+      escrowMessage: job.escrowMessage,
+      mpesaReceiptNumber: job.mpesaReceiptNumber
     };
   }
 

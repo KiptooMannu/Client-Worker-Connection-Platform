@@ -1,20 +1,38 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, interval, switchMap, takeWhile, timeout, catchError, of, throwError, TimeoutError } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface PaymentStatusResponse {
-  status: 'PENDING' | 'PAID' | 'FAILED' | 'NO_PAYMENT';
+  status: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED' | 'NO_PAYMENT' | 'DISPUTED' | 'PROCESSING_PAYOUT' | 'PAYOUT_FAILED';
   id?: string;
   jobId?: string;
   amount?: number;
   phoneNumber?: string;
   checkoutRequestId?: string;
   mpesaReceiptNumber?: string;
-  // FIX: failureReason is now included to map to user-friendly messages
+  platformFee?: number;
+  workerAmount?: number;
   failureReason?: string;
   message?: string;
   createdAt?: string;
   timeoutAt?: string;
+  transactionDate?: string;
+}
+
+export interface PlatformFeeRecord {
+  jobId: string;
+  clientName: string;
+  workerName: string;
+  service?: string;
+  totalAmount: number;
+  platformFee: number;
+  workerNetAmount: number;
+  paymentStatus: string;
+  jobStatus: string;
+  transactionDate?: string;
+  createdAt?: string;
+  mpesaReceiptNumber?: string;
 }
 
 export interface StkPushResponse {
@@ -23,7 +41,6 @@ export interface StkPushResponse {
   message: string;
 }
 
-// FIX: Exported so booking page can use it for display
 export const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
   'WRONG_PIN':          'Incorrect M-Pesa PIN. Please try again.',
   'INSUFFICIENT_FUNDS': 'Insufficient funds in your M-Pesa account.',
@@ -45,34 +62,28 @@ export const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
 export class PaymentService {
 
   private http = inject(HttpClient);
-  private readonly BASE = '/api/payments';
+  private readonly BASE = `${environment.apiUrl}/payments`;
 
   initiateStkPush(jobId: string, phoneNumber: string): Observable<StkPushResponse> {
     return this.http.post<StkPushResponse>(`${this.BASE}/mpesa/stkpush`, { jobId, phoneNumber });
   }
 
   /**
-   * FIX: Polls payment status every 3 seconds.
-   * - Hard timeout at 65 seconds (STK push expires at 60s on Safaricom's side).
-   * - On TimeoutError, emits a synthetic FAILED response with reason TIMEOUT
-   *   so the UI always receives a terminal event and never stays stuck.
-   * - Stops polling when status is PAID, FAILED, or NO_PAYMENT.
+   * Polls payment status every 3 seconds until a terminal state.
+   * Hard timeout at 120 seconds to allow delayed Safaricom callbacks.
    */
   pollPaymentStatus(jobId: string): Observable<PaymentStatusResponse> {
-    const terminal = new Set<string>(['PAID', 'FAILED', 'NO_PAYMENT']);
+    const terminal = new Set<string>(['PAID', 'FAILED', 'REFUNDED', 'NO_PAYMENT']);
 
     return interval(3000).pipe(
       switchMap(() => this.getPaymentStatus(jobId)),
-      takeWhile(resp => !terminal.has(resp.status), /* inclusive = */ true),
-      // FIX: 65 second hard cap — STK push expires at 60s on Safaricom side
-      timeout(65_000),
+      takeWhile(resp => !terminal.has(resp.status), true),
+      timeout(120_000),
       catchError(err => {
         if (err instanceof TimeoutError) {
-          // Emit a synthetic terminal FAILED status so the UI stops waiting
           return of<PaymentStatusResponse>({
-            status: 'FAILED',
-            failureReason: 'TIMEOUT',
-            message: 'Payment request timed out. Please try again.',
+            status: 'PENDING',
+            message: 'Still waiting for M-Pesa confirmation. You can refresh this page.',
           });
         }
         return throwError(() => err);
@@ -82,22 +93,15 @@ export class PaymentService {
 
   getPaymentStatus(jobId: string): Observable<PaymentStatusResponse> {
     return this.http.get<PaymentStatusResponse>(`${this.BASE}/status/${jobId}`).pipe(
-      // FIX: On network error, return PENDING (not FAILED) to keep retrying
-      // On a confirmed error code, let it propagate
       catchError(err => {
         if (err?.status >= 500 || err?.status === 0) {
-          // Transient — keep polling
           return of({ status: 'PENDING' } as PaymentStatusResponse);
         }
-        // 4xx or unexpected — bubble up to the catchError in pollPaymentStatus
         return throwError(() => err);
       })
     );
   }
 
-  /**
-   * FIX: Maps backend failureReason codes to human-readable messages.
-   */
   getFailureMessage(failureReason?: string, fallbackMessage?: string): string {
     if (!failureReason) {
       return fallbackMessage || 'Payment failed. Please try again.';
@@ -107,12 +111,6 @@ export class PaymentService {
       ?? 'Payment failed. Please try again.';
   }
 
-  /**
-   * FIX: Initiating a new STK push is allowed after a FAILED payment.
-   * The backend blocks duplicate PENDING/ESCROWED/SUCCESS payments but
-   * allows a fresh attempt after failure. This method is the same as
-   * initiateStkPush — it exists as an alias for clarity in the UI.
-   */
   retryPayment(jobId: string, phoneNumber: string): Observable<StkPushResponse> {
     return this.initiateStkPush(jobId, phoneNumber);
   }
@@ -126,10 +124,19 @@ export class PaymentService {
   }
 
   getWalletBalance(): Observable<any> {
-    return this.http.get('/api/wallet/balance');
+    return this.http.get(`${environment.apiUrl}/wallet/balance`);
   }
 
   getPaymentReceipt(jobId: string): Observable<any> {
     return this.http.get(`${this.BASE}/receipt/${jobId}`);
+  }
+
+  getPlatformFees(params: { date?: string; status?: string; search?: string } = {}): Observable<PlatformFeeRecord[]> {
+    const query = new URLSearchParams();
+    if (params.date) query.set('date', params.date);
+    if (params.status && params.status !== 'All') query.set('status', params.status);
+    if (params.search) query.set('search', params.search);
+    const suffix = query.toString() ? `?${query.toString()}` : '';
+    return this.http.get<PlatformFeeRecord[]>(`${this.BASE}/admin/fees${suffix}`);
   }
 }

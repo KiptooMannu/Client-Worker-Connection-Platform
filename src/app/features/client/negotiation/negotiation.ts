@@ -216,9 +216,10 @@ export class NegotiationPage implements OnInit {
       return;
     }
 
-    // Check for duplicate active booking
+    // Check for duplicate active booking (case-insensitive)
     const alreadyActive = this.state.bookings().some((b: any) =>
-      b.workerId === w.id && ['Pending', 'Accepted', 'In Progress'].includes(b.status)
+      b.workerId === w.id && 
+      ['pending', 'accepted', 'in progress'].includes(b.status.toLowerCase())
     );
 
     if (alreadyActive) {
@@ -229,17 +230,18 @@ export class NegotiationPage implements OnInit {
     this.loading.set(true);
     this.errorMsg.set('');
 
-    this.state.hireWorker(w.id);
-
-    setTimeout(() => {
-      this.loading.set(false);
-      this.notification.success(
-        `Hire request sent to ${w.name}! Once accepted, you'll fund escrow to begin work.`
-      );
-      this.router.navigate(['/client/bookings'], {
-        queryParams: { highlight: 'new' }
-      });
-    }, 1200);
+    this.state.hireWorker(w.id, this.jobDescription || undefined).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.router.navigate(['/client/bookings'], {
+          queryParams: { highlight: 'new' }
+        });
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.errorMsg.set(err.error?.message || err.error || 'Failed to send hire request.');
+      }
+    });
   }
 
   decline() {

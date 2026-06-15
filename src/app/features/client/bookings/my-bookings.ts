@@ -17,6 +17,13 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 import { NotificationService }  from '../../../core/services/notification.service';
 import { PaymentService }       from '../../../core/services/payment.service';
 import { AuthService }          from '../../../core/services/auth.service';
+import {
+  getPaymentStatusLabel,
+  JOB_STATUS_OPTIONS,
+  matchesPaymentStatusFilter,
+  PAYMENT_STATUS_OPTIONS,
+  PaymentStatusFilter
+} from '../../../core/utils/payment-status.util';
 
 @Component({
   selector: 'app-client-bookings',
@@ -27,218 +34,249 @@ import { AuthService }          from '../../../core/services/auth.service';
     MatTableModule, MatChipsModule, MatDividerModule,
   ],
   template: `
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-700 font-manrope">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-700 font-manrope">
 
       <!-- Header -->
-      <div class="flex justify-between items-center mb-8">
+      <div class="flex justify-between items-center mb-6">
         <div>
-          <h1 class="text-2xl font-black text-slate-900 tracking-tight">My Work History</h1>
-          <p class="text-slate-500 font-medium text-xs">Track your work and payments here.</p>
+          <h1 class="text-xl font-black text-slate-900 tracking-tight">My Work History</h1>
+          <p class="text-slate-500 font-medium text-[11px]">Track your work and payments here.</p>
         </div>
         <button (click)="showHistory()"
-                class="px-4 py-2 bg-white border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:border-brand-teal transition-all flex items-center gap-2">
-          <mat-icon class="!w-4 !h-4">download</mat-icon> Export
+                class="px-3.5 py-2 bg-white border border-slate-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-slate-600 hover:border-brand-teal hover:text-brand-teal transition-all flex items-center gap-1.5 shadow-sm">
+          <mat-icon class="!text-xs !w-auto !h-auto">download</mat-icon> Export
         </button>
       </div>
 
       <!-- Stats -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-            <mat-icon class="!text-xl">engineering</mat-icon>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 border-l-4 border-l-blue-500">
+          <div class="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 border border-slate-100/50">
+            <mat-icon class="!text-lg">engineering</mat-icon>
           </div>
           <div>
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ongoing</p>
-            <p class="text-xl font-black text-slate-900">{{ activeCount }}</p>
+            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Ongoing</p>
+            <p class="text-lg font-black text-slate-900 leading-none">{{ activeCount }}</p>
           </div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-            <mat-icon class="!text-xl">payments</mat-icon>
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 border-l-4 border-l-emerald-500">
+          <div class="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 border border-slate-100/50">
+            <mat-icon class="!text-lg">payments</mat-icon>
           </div>
           <div>
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Paid</p>
-            <p class="text-xl font-black text-slate-900">KES {{ totalSpent | number }}</p>
+            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Paid</p>
+            <p class="text-lg font-black text-slate-900 leading-none">KES {{ totalSpent | number }}</p>
           </div>
         </div>
-        <div class="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-          <div class="w-10 h-10 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400">
-            <mat-icon class="!text-xl">pending_actions</mat-icon>
+        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 border-l-4 border-l-amber-500">
+          <div class="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 border border-slate-100/50">
+            <mat-icon class="!text-lg">pending_actions</mat-icon>
           </div>
           <div>
-            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Pending</p>
-            <p class="text-xl font-black text-slate-900">{{ pendingCount }}</p>
+            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Pending</p>
+            <p class="text-lg font-black text-slate-900 leading-none">{{ pendingCount }}</p>
           </div>
         </div>
       </div>
 
-      <!-- Bookings Table -->
-      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-12">
-        <div class="overflow-x-auto">
-          <table mat-table [dataSource]="paginatedBookings()" class="w-full min-w-[900px]">
+      <!-- Inline message -->
+      @if (uiMessage()) {
+        <div class="mb-4 px-4 py-3 rounded-xl border text-xs font-bold flex items-start gap-2"
+             [ngClass]="uiMessage()!.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' :
+                        uiMessage()!.type === 'error' ? 'bg-rose-50 border-rose-100 text-rose-700' :
+                        'bg-blue-50 border-blue-100 text-blue-700'">
+          <mat-icon class="!text-sm !w-auto !h-auto shrink-0 mt-0.5">
+            {{ uiMessage()!.type === 'success' ? 'check_circle' : uiMessage()!.type === 'error' ? 'error' : 'info' }}
+          </mat-icon>
+          <span>{{ uiMessage()!.text }}</span>
+          <button (click)="uiMessage.set(null)" class="ml-auto text-current opacity-60 hover:opacity-100">
+            <mat-icon class="!text-sm !w-auto !h-auto">close</mat-icon>
+          </button>
+        </div>
+      }
 
-            <!-- Worker Column -->
-            <ng-container matColumnDef="worker">
-              <th mat-header-cell *matHeaderCellDef
-                  class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest">
-                Worker
-              </th>
-              <td mat-cell *matCellDef="let b" class="!px-6 !py-4">
-                <div class="flex items-center gap-4">
-                  <div class="h-10 w-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400
-                              font-black text-xs uppercase border border-slate-200 overflow-hidden">
-                    @if (b.workerImage) { <img [src]="b.workerImage" class="w-full h-full object-cover"> }
+      <!-- Search and Filters -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4 mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_180px_180px_100px] gap-3">
+          <label class="relative block">
+            <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 !text-[18px] text-slate-400">search</mat-icon>
+            <input [ngModel]="searchQuery()"
+                   (ngModelChange)="searchQuery.set($event); currentPage.set(1)"
+                   placeholder="Search worker, service, payment status, amount, date"
+                   class="w-full h-11 rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 text-sm font-bold text-slate-800 outline-none focus:bg-white focus:border-brand-teal">
+          </label>
+          <select [ngModel]="statusFilter()"
+                  (ngModelChange)="statusFilter.set($event); currentPage.set(1)"
+                  class="h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none focus:bg-white focus:border-brand-teal">
+            @for (status of jobStatusOptions; track status) {
+              <option [value]="status">{{ status === 'All' ? 'All Job Statuses' : status }}</option>
+            }
+          </select>
+          <select [ngModel]="paymentStatusFilter()"
+                  (ngModelChange)="paymentStatusFilter.set($event); currentPage.set(1)"
+                  class="h-11 rounded-xl border border-slate-200 bg-slate-50 px-4 text-[10px] font-black uppercase tracking-widest text-slate-600 outline-none focus:bg-white focus:border-brand-teal">
+            @for (status of paymentStatusOptions; track status) {
+              <option [value]="status">{{ status === 'All' ? 'All Payments' : status }}</option>
+            }
+          </select>
+          <button (click)="clearFilters()"
+                  class="h-11 rounded-xl border border-slate-200 bg-white text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-teal hover:border-brand-teal transition-all">
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <!-- Bookings List -->
+      @if (filteredBookings().length > 0) {
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden mb-12">
+          <div class="divide-y divide-slate-100">
+            @for (b of paginatedBookings(); track b.id) {
+              <div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                
+                <!-- Worker Info -->
+                <div class="flex items-center gap-3.5 min-w-[240px]">
+                  <div class="h-9 w-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 font-bold text-[10px] uppercase border border-slate-200 overflow-hidden shrink-0">
+                    @if ($any(b).workerImage) { <img [src]="$any(b).workerImage" class="w-full h-full object-cover"> }
                     @else { {{ b.workerInitials }} }
                   </div>
                   <div>
-                    <p class="text-sm font-black text-slate-900 leading-tight mb-0.5">{{ b.workerName }}</p>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{{ b.service }}</p>
+                    <h3 class="text-xs font-black text-slate-900 leading-tight mb-0.5">{{ b.workerName }}</h3>
+                    <p class="text-[9px] text-slate-400 font-black uppercase tracking-wider">{{ b.service }}</p>
                   </div>
                 </div>
-              </td>
-            </ng-container>
 
-            <!-- Date Column -->
-            <ng-container matColumnDef="date">
-              <th mat-header-cell *matHeaderCellDef
-                  class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">
-                Date
-              </th>
-              <td mat-cell *matCellDef="let b" class="!px-6 !py-4 text-center">
-                <p class="text-[12px] font-bold text-slate-900">{{ b.date }}</p>
-              </td>
-            </ng-container>
-
-            <!-- Cost Column -->
-            <ng-container matColumnDef="cost">
-              <th mat-header-cell *matHeaderCellDef
-                  class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-center">
-                Amount
-              </th>
-              <td mat-cell *matCellDef="let b" class="!px-6 !py-4 text-center whitespace-nowrap">
-                <div class="flex items-center justify-center gap-1.5">
-                  <span class="text-sm font-black text-slate-900">KES {{ b.earnings | number }}</span>
-                  <span class="text-[9px] font-black uppercase text-slate-400">
-                    · {{ getPaymentStatusLabel(b.status) }}
-                  </span>
+                <!-- Date & Amount -->
+                <div class="flex flex-row sm:flex-col sm:items-start justify-between sm:justify-center items-center gap-2 sm:gap-0.5">
+                  <div class="flex items-center gap-1 text-[10px] text-slate-400 font-semibold">
+                    <mat-icon class="!text-[10px] !w-auto !h-auto">calendar_today</mat-icon>
+                    <span>{{ b.date }}</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-black text-slate-900">KES {{ b.earnings | number }}</span>
+                    <span class="text-[8px] font-black uppercase bg-slate-50 border border-slate-200/50 text-slate-400 px-1.5 py-0.2 rounded-md">
+                      {{ getPaymentStatusLabel(b.status) }}
+                    </span>
+                  </div>
                 </div>
-              </td>
-            </ng-container>
 
-            <!-- Actions Column -->
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef
-                  class="!px-6 !py-4 !bg-slate-50/50 !text-slate-400 !font-black !text-[10px] !uppercase !tracking-widest text-right">
-                Actions
-              </th>
-              <td mat-cell *matCellDef="let b" class="!px-6 !py-4">
-                <div class="flex items-center justify-end gap-3">
-
+                <!-- Actions / Status -->
+                <div class="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-50">
+                  
                   <!-- Status badge -->
-                  <span [ngClass]="getStatusClasses(b.status)" class="min-w-[90px] text-center">
+                  <span [ngClass]="getStatusClasses(b.status)">
                     {{ pollingJobId() === b.id ? 'Waiting...' : b.status }}
                   </span>
 
                   <!-- Loading spinner while polling -->
                   @if (pollingJobId() === b.id) {
-                    <mat-icon class="animate-spin text-indigo-500 !w-5 !h-5">sync</mat-icon>
+                    <mat-icon class="animate-spin text-indigo-500 !w-4 !h-4">sync</mat-icon>
                   }
 
-                  <!-- PAY button — shown for Accepted jobs without an active payment -->
-                  @else if (b.status === 'Accepted') {
-                    <button (click)="openPayModal(b)"
-                            class="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-[9px] font-black
-                                   uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-sm">
-                      Pay
-                    </button>
-                  }
+                  <!-- Actions -->
+                  <div class="flex items-center gap-2">
+                    <!-- PAY button -->
+                    @if (b.status === 'Accepted') {
+                      <button (click)="openPayModal(b)"
+                              class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-[9px] font-black
+                                     uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-sm">
+                        Pay
+                      </button>
+                    }
 
-                  <!-- RETRY button — for failed payments -->
-                  @else if (b.paymentStatus === 'FAILED') {
-                    <button (click)="openPayModal(b)"
-                            class="px-4 py-1.5 bg-rose-600 text-white rounded-lg text-[9px] font-black
-                                   uppercase tracking-widest hover:bg-rose-700 transition-all shadow-sm">
-                      Retry Payment
-                    </button>
-                  }
+                    <!-- RETRY button -->
+                    @else if (b.status === 'Rejected' || b.status === 'REJECTED') {
+                      <button (click)="openPayModal(b)"
+                              class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-[9px] font-black
+                                     uppercase tracking-widest hover:bg-rose-700 transition-all active:scale-95 shadow-sm">
+                        Retry Payment
+                      </button>
+                    }
 
-                  <!-- APPROVE button — work submitted, client approves work completion -->
-                  @else if (b.status === 'Submitted') {
-                    <button (click)="openReleaseConfirm(b)"
-                            [disabled]="releasingJobId() === b.id"
-                            class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
-                                   uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-sm
-                                   disabled:opacity-50 disabled:cursor-wait">
-                      {{ releasingJobId() === b.id ? 'Approving...' : 'Approve Work' }}
-                    </button>
-                    <button (click)="state.updateJobStatus(b.id, 'REVISION_REQUESTED')"
-                            title="Request revision"
-                            class="w-8 h-8 flex items-center justify-center border border-slate-200
-                                   text-slate-400 rounded-lg hover:text-amber-600 transition-all">
-                      <mat-icon class="!text-lg">rebase_edit</mat-icon>
-                    </button>
-                  }
+                    <!-- APPROVE button -->
+                    @else if (b.status === 'Submitted') {
+                      <button (click)="openReleaseConfirm(b)"
+                              [disabled]="releasingJobId() === b.id"
+                              class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
+                                     uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-95 shadow-sm
+                                     disabled:opacity-50 disabled:cursor-wait">
+                        {{ releasingJobId() === b.id ? 'Approving...' : 'Approve Work' }}
+                      </button>
+                      <button (click)="state.updateJobStatus(b.id, 'REVISION_REQUESTED')"
+                              title="Request revision"
+                              class="w-7 h-7 flex items-center justify-center border border-slate-200
+                                     text-slate-400 rounded-lg hover:text-amber-600 transition-all bg-white active:scale-95">
+                        <mat-icon class="!text-sm">rebase_edit</mat-icon>
+                      </button>
+                    }
 
-                  <!-- FEEDBACK button — approved jobs without a review -->
-                  @else if (b.status === 'Approved' && !b.hasReview) {
-                    <button (click)="openReviewModal(b)"
-                            class="px-4 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
-                                   uppercase tracking-widest hover:bg-brand-teal transition-all">
-                      Feedback
-                    </button>
-                  }
+                    <!-- FEEDBACK button -->
+                    @else if (b.status === 'Approved' && !b.hasReview) {
+                      <button (click)="openReviewModal(b)"
+                              class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
+                                     uppercase tracking-widest hover:bg-brand-teal transition-all active:scale-95 shadow-sm">
+                        Feedback
+                      </button>
+                    }
 
-                  <!-- CANCEL button — pending jobs -->
-                  @else if (b.status === 'Pending') {
-                    <button (click)="state.updateJobStatus(b.id, 'CANCELLED')"
-                            class="px-3 py-1.5 border border-slate-200 text-slate-400 rounded-lg text-[9px]
-                                   font-black uppercase tracking-widest hover:text-rose-600 hover:border-rose-100 transition-all">
-                      Cancel
-                    </button>
-                  }
+                    <!-- CANCEL button -->
+                    @else if (b.status === 'Pending') {
+                      <button (click)="state.updateJobStatus(b.id, 'CANCELLED')"
+                              class="px-2.5 py-1.5 border border-slate-200 text-slate-400 rounded-lg text-[9px]
+                                     font-black uppercase tracking-widest hover:text-rose-600 hover:border-rose-100 transition-all bg-white active:scale-95">
+                        Cancel
+                      </button>
+                    }
+                  </div>
 
                 </div>
-              </td>
-            </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"
-                class="hover:bg-slate-50 transition-colors"></tr>
-          </table>
-        </div>
+              </div>
+            }
+          </div>
 
-        <!-- Pagination -->
-        @if (totalPages() > 1) {
-          <div class="p-4 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
-            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-              Page {{ currentPage() }} of {{ totalPages() }}
-            </span>
-            <div class="flex gap-2">
-              <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"
-                      class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200
-                             text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all">
-                <mat-icon class="!text-lg">chevron_left</mat-icon>
-              </button>
-              <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()"
-                      class="w-8 h-8 flex items-center justify-center rounded-lg border border-slate-200
-                             text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all">
-                <mat-icon class="!text-lg">chevron_right</mat-icon>
-              </button>
+          <!-- Pagination -->
+          @if (totalPages() > 1) {
+            <div class="p-3 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+              <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                Showing {{ pageStart() + 1 }}-{{ pageEnd() }} of {{ filteredBookings().length }}
+              </span>
+              <div class="flex gap-1.5">
+                <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200
+                               text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all bg-white">
+                  <mat-icon class="!text-base">chevron_left</mat-icon>
+                </button>
+                @for (page of pageNumbers(); track page) {
+                  <button (click)="goToPage(page)"
+                          [ngClass]="page === currentPage() ? 'bg-brand-teal text-white border-brand-teal' : 'bg-white text-slate-400 border-slate-200 hover:text-brand-teal'"
+                          class="w-7 h-7 flex items-center justify-center rounded-lg border text-[10px] font-black transition-all">
+                    {{ page }}
+                  </button>
+                }
+                <button (click)="goToPage(currentPage() + 1)" [disabled]="currentPage() === totalPages()"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200
+                               text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all bg-white">
+                  <mat-icon class="!text-base">chevron_right</mat-icon>
+                </button>
+              </div>
             </div>
-          </div>
-        }
+          }
+        </div>
+      }
 
-        @if (state.bookings().length === 0) {
-          <div class="p-20 text-center">
-            <h3 class="text-xl font-black text-slate-900 mb-2">No bookings yet</h3>
-            <p class="text-slate-400 text-xs mb-8">Start your first project from the marketplace.</p>
-            <button mat-flat-button routerLink="/employer/marketplace"
-                    class="!bg-brand-teal !text-white !rounded-xl !px-8 !py-4 !font-black !text-[10px] !uppercase !tracking-widest">
-              Browse Professionals
-            </button>
+      @if (filteredBookings().length === 0) {
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-12 text-center max-w-md mx-auto mt-8">
+          <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-300 mx-auto mb-4 border border-slate-100/50">
+            <mat-icon class="!text-2xl">assignment_late</mat-icon>
           </div>
-        }
-      </div>
+          <h3 class="text-lg font-black text-slate-900 mb-1">No bookings yet</h3>
+          <p class="text-slate-400 text-xs mb-6 leading-relaxed">Start your first project from the marketplace to track bookings here.</p>
+          <button mat-flat-button routerLink="/client/marketplace"
+                  class="!bg-brand-teal !text-white !rounded-xl !px-6 !py-3.5 !font-black !text-[10px] !uppercase !tracking-widest shadow-md">
+            Browse Professionals
+          </button>
+        </div>
+      }
 
       <!-- PAY MODAL -->
       @if (payModal) {
@@ -392,13 +430,56 @@ export class ClientBookingsPage implements OnDestroy {
   // Pagination
   currentPage  = signal(1);
   itemsPerPage = signal(8);
+  searchQuery = signal('');
+  statusFilter = signal('All');
+  paymentStatusFilter = signal<PaymentStatusFilter>('All');
+  uiMessage = signal<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+  readonly jobStatusOptions = JOB_STATUS_OPTIONS;
+  readonly paymentStatusOptions = PAYMENT_STATUS_OPTIONS;
+  readonly getPaymentStatusLabel = getPaymentStatusLabel;
+
+  filteredBookings = computed(() => {
+    const query = this.searchQuery().trim().toLowerCase();
+    const status = this.statusFilter();
+    const paymentStatus = this.paymentStatusFilter();
+
+    return [...this.state.bookings()]
+      .sort((a: any, b: any) => (b.rawDate || 0) - (a.rawDate || 0))
+      .filter((b: any) => status === 'All' || b.status === status)
+      .filter((b: any) => matchesPaymentStatusFilter(b.status, paymentStatus))
+      .filter((b: any) => {
+        if (!query) return true;
+        const haystack = [
+          b.workerName,
+          b.service,
+          b.status,
+          b.date,
+          b.earnings,
+          getPaymentStatusLabel(b.status)
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
+  });
 
   paginatedBookings = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage();
-    return this.state.bookings().slice(start, start + this.itemsPerPage());
+    return this.filteredBookings().slice(start, start + this.itemsPerPage());
   });
-  totalPages = computed(() => Math.ceil(this.state.bookings().length / this.itemsPerPage()));
+  totalPages = computed(() => Math.max(1, Math.ceil(this.filteredBookings().length / this.itemsPerPage())));
+  pageStart = computed(() => Math.min((this.currentPage() - 1) * this.itemsPerPage(), Math.max(this.filteredBookings().length - 1, 0)));
+  pageEnd = computed(() => Math.min(this.pageStart() + this.itemsPerPage(), this.filteredBookings().length));
+  pageNumbers = computed(() => Array.from({ length: this.totalPages() }, (_, i) => i + 1).slice(
+    Math.max(0, this.currentPage() - 3),
+    Math.max(0, this.currentPage() - 3) + 5
+  ));
   goToPage(p: number) { if (p >= 1 && p <= this.totalPages()) this.currentPage.set(p); }
+  clearFilters() {
+    this.searchQuery.set('');
+    this.statusFilter.set('All');
+    this.paymentStatusFilter.set('All');
+    this.currentPage.set(1);
+    this.uiMessage.set({ text: 'Filters cleared.', type: 'info' });
+  }
 
   // Payment polling state
   pollingJobId   = signal<string | null>(null);
@@ -465,16 +546,26 @@ private refreshBookings() {
       next: (resp) => {
         if (resp.status === 'PAID') {
           this.pollingJobId.set(null);
-          this.snack.open('Payment confirmed! Work is now in progress.', 'OK', { duration: 6000 });
+          const receipt = resp.mpesaReceiptNumber ? ` Receipt: ${resp.mpesaReceiptNumber}` : '';
+          this.snack.open(`Payment confirmed!${receipt}`, 'OK', { duration: 6000 });
           this.refreshBookings();
         } else if (resp.status === 'FAILED') {
           this.pollingJobId.set(null);
-          this.snack.open('Payment failed. Use "Retry Payment" to try again.', 'Retry', { duration: 8000 })
+          const msg = this.payment.getFailureMessage(resp.failureReason, resp.message);
+          this.snack.open(msg, 'Retry', { duration: 8000 })
             .onAction().subscribe(() => {
               const b = this.state.bookings().find((b: any) => b.id === jobId);
               if (b) this.openPayModal(b, true);
             });
           this.refreshBookings();
+        } else if (resp.status === 'REFUNDED') {
+          this.pollingJobId.set(null);
+          this.snack.open('Payment was refunded to your wallet.', 'OK', { duration: 6000 });
+          this.refreshBookings();
+        } else if (resp.status === 'PENDING' && resp.message?.includes('refresh')) {
+          this.pollingJobId.set(null);
+          this.snack.open('Payment may still be processing. Refresh to check status.', 'Refresh', { duration: 8000 })
+            .onAction().subscribe(() => this.refreshBookings());
         }
       },
       error: () => {
@@ -493,11 +584,22 @@ private refreshBookings() {
     this.releaseConfirm = null;
     this.releasingJobId.set(booking.id);
 
-    // Escrow flows removed: update job status to APPROVED which triggers settlement logic server-side.
-    this.state.updateJobStatus(booking.id, 'APPROVED');
-    this.releasingJobId.set(null);
-    this.snack.open('Funds release requested; payment settlement will follow.', 'OK', { duration: 5000 });
-    this.refreshBookings();
+    this.state.updateJobStatusRequest(booking.id, 'APPROVED').subscribe({
+      next: () => {
+        this.releasingJobId.set(null);
+        this.uiMessage.set({ text: 'Work approved. Funds released to the worker wallet.', type: 'success' });
+        this.snack.open('Work approved. Funds released to the worker wallet.', 'OK', { duration: 5000 });
+        this.refreshBookings();
+      },
+      error: (err) => {
+        this.releasingJobId.set(null);
+        const body = err?.error;
+        const message = typeof body === 'string'
+          ? body
+          : body?.message || 'Could not approve work. Confirm payment is captured in escrow first.';
+        this.uiMessage.set({ text: message, type: 'error' });
+      }
+    });
   }
 
   // ── Review ──────────────────────────────────────────────────────────────
@@ -532,23 +634,14 @@ private refreshBookings() {
   get pendingCount() { return this.state.bookings().filter((b: any) => b.status === 'Pending').length; }
   get totalSpent()   { return this.state.bookings().filter((b: any) => ['Approved','Completed'].includes(b.status)).reduce((s: number, b: any) => s + b.earnings, 0); }
 
-  getPaymentStatusLabel(status: string): string {
-    const s = (status || '').toLowerCase().trim();
-    if (['approved', 'completed', 'force completed'].includes(s)) return 'Released';
-    if (['cancelled', 'refunded', 'rejected'].includes(s)) return 'Cancelled';
-    if (s === 'partially settled') return 'Partially Settled';
-    if (['in progress', 'submitted', 'disputed', 'revision requested'].includes(s)) return 'Escrowed';
-    return 'Pending Payment';
-  }
-
   getStatusClasses(status: string) {
     const base = 'px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-wider border transition-colors ';
     switch ((status || '').toLowerCase()) {
       case 'approved':           return base + 'bg-slate-50 text-indigo-600 border-indigo-100';
+      case 'accepted':           return base + 'bg-brand-teal-soft text-brand-teal border-brand-teal/30';
       case 'submitted':          return base + 'bg-emerald-50/50 text-emerald-600 border-emerald-100';
       case 'pending':            return base + 'bg-slate-50 text-slate-500 border-slate-200';
       case 'in progress':        return base + 'bg-indigo-50/30 text-indigo-500 border-indigo-100';
-      case 'accepted':           return base + 'bg-brand-teal-soft text-brand-teal border-brand-teal/30';
       case 'cancelled':          return base + 'bg-slate-50 text-rose-400 border-rose-100';
       case 'disputed':           return base + 'bg-rose-50 text-rose-600 border-rose-200';
       case 'revision requested': return base + 'bg-amber-50 text-amber-600 border-amber-100';

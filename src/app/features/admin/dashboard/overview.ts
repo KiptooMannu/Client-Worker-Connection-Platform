@@ -9,6 +9,14 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterLink } from '@angular/router';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { FormsModule } from '@angular/forms';
+import {
+  getPaymentStatusLabel,
+  JOB_STATUS_OPTIONS,
+  matchesPaymentStatusFilter,
+  PAYMENT_STATUS_OPTIONS,
+  PaymentStatusFilter
+} from '../../../core/utils/payment-status.util';
 
 @Component({
   selector: 'app-admin-dashboard-overview',
@@ -21,7 +29,8 @@ import { NotificationService } from '../../../core/services/notification.service
     MatChipsModule, 
     MatListModule,
     MatProgressBarModule,
-    RouterLink
+    RouterLink,
+    FormsModule
   ],
   template: `
     <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-1000 p-4 md:p-0">
@@ -189,35 +198,67 @@ import { NotificationService } from '../../../core/services/notification.service
 
       <!-- System Oversight (Hires Ledger) -->
       <mat-card class="!rounded-[24px] !border !border-slate-100 !shadow-sm !overflow-hidden">
-        <mat-card-header class="!p-8 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-row !justify-between !items-center">
-          <mat-card-title class="!text-[10px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Global Hires Ledger (Oversight)</mat-card-title>
-          <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">Tracking {{ state.allBookings().length }} platform-wide connections</span>
+        <mat-card-header class="!p-6 !border-b !border-slate-50 !bg-slate-50/50 flex !flex-col !items-stretch gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <mat-card-title class="!text-[10px] !font-black !text-slate-900 !uppercase !tracking-widest !m-0">Global Hires Ledger</mat-card-title>
+            <span class="text-[8px] text-slate-400 font-black uppercase tracking-widest">{{ filteredAllBookings().length }} of {{ state.allBookings().length }} connections</span>
+          </div>
+          <div class="grid grid-cols-1 lg:grid-cols-[1fr_160px_160px_90px] gap-2">
+            <label class="relative block">
+              <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 !text-[16px] text-slate-400">search</mat-icon>
+              <input [ngModel]="ledgerSearch()" (ngModelChange)="ledgerSearch.set($event); currentPage.set(1)"
+                     placeholder="Search worker, client, service, payment"
+                     class="w-full h-9 rounded-lg border border-slate-200 bg-white pl-9 pr-3 text-xs font-bold text-slate-800 outline-none focus:border-brand-teal">
+            </label>
+            <select [ngModel]="ledgerStatusFilter()" (ngModelChange)="ledgerStatusFilter.set($event); currentPage.set(1)"
+                    class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-[9px] font-black uppercase tracking-widest text-slate-600 outline-none focus:border-brand-teal">
+              @for (status of jobStatusOptions; track status) {
+                <option [value]="status">{{ status === 'All' ? 'All Statuses' : status }}</option>
+              }
+            </select>
+            <select [ngModel]="ledgerPaymentFilter()" (ngModelChange)="ledgerPaymentFilter.set($event); currentPage.set(1)"
+                    class="h-9 rounded-lg border border-slate-200 bg-white px-3 text-[9px] font-black uppercase tracking-widest text-slate-600 outline-none focus:border-brand-teal">
+              @for (status of paymentStatusOptions; track status) {
+                <option [value]="status">{{ status === 'All' ? 'All Payments' : status }}</option>
+              }
+            </select>
+            <button (click)="clearLedgerFilters()"
+                    class="h-9 rounded-lg border border-slate-200 bg-white text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-teal hover:border-brand-teal transition-all">
+              Clear
+            </button>
+          </div>
         </mat-card-header>
         
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-slate-900 text-white">
-                <th class="px-6 py-3 text-[9px] font-black uppercase tracking-widest">Professional</th>
-                <th class="px-6 py-3 text-[9px] font-black uppercase tracking-widest">Client</th>
-                <th class="px-6 py-3 text-[9px] font-black uppercase tracking-widest">Service</th>
-                <th class="px-6 py-3 text-[9px] font-black uppercase tracking-widest text-right">Status</th>
+                <th class="px-5 py-2.5 text-[9px] font-black uppercase tracking-widest">Professional</th>
+                <th class="px-5 py-2.5 text-[9px] font-black uppercase tracking-widest">Client</th>
+                <th class="px-5 py-2.5 text-[9px] font-black uppercase tracking-widest">Service</th>
+                <th class="px-5 py-2.5 text-[9px] font-black uppercase tracking-widest">Payment</th>
+                <th class="px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-right">Job Status</th>
               </tr>
             </thead>
             <tbody>
               @for (job of paginatedAllBookings(); track job.id) {
                 <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
-                  <td class="px-6 py-3">
-                    <div class="flex items-center gap-3">
+                  <td class="px-5 py-2.5">
+                    <div class="flex items-center gap-2.5">
                       <div class="w-7 h-7 rounded-lg bg-brand-teal-soft text-brand-teal flex items-center justify-center font-black text-[9px] uppercase border border-white">{{ job.workerInitials }}</div>
                       <span class="text-[11px] font-black text-slate-900">{{ job.workerName }}</span>
                     </div>
                   </td>
-                  <td class="px-6 py-3 text-[11px] font-bold text-slate-600">{{ job.clientName }}</td>
-                  <td class="px-6 py-3 text-[10px] font-medium text-slate-500">{{ job.service }}</td>
-                  <td class="px-6 py-3 text-right">
+                  <td class="px-5 py-2.5 text-[11px] font-bold text-slate-600">{{ job.clientName }}</td>
+                  <td class="px-5 py-2.5 text-[10px] font-medium text-slate-500 max-w-[180px] truncate">{{ job.service }}</td>
+                  <td class="px-5 py-2.5">
+                    <span class="inline-block px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest bg-slate-50 text-slate-600 border border-slate-100">
+                      {{ getPaymentStatusLabel(job.status) }}
+                    </span>
+                  </td>
+                  <td class="px-5 py-2.5 text-right">
                     <span class="inline-block px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest" 
-                          [ngClass]="job.status === 'Approved' ? 'bg-teal-50 text-teal-700' : 'bg-blue-50 text-blue-700'">
+                          [ngClass]="job.status === 'Approved' || job.status === 'Completed' ? 'bg-teal-50 text-teal-700' : 'bg-blue-50 text-blue-700'">
                       {{ job.status }}
                     </span>
                   </td>
@@ -247,6 +288,11 @@ import { NotificationService } from '../../../core/services/notification.service
             <div class="p-12 text-center">
                 <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No active marketplace connections</p>
             </div>
+        } @else if (filteredAllBookings().length === 0) {
+            <div class="p-8 text-center border-t border-slate-50">
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No records match your filters</p>
+                <button (click)="clearLedgerFilters()" class="mt-3 text-[9px] font-black uppercase tracking-widest text-brand-teal hover:underline">Clear filters</button>
+            </div>
         }
       </mat-card>
     </div>
@@ -259,21 +305,56 @@ export class AdminOverviewPage {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
 
-  // Pagination for Hires Ledger
   currentPage = signal(1);
   itemsPerPage = signal(10);
+  ledgerSearch = signal('');
+  ledgerStatusFilter = signal('All');
+  ledgerPaymentFilter = signal<PaymentStatusFilter>('All');
+  readonly jobStatusOptions = JOB_STATUS_OPTIONS;
+  readonly paymentStatusOptions = PAYMENT_STATUS_OPTIONS;
+  readonly getPaymentStatusLabel = getPaymentStatusLabel;
+
+  filteredAllBookings = computed(() => {
+    const query = this.ledgerSearch().trim().toLowerCase();
+    const status = this.ledgerStatusFilter();
+    const paymentStatus = this.ledgerPaymentFilter();
+
+    return [...this.state.allBookings()]
+      .sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0))
+      .filter(b => status === 'All' || b.status === status)
+      .filter(b => matchesPaymentStatusFilter(b.status, paymentStatus))
+      .filter(b => {
+        if (!query) return true;
+        const haystack = [
+          b.workerName,
+          b.clientName,
+          b.service,
+          b.status,
+          getPaymentStatusLabel(b.status)
+        ].join(' ').toLowerCase();
+        return haystack.includes(query);
+      });
+  });
 
   paginatedAllBookings = computed(() => {
     const start = (this.currentPage() - 1) * this.itemsPerPage();
-    return this.state.allBookings().slice(start, start + this.itemsPerPage());
+    return this.filteredAllBookings().slice(start, start + this.itemsPerPage());
   });
 
-  totalPages = computed(() => Math.ceil(this.state.allBookings().length / this.itemsPerPage()));
+  totalPages = computed(() => Math.max(1, Math.ceil(this.filteredAllBookings().length / this.itemsPerPage())));
 
   goToPage(page: number) {
     if (page >= 1 && page <= this.totalPages()) {
       this.currentPage.set(page);
     }
+  }
+
+  clearLedgerFilters() {
+    this.ledgerSearch.set('');
+    this.ledgerStatusFilter.set('All');
+    this.ledgerPaymentFilter.set('All');
+    this.currentPage.set(1);
+    this.notification.info('Ledger filters cleared.');
   }
 
   get stats() {

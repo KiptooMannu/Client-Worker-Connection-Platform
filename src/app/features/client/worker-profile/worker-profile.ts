@@ -64,8 +64,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 <mat-icon class="!text-xs !w-auto !h-auto">chat_bubble</mat-icon>
                 Negotiate
               </button>
-              <button (click)="hire()" [disabled]="hasPendingRequest()" class="flex-1 bg-white text-slate-900 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl disabled:opacity-50">
-                {{ hasPendingRequest() ? 'PENDING' : 'HIRE' }}
+              <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" class="flex-1 bg-white text-slate-900 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl disabled:opacity-50">
+                {{ hasPendingRequest() ? 'PENDING' : (hiring() ? 'SENDING...' : 'HIRE') }}
               </button>
             </div>
           </div>
@@ -174,10 +174,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 <mat-icon class="!text-sm !w-auto !h-auto">chat_bubble_outline</mat-icon>
                 Negotiate Terms
               </button>
-              <button (click)="hire()" [disabled]="hasPendingRequest()" 
+              <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" 
                       class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30 flex items-center justify-center gap-2">
                 <mat-icon class="!text-sm !w-auto !h-auto">check_circle</mat-icon>
-                {{ hasPendingRequest() ? 'REQUEST PENDING' : 'HIRE NOW' }}
+                {{ hasPendingRequest() ? 'REQUEST PENDING' : (hiring() ? 'SENDING...' : 'HIRE NOW') }}
               </button>
             </div>
 
@@ -229,9 +229,9 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <span class="text-[9px] font-black text-slate-500 ml-1">{{ worker()?.reviews }} reviews</span>
             </div>
           </div>
-          <button (click)="hire()" [disabled]="hasPendingRequest()" 
+          <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" 
                   class="bg-slate-900 hover:bg-slate-800 text-white font-black py-4 px-8 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30">
-            {{ hasPendingRequest() ? 'PENDING' : 'HIRE NOW' }}
+            {{ hasPendingRequest() ? 'PENDING' : (hiring() ? 'SENDING...' : 'HIRE NOW') }}
           </button>
         </div>
       </div>
@@ -246,6 +246,7 @@ export class ClientWorkerProfilePage {
   route = inject(ActivatedRoute);
   router = inject(Router);
   state = inject(PlatformStateService);
+  hiring = signal(false);
 
   worker = computed(() => {
     const id = this.route.snapshot.paramMap.get('id');
@@ -265,15 +266,24 @@ export class ClientWorkerProfilePage {
     const w = this.worker();
     if (!w) return false;
     return this.state.bookings().some(b => 
-      b.workerId === w.id && (b.status === 'PENDING' || b.status === 'ACCEPTED')
+      b.workerId === w.id && 
+      (b.status.toLowerCase() === 'pending' || b.status.toLowerCase() === 'accepted')
     );
   });
 
   hire() {
     const w = this.worker();
     if (w) {
-      this.state.hireWorker(w.id);
-      this.router.navigate(['employer/bookings']);
+      this.hiring.set(true);
+      this.state.hireWorker(w.id).subscribe({
+        next: () => {
+          this.hiring.set(false);
+          this.router.navigate(['/client/bookings']);
+        },
+        error: () => {
+          this.hiring.set(false);
+        }
+      });
     }
   }
 

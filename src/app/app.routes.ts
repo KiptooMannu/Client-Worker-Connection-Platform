@@ -130,6 +130,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/jobs/job-tracker').then(m => m.AdminJobTrackerPage)
       },
       {
+        path: 'fees',
+        loadComponent: () => import('./features/admin/fees/fee-tracking').then(m => m.AdminFeeTrackingPage)
+      },
+      {
         path: 'activity',
         loadComponent: () => import('./features/admin/activity/platform-activity').then(m => m.AdminActivityPage)
       },
