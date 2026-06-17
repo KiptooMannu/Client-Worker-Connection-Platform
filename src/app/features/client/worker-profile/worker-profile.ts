@@ -1,10 +1,57 @@
-import { Component, inject, computed, signal } from '@angular/core';
+import { Component, inject, computed, signal, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { ActivatedRoute, RouterLink, Router } from '@angular/router';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
+
+// Define types for better type safety
+interface WorkerProfile {
+  id: string;
+  name: string;
+  initials: string;
+  category: string;
+  image?: string;
+  location?: string;
+  rate: number;
+  reviews: number;
+  rating?: number;
+  bio?: string;
+  skills: string[];
+  completedJobs: number;
+  workHistory: WorkHistory[];
+  certifications: Certification[];
+  reviewsList: Review[];
+  status?: string;
+}
+
+interface WorkHistory {
+  role: string;
+  company: string;
+  period: string;
+  description: string;
+}
+
+interface Certification {
+  name: string;
+  issuer: string;
+  year: string;
+}
+
+interface Review {
+  id: string;
+  clientName?: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
+interface Booking {
+  id: string;
+  workerId: string;
+  status: string;
+}
 
 @Component({
   selector: 'app-client-worker-profile',
@@ -22,7 +69,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       <nav class="p-4 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
         <a routerLink="/employer" class="hover:text-slate-900 transition-colors">Marketplace</a>
         <mat-icon class="!text-[10px] !w-auto !h-auto">chevron_right</mat-icon>
-        <span class="text-slate-900">{{ worker()?.name }}</span>
+        <span class="text-slate-900">{{ workerData().name }}</span>
       </nav>
 
       <!-- Profile Header / Hero -->
@@ -35,16 +82,16 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <!-- Profile Avatar -->
             <div class="relative mb-6">
               <div class="w-28 h-28 rounded-2xl overflow-hidden border-2 border-white/20 shadow-xl bg-slate-800 flex items-center justify-center text-slate-400 font-black text-2xl uppercase">
-                @if (worker()?.image) { 
-                  <img [src]="worker()?.image" class="w-full h-full object-cover"> 
-                } @else { {{ worker()?.initials }} }
+                @if (workerData().image) { 
+                  <img [src]="workerData().image" class="w-full h-full object-cover"> 
+                } @else { {{ workerData().initials }} }
               </div>
               <div class="absolute bottom-[-4px] right-[-4px] w-6 h-6 bg-emerald-500 border-4 border-slate-900 rounded-full"></div>
             </div>
 
             <!-- Identity -->
-            <h1 class="text-2xl font-black mb-1 tracking-tight">{{ worker()?.name }}</h1>
-            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-6">{{ worker()?.category }}</p>
+            <h1 class="text-2xl font-black mb-1 tracking-tight">{{ workerData().name }}</h1>
+            <p class="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-6">{{ workerData().category }}</p>
 
             <!-- Status Badges -->
             <div class="flex flex-wrap justify-center gap-2 mb-8">
@@ -54,7 +101,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               </span>
               <span class="inline-flex items-center gap-1.5 bg-white/10 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10">
                 <mat-icon class="!text-slate-400 !text-xs !w-auto !h-auto">location_on</mat-icon>
-                {{ worker()?.location || 'Nairobi, Kenya' }}
+                {{ workerData().location || 'Nairobi, Kenya' }}
               </span>
             </div>
 
@@ -76,15 +123,15 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mx-4">
         <!-- Main Details -->
         <main class="lg:col-span-8 space-y-6">
-          <!-- Quick Stats (Injected for mobile parity but hidden on very small screens) -->
+          <!-- Quick Stats -->
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
               <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Rate</p>
-              <p class="text-lg font-black text-slate-900">KSh {{ worker()?.rate }}</p>
+              <p class="text-lg font-black text-slate-900">KSh {{ workerData().rate }}</p>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
               <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Reviews</p>
-              <p class="text-lg font-black text-slate-900">{{ worker()?.reviews }}</p>
+              <p class="text-lg font-black text-slate-900">{{ workerData().reviews }}</p>
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
               <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Success</p>
@@ -92,7 +139,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
               <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Projects</p>
-              <p class="text-lg font-black text-slate-900">{{ worker()?.workHistory?.length || 0 }}</p>
+              <p class="text-lg font-black text-slate-900">{{ workerData().workHistory.length }}</p>
             </div>
           </div>
 
@@ -103,10 +150,10 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               <h2 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">About Professional</h2>
             </div>
             <p class="text-sm text-slate-600 leading-relaxed font-medium mb-8">
-              {{ worker()?.bio }}
+              {{ workerData().bio }}
             </p>
             <div class="flex flex-wrap gap-2">
-              @for (skill of worker()?.skills; track skill) {
+              @for (skill of workerData().skills; track skill) {
                 <span class="bg-slate-50 border border-slate-100 text-slate-500 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-tight">
                   {{ skill }}
                 </span>
@@ -144,6 +191,69 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               }
             </div>
           </section>
+
+          <!-- Reviews Section -->
+          <section class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+            <div class="flex items-center gap-2 mb-8">
+              <div class="w-1 h-4 bg-slate-900 rounded-full"></div>
+              <h2 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Client Reviews</h2>
+            </div>
+            
+            <!-- Overall Rating -->
+            <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 mb-8">
+              <div class="flex items-center gap-4">
+                <div class="text-center">
+                  <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ workerData().rating.toFixed(1) || '0.0' }}</p>
+                  <div class="flex items-center gap-0.5 mt-1 justify-center">
+                    @for (s of [1,2,3,4,5]; track s) {
+                      <mat-icon class="!text-sm !w-auto !h-auto text-amber-400" [class.material-fill]="s <= (workerData().rating || 0)">star</mat-icon>
+                    }
+                  </div>
+                  <p class="text-[9px] font-black text-slate-500 mt-1">{{ workerData().reviews }} reviews</p>
+                </div>
+                <div class="flex-1 h-px bg-slate-200"></div>
+                <div class="text-center">
+                  <p class="text-2xl font-black text-slate-900 tracking-tighter">{{ workerData().completedJobs }}</p>
+                  <p class="text-[9px] font-black text-slate-500 uppercase tracking-wider mt-1">Jobs Completed</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Individual Reviews - FIXED -->
+            @if (hasReviews()) {
+              <div class="space-y-6">
+                @for (review of reviewsList(); track review.id) {
+                  <div class="bg-slate-50 rounded-xl p-5 border border-slate-100">
+                    <div class="flex items-start justify-between mb-3">
+                      <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-sm uppercase">
+                          {{ review.clientName?.substring(0, 2) || 'AN' }}
+                        </div>
+                        <div>
+                          <p class="text-sm font-black text-slate-900">{{ review.clientName || 'Anonymous' }}</p>
+                          <div class="flex items-center gap-0.5 mt-0.5">
+                            @for (s of [1,2,3,4,5]; track s) {
+                              <mat-icon class="!text-xs !w-auto !h-auto text-amber-400" [class.material-fill]="s <= review.rating">star</mat-icon>
+                            }
+                          </div>
+                        </div>
+                      </div>
+                      <span class="text-[8px] font-black text-slate-400 uppercase tracking-wider">{{ review.createdAt }}</span>
+                    </div>
+                    <p class="text-sm text-slate-600 leading-relaxed font-medium">"{{ review.comment || 'No comment provided.' }}"</p>
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="text-center py-8">
+                <div class="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center text-slate-300 mx-auto mb-3 border border-slate-100/50">
+                  <mat-icon class="!text-2xl">star_outline</mat-icon>
+                </div>
+                <p class="text-sm text-slate-400 font-medium">No reviews yet</p>
+                <p class="text-[10px] text-slate-300 mt-1">Be the first to leave a review!</p>
+              </div>
+            }
+          </section>
         </main>
 
         <!-- Sidebar Engagement (Desktop) -->
@@ -155,15 +265,15 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
 
             <div class="flex items-baseline gap-1 mb-6">
-              <span class="text-3xl font-black text-slate-900 tracking-tighter">KSh {{ worker()?.rate }}</span>
+              <span class="text-3xl font-black text-slate-900 tracking-tighter">KSh {{ workerData().rate }}</span>
             </div>
 
             <!-- Rating & CTA Intro -->
             <div class="flex items-center gap-0.5 mb-8 bg-slate-50 p-3 rounded-xl border border-slate-100">
               @for (s of [1,2,3,4,5]; track s) {
-                <mat-icon class="!text-sm !w-auto !h-auto text-amber-400" [class.material-fill]="s <= (worker()?.rating || 0)">star</mat-icon>
+                <mat-icon class="!text-sm !w-auto !h-auto text-amber-400" [class.material-fill]="s <= (workerData().rating || 0)">star</mat-icon>
               }
-              <span class="text-[10px] font-black text-slate-500 ml-2 tracking-tighter">{{ worker()?.reviews }} reviews</span>
+              <span class="text-[10px] font-black text-slate-500 ml-2 tracking-tighter">{{ workerData().reviews }} reviews</span>
             </div>
 
             <!-- Helper Text -->
@@ -222,11 +332,11 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         <div class="max-w-md mx-auto flex items-center justify-between gap-4">
           <div>
             <div class="flex items-baseline gap-1">
-              <span class="text-xl font-black text-slate-900 tracking-tighter">KSh {{ worker()?.rate }}</span>
+              <span class="text-xl font-black text-slate-900 tracking-tighter">KSh {{ workerData().rate }}</span>
             </div>
             <div class="flex items-center gap-0.5 mt-0.5">
               <mat-icon class="!text-xs !w-auto !h-auto text-amber-400" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
-              <span class="text-[9px] font-black text-slate-500 ml-1">{{ worker()?.reviews }} reviews</span>
+              <span class="text-[9px] font-black text-slate-500 ml-1">{{ workerData().reviews }} reviews</span>
             </div>
           </div>
           <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" 
@@ -248,34 +358,74 @@ export class ClientWorkerProfilePage {
   state = inject(PlatformStateService);
   hiring = signal(false);
 
-  worker = computed(() => {
+  // Get the raw worker data with safe fallback
+  private workerRaw = computed(() => {
     const id = this.route.snapshot.paramMap.get('id');
     const w = this.state.workers().find(w => w.id === id);
     return (w && w.status === 'Verified') ? w : null;
   });
 
-  displayCerts = computed(() => this.worker()?.certifications || []);
-  displayHistory = computed(() => this.worker()?.workHistory || []);
+  // Worker data with safe defaults for null/undefined
+  workerData = computed(() => {
+    const w = this.workerRaw();
+    return {
+      id: w?.id || '',
+      name: w?.name || 'Unknown Worker',
+      initials: w?.initials || 'UN',
+      category: w?.category || 'Professional',
+      image: w?.image,
+      location: w?.location || 'Nairobi, Kenya',
+      rate: w?.rate || 0,
+      reviews: w?.reviews || 0,
+      rating: w?.rating || 0,
+      bio: w?.bio || 'No bio available.',
+      skills: w?.skills || [],
+      completedJobs: w?.completedJobs || 0,
+      workHistory: w?.workHistory || [],
+      certifications: w?.certifications || [],
+      reviewsList: w?.reviewsList || [],
+      status: w?.status
+    };
+  });
+
+  // Computed signals for template - cleaner and safer
+  displayCerts = computed(() => this.workerData().certifications);
+  displayHistory = computed(() => this.workerData().workHistory);
+  
+  // Safe computed for reviews
+  reviewsList = computed(() => this.workerData().reviewsList);
+  hasReviews = computed(() => this.reviewsList().length > 0);
 
   successRate = computed(() => {
-    const reviews = this.worker()?.reviews || 0;
+    const reviews = this.workerData().reviews;
     return reviews > 0 ? Math.min(100, 80 + reviews) : 0;
   });
   
   hasPendingRequest = computed(() => {
-    const w = this.worker();
-    if (!w) return false;
-    return this.state.bookings().some(b => 
-      b.workerId === w.id && 
+    const worker = this.workerRaw();
+    if (!worker) return false;
+    return this.state.bookings().some((b: Booking) => 
+      b.workerId === worker.id && 
       (b.status.toLowerCase() === 'pending' || b.status.toLowerCase() === 'accepted')
     );
   });
 
+  constructor() {
+    // Fetch reviews and rating summary when worker ID changes
+    effect(() => {
+      const worker = this.workerRaw();
+      if (worker) {
+        this.state.fetchWorkerReviews(worker.id);
+        this.state.fetchWorkerRatingSummary(worker.id);
+      }
+    });
+  }
+
   hire() {
-    const w = this.worker();
-    if (w) {
+    const worker = this.workerRaw();
+    if (worker) {
       this.hiring.set(true);
-      this.state.hireWorker(w.id).subscribe({
+      this.state.hireWorker(worker.id).subscribe({
         next: () => {
           this.hiring.set(false);
           this.router.navigate(['/client/bookings']);
@@ -288,10 +438,10 @@ export class ClientWorkerProfilePage {
   }
 
   message() {
-    const w = this.worker();
-    if (w) {
-      this.state.startChat(w.id);
-      this.router.navigate(['/client','messages']);
+    const worker = this.workerRaw();
+    if (worker) {
+      this.state.startChat(worker.id);
+      this.router.navigate(['/client', 'messages']);
     }
   }
 }

@@ -26,13 +26,10 @@
             ],
             "styles": ["src/styles.css", "src/material-theme.scss"],
             "allowedCommonJsDependencies": ["sockjs-client"],
-            "server": "src/main.server.ts",
-            "outputMode": "server",
+            "outputMode": "static",
             "security": {
               "allowedHosts": []
-            },
-            "ssr": {
-              "entry": "src/server.ts"
+              
             }
           },
             "configurations": {

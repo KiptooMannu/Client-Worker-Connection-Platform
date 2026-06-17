@@ -106,7 +106,7 @@ import { AuthService } from '../../../core/services/auth.service';
             }
 
             <!-- Job Description Input -->
-            <div class="px-8 py-6">
+            <div class="px-8 py-6 border-b border-slate-50">
               <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Describe Your Job (Optional)</p>
               <textarea
                 [(ngModel)]="jobDescription"
@@ -116,6 +116,28 @@ import { AuthService } from '../../../core/services/auth.service';
                        placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-teal/30
                        focus:border-brand-teal transition-all resize-none">
               </textarea>
+            </div>
+
+            <!-- Job Price Input -->
+            <div class="px-8 py-6">
+              <div class="flex items-center justify-between mb-3">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Your Offer (Optional)</p>
+                <p class="text-[10px] text-slate-500">Suggested: KSh {{ worker()?.rate }}/hr</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-lg font-black text-slate-600">KSh</span>
+                <input 
+                  type="number"
+                  [(ngModel)]="jobPrice"
+                  placeholder="Enter offer amount or leave blank for hourly rate"
+                  class="flex-1 px-4 py-3 border border-slate-200 rounded-xl text-sm font-medium text-slate-700
+                         placeholder:text-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-teal/30
+                         focus:border-brand-teal transition-all"
+                  min="0"
+                  step="0.01"
+                >
+              </div>
+              <p class="text-[9px] text-slate-400 mt-2">Worker can see this offer and accept, reject, or negotiate.</p>
             </div>
           </div>
 
@@ -184,6 +206,7 @@ export class NegotiationPage implements OnInit {
   loading      = signal(false);
   errorMsg     = signal('');
   jobDescription = '';
+  jobPrice: number | null = null;
 
   // FIX: Computed property for worker's first name
   workerFirstName = computed(() => {
@@ -230,7 +253,7 @@ export class NegotiationPage implements OnInit {
     this.loading.set(true);
     this.errorMsg.set('');
 
-    this.state.hireWorker(w.id, this.jobDescription || undefined).subscribe({
+    this.state.hireWorker(w.id, this.jobDescription || undefined, this.jobPrice || undefined).subscribe({
       next: () => {
         this.loading.set(false);
         this.router.navigate(['/client/bookings'], {

@@ -161,16 +161,26 @@ const FILTER_KEY = 'kazi_marketplace_filters';
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-0.5">
                     <h3 class="text-[13px] font-black text-slate-900 group-hover:text-brand-teal transition-colors truncate tracking-tight">{{ worker.name }}</h3>
-                    <div class="flex items-center gap-1 bg-amber-50 px-1 py-0.5 rounded border border-amber-100 shrink-0">
+                    <div class="flex items-center gap-1 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 shrink-0">
                       <mat-icon class="!text-amber-500 !text-[8px] !w-auto !h-auto" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
                       <span class="text-[8px] font-black text-amber-700">{{ worker.reviews > 0 ? worker.rating.toFixed(1) : 'NEW' }}</span>
+                      @if (worker.reviews > 0) {
+                        <span class="text-[8px] font-black text-amber-600">({{ worker.reviews }})</span>
+                      }
                     </div>
                   </div>
-                  <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-3 mb-1">
                     <p class="text-[8px] font-black text-brand-teal uppercase tracking-[0.1em]">{{ worker.category || 'Expert' }}</p>
                     <span class="w-1 h-1 rounded-full bg-slate-200"></span>
-                    <p class="text-[10px] text-slate-500 font-medium truncate max-w-[400px]">{{ worker.bio || 'Professional expert dedicated to quality delivery.' }}</p>
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-wider">{{ worker.completedJobs || 0 }} Jobs</p>
                   </div>
+                  @if (worker.highlightedReview) {
+                    <div class="bg-slate-50 rounded-lg px-2 py-1.5 border border-slate-100">
+                      <p class="text-[9px] text-slate-600 italic truncate">"{{ worker.highlightedReview }}"</p>
+                    </div>
+                  } @else {
+                    <p class="text-[10px] text-slate-500 font-medium truncate max-w-[400px]">{{ worker.bio || 'Professional expert dedicated to quality delivery.' }}</p>
+                  }
                 </div>
 
                 <!-- Price & Action -->

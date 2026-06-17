@@ -1,5 +1,5 @@
 import {
-  Component, inject, signal, computed, OnDestroy
+  Component, inject, signal, computed, OnDestroy, effect
 } from '@angular/core';
 import { CommonModule }     from '@angular/common';
 import { RouterLink }       from '@angular/router';
@@ -11,6 +11,7 @@ import { MatTableModule }   from '@angular/material/table';
 import { MatChipsModule }   from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar }      from '@angular/material/snack-bar';
+import { HttpClient } from '@angular/common/http';
 import { Subscription }     from 'rxjs';
 
 import { PlatformStateService } from '../../../core/services/platform-state.service';
@@ -24,6 +25,9 @@ import {
   PAYMENT_STATUS_OPTIONS,
   PaymentStatusFilter
 } from '../../../core/utils/payment-status.util';
+import { EscrowProgressBar, EscrowStep } from '../../../shared/components/escrow-progress-bar/escrow-progress-bar';
+import { EscrowAlertBanner } from '../../../shared/components/escrow-alert-banner/escrow-alert-banner';
+import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-tooltip';
 
 @Component({
   selector: 'app-client-bookings',
@@ -32,9 +36,23 @@ import {
     CommonModule, RouterLink, FormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
     MatTableModule, MatChipsModule, MatDividerModule,
+    EscrowProgressBar, EscrowAlertBanner, EscrowTooltip
   ],
   template: `
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-700 font-manrope">
+
+      <!-- Escrow Progress Bar -->
+      @if (currentBooking()) {
+        <app-escrow-progress-bar [steps]="escrowSteps()" />
+      }
+
+      <!-- Escrow Alert Banner -->
+      @if (showEscrowAlert()) {
+        <app-escrow-alert-banner 
+          (fundEscrow)="openPayModal(currentBooking())"
+          (dismiss)="dismissEscrowAlert()" 
+        />
+      }
 
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
@@ -174,13 +192,39 @@ import {
 
                   <!-- Actions -->
                   <div class="flex items-center gap-2">
+                    <!-- Counter-offer badge and accept button -->
+                    @if (b.negotiatedPrice && b.status === 'Pending') {
+                      <div class="flex items-center gap-2">
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
+                          <p class="text-[9px] font-black text-amber-700">Counter: KES {{ b.negotiatedPrice.toLocaleString() }}</p>
+                        </div>
+                        <button (click)="acceptCounterOffer(b)"
+                                class="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-[9px] font-black
+                                       uppercase tracking-widest hover:bg-amber-600 transition-all active:scale-95 shadow-sm">
+                          Accept
+                        </button>
+                      </div>
+                    }
+
+                    <!-- Negotiate button for pending jobs -->
+                    @if (b.status === 'Pending' && !b.negotiatedPrice) {
+                      <button (click)="openNegotiateModal(b)"
+                              class="px-3 py-1.5 bg-slate-600 text-white rounded-lg text-[9px] font-black
+                                     uppercase tracking-widest hover:bg-slate-700 transition-all active:scale-95 shadow-sm">
+                        Negotiate
+                      </button>
+                    }
+
                     <!-- PAY button -->
                     @if (b.status === 'Accepted') {
-                      <button (click)="openPayModal(b)"
-                              class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-[9px] font-black
-                                     uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-sm">
-                        Pay
-                      </button>
+                      <div class="flex items-center gap-2">
+                        <button (click)="openPayModal(b)"
+                                class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-[9px] font-black
+                                       uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-sm">
+                          Pay
+                        </button>
+                        <app-escrow-tooltip />
+                      </div>
                     }
 
                     <!-- RETRY button -->
@@ -408,6 +452,57 @@ import {
         </div>
       }
 
+      <!-- Negotiation Modal -->
+      @if (negotiateJob()) {
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
+            <div class="p-6 border-b border-slate-100">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-black text-slate-900">💰 Negotiate Price</h3>
+                <button (click)="closeNegotiateModal()" class="text-slate-400 hover:text-slate-600">
+                  <mat-icon class="!text-xl !w-auto !h-auto">close</mat-icon>
+                </button>
+              </div>
+              <p class="text-sm text-slate-500 mt-2">
+                Original offer: KES {{ negotiateJob()?.earnings?.toLocaleString() }}
+              </p>
+            </div>
+            <div class="p-6">
+              <label class="block text-[10px] font-black text-slate-700 uppercase tracking-wider mb-2">
+                Your Offer Price
+              </label>
+              <input 
+                type="number" 
+                [(ngModel)]="negotiatePrice"
+                placeholder="Enter your price"
+                class="w-full h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600 focus:bg-white transition-all"
+              >
+              <p class="text-[10px] text-slate-400 mt-2">
+                Enter the price you'd like to offer for this job.
+              </p>
+            </div>
+            <div class="p-6 border-t border-slate-100 flex gap-3">
+              <button 
+                (click)="closeNegotiateModal()"
+                class="flex-1 py-3 border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                (click)="submitNegotiation()"
+                [disabled]="negotiateLoading() || !negotiatePrice() || negotiatePrice()! <= 0"
+                class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              >
+                <mat-icon class="!text-sm !w-auto !h-auto" [class.animate-spin]="negotiateLoading()">
+                  {{ negotiateLoading() ? 'sync' : 'send' }}
+                </mat-icon>
+                {{ negotiateLoading() ? 'Submitting...' : 'Submit Offer' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
     </div>
   `,
   styles: [`
@@ -424,6 +519,7 @@ export class ClientBookingsPage implements OnDestroy {
   private notif   = inject(NotificationService);
   private payment = inject(PaymentService);
   private snack   = inject(MatSnackBar);
+  private http    = inject(HttpClient);
 
   displayedColumns = ['worker', 'date', 'cost', 'status'];
 
@@ -434,6 +530,12 @@ export class ClientBookingsPage implements OnDestroy {
   statusFilter = signal('All');
   paymentStatusFilter = signal<PaymentStatusFilter>('All');
   uiMessage = signal<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Negotiation modal
+  negotiateJob = signal<any>(null);
+  negotiatePrice = signal<number | null>(null);
+  negotiateLoading = signal(false);
+
   readonly jobStatusOptions = JOB_STATUS_OPTIONS;
   readonly paymentStatusOptions = PAYMENT_STATUS_OPTIONS;
   readonly getPaymentStatusLabel = getPaymentStatusLabel;
@@ -492,6 +594,91 @@ export class ClientBookingsPage implements OnDestroy {
   reviewBooking:  any = null;
   reviewRating        = 0;
   reviewComment       = '';
+
+  // Escrow guidance
+  escrowAlertDismissed = signal(false);
+
+  currentBooking = computed(() => {
+    const bookings = this.state.bookings();
+    // Find the most recent booking that needs escrow funding (Accepted but not paid)
+    return bookings.find((b: any) => 
+      (b.status === 'Accepted' || b.status === 'ACCEPTED') && !this.escrowAlertDismissed()
+    ) || null;
+  });
+
+  showEscrowAlert = computed(() => {
+    const booking = this.currentBooking();
+    return booking !== null && !this.escrowAlertDismissed();
+  });
+
+  escrowSteps = computed<EscrowStep[]>(() => {
+    const booking = this.currentBooking();
+    if (!booking) return [];
+
+    const status = booking.status?.toLowerCase() || '';
+    
+    return [
+      { step: 1, label: 'Job Posted', status: 'completed' },
+      { step: 2, label: 'Worker Accepted', status: 'completed' },
+      { step: 3, label: 'Fund Escrow', status: status === 'accepted' ? 'warning' : 'completed' },
+      { step: 4, label: 'Work Begins', status: status === 'in_progress' || status === 'assigned' ? 'current' : 'pending' },
+      { step: 5, label: 'Delivery', status: status === 'submitted' ? 'current' : 'pending' },
+      { step: 6, label: 'Release Payment', status: status === 'approved' || status === 'completed' ? 'current' : 'pending' }
+    ];
+  });
+
+  dismissEscrowAlert() {
+    this.escrowAlertDismissed.set(true);
+  }
+
+  acceptCounterOffer(booking: any) {
+    this.state.acceptCounterOffer(booking.id).subscribe({
+      next: () => {
+        this.uiMessage.set({ text: 'Counter-offer accepted! You can now pay the negotiated price.', type: 'success' });
+        this.snack.open('Counter-offer accepted!', 'OK', { duration: 5000 });
+        this.refreshBookings();
+      },
+      error: (err: any) => {
+        const message = err.error?.message || err.error || 'Failed to accept counter-offer.';
+        this.uiMessage.set({ text: message, type: 'error' });
+        this.snack.open(message, 'OK', { duration: 5000 });
+      }
+    });
+  }
+
+  openNegotiateModal(booking: any) {
+    this.negotiateJob.set(booking);
+    this.negotiatePrice.set(booking.earnings);
+  }
+
+  closeNegotiateModal() {
+    this.negotiateJob.set(null);
+    this.negotiatePrice.set(null);
+  }
+
+  submitNegotiation() {
+    if (!this.negotiateJob() || !this.negotiatePrice()) return;
+
+    this.negotiateLoading.set(true);
+    const jobId = this.negotiateJob().id;
+    const price = this.negotiatePrice() as number;
+
+    this.state.submitClientCounterOffer(jobId, price).subscribe({
+      next: () => {
+        this.negotiateLoading.set(false);
+        this.closeNegotiateModal();
+        this.uiMessage.set({ text: 'Negotiation offer sent to worker!', type: 'success' });
+        this.snack.open('Negotiation offer sent!', 'OK', { duration: 5000 });
+        this.refreshBookings();
+      },
+      error: (err: any) => {
+        this.negotiateLoading.set(false);
+        const message = err.error?.message || err.error || 'Failed to submit negotiation.';
+        this.uiMessage.set({ text: message, type: 'error' });
+        this.snack.open(message, 'OK', { duration: 5000 });
+      }
+    });
+  }
 
   // ── Private helper ───────────────────────────────────────────────────────
 
@@ -590,6 +777,14 @@ private refreshBookings() {
         this.uiMessage.set({ text: 'Work approved. Funds released to the worker wallet.', type: 'success' });
         this.snack.open('Work approved. Funds released to the worker wallet.', 'OK', { duration: 5000 });
         this.refreshBookings();
+        
+        // Auto-popup review modal after payment release
+        setTimeout(() => {
+          const updatedBooking = this.state.bookings().find((b: any) => b.id === booking.id);
+          if (updatedBooking && updatedBooking.status === 'Approved' && !updatedBooking.hasReview) {
+            this.openReviewModal(updatedBooking);
+          }
+        }, 1000);
       },
       error: (err) => {
         this.releasingJobId.set(null);
@@ -650,4 +845,20 @@ private refreshBookings() {
   }
 
   ngOnDestroy() { this.pollSub?.unsubscribe(); }
+
+  // Auto-refresh bookings when counter-offer notification arrives
+  counterOfferListener = effect(() => {
+    const notifications = this.state.notifications();
+    const counterOfferNotifs = notifications.filter(n => 
+      n.title?.includes('Counter-Offer') || n.message?.includes('counter-offer') || n.message?.includes('Counter-offer')
+    );
+    
+    if (counterOfferNotifs.length > 0) {
+      // Refresh bookings when a counter-offer notification arrives
+      const lastNotif = counterOfferNotifs[counterOfferNotifs.length - 1];
+      if (!lastNotif.isRead) {
+        setTimeout(() => this.refreshBookings(), 500);
+      }
+    }
+  });
 }

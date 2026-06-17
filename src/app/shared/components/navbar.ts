@@ -399,6 +399,11 @@ export class NavbarComponent implements OnInit, OnDestroy {
         }
       });
     }
+
+    // Update notification count for workers (pending job requests)
+    if (this.auth.userRole() === 'Worker') {
+      this.unreadNotificationsCount.set(this.state.workerBookings().filter(b => b.status === 'Pending').length);
+    }
   }
 
   ngOnDestroy() {

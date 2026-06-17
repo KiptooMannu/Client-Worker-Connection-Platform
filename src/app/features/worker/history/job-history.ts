@@ -4,6 +4,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import {
@@ -227,7 +228,11 @@ type HistoryTab = 'wallet' | 'ledger';
 
                     <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border"
                           [ngClass]="job.statusBg + ' ' + job.statusColor">
-                      {{ job.status }}
+                      @if ((job.status === 'Accepted' || job.status === 'In Progress') && !job.escrowFunded) {
+                        Waiting For Payment
+                      } @else {
+                        {{ job.status }}
+                      }
                     </span>
 
                     @if (state.updatingJobIds().has(job.id)) {
@@ -239,6 +244,10 @@ type HistoryTab = 'wallet' | 'ledger';
                                   class="w-8 h-8 bg-surface-container text-brand-teal rounded-lg hover:bg-brand-teal hover:text-white transition-all flex items-center justify-center border border-outline-variant">
                             <mat-icon class="!text-[16px] !w-auto !h-auto">check</mat-icon>
                           </button>
+                          <button (click)="openCounterOfferModal(job)"
+                                  class="w-8 h-8 bg-surface-container text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all flex items-center justify-center border border-outline-variant">
+                            <mat-icon class="!text-[16px] !w-auto !h-auto">attach_money</mat-icon>
+                          </button>
                           <button (click)="state.updateJobStatus(job.id, 'REJECTED')"
                                   class="w-8 h-8 bg-surface-container text-error rounded-lg hover:bg-error hover:text-white transition-all flex items-center justify-center border border-outline-variant">
                             <mat-icon class="!text-[16px] !w-auto !h-auto">close</mat-icon>
@@ -246,10 +255,17 @@ type HistoryTab = 'wallet' | 'ledger';
                         </div>
                       }
                       @if (job.status === 'Accepted' || job.status === 'Revision Requested' || job.status === 'In Progress') {
-                        <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')"
-                                class="px-3 py-1.5 bg-brand-teal text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-1">
-                          <mat-icon class="!text-sm !w-auto !h-auto">send</mat-icon> Deliver
-                        </button>
+                        @if (job.escrowFunded) {
+                          <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')"
+                                  class="px-3 py-1.5 bg-brand-teal text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-1">
+                            <mat-icon class="!text-sm !w-auto !h-auto">send</mat-icon> Deliver
+                          </button>
+                        } @else {
+                          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200">
+                            <mat-icon class="!text-sm !w-auto !h-auto text-slate-400">hourglass_empty</mat-icon>
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Waiting for Payment</span>
+                          </div>
+                        }
                       }
                     }
                   </div>
@@ -296,6 +312,57 @@ type HistoryTab = 'wallet' | 'ledger';
         }
       }
     </div>
+
+    <!-- Counter-Offer Modal -->
+    @if (counterOfferJob()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
+          <div class="p-6 border-b border-slate-100">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-black text-slate-900">💰 Counter-Offer</h3>
+              <button (click)="closeCounterOfferModal()" class="text-slate-400 hover:text-slate-600">
+                <mat-icon class="!text-xl !w-auto !h-auto">close</mat-icon>
+              </button>
+            </div>
+            <p class="text-sm text-slate-500 mt-2">
+              Original offer: KES {{ counterOfferJob()?.earnings?.toLocaleString() }}
+            </p>
+          </div>
+          <div class="p-6">
+            <label class="block text-[10px] font-black text-slate-700 uppercase tracking-wider mb-2">
+              Your Counter-Offer Price
+            </label>
+            <input 
+              type="number" 
+              [(ngModel)]="counterOfferPrice"
+              placeholder="Enter your price"
+              class="w-full h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-900 outline-none focus:border-brand-teal focus:bg-white transition-all"
+            >
+            <p class="text-[10px] text-slate-400 mt-2">
+              Enter the price you'd like to negotiate for this job.
+            </p>
+          </div>
+          <div class="p-6 border-t border-slate-100 flex gap-3">
+            <button 
+              (click)="closeCounterOfferModal()"
+              class="flex-1 py-3 border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all"
+            >
+              Cancel
+            </button>
+            <button 
+              (click)="submitCounterOffer()"
+              [disabled]="counterOfferLoading() || !counterOfferPrice() || (counterOfferPrice() ?? 0) <= 0"
+              class="flex-1 py-3 bg-brand-teal text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            >
+              <mat-icon class="!text-sm !w-auto !h-auto" [class.animate-spin]="counterOfferLoading()">
+                {{ counterOfferLoading() ? 'sync' : 'send' }}
+              </mat-icon>
+              {{ counterOfferLoading() ? 'Submitting...' : 'Submit Offer' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `,
   styles: [`
     :host { display: block; background: #f8fafc; min-height: 100vh; }
@@ -312,6 +379,7 @@ type HistoryTab = 'wallet' | 'ledger';
 export class WorkerHistoryPage {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
+  private http = inject(HttpClient);
 
   activeTab = signal<HistoryTab>('wallet');
   searchQuery = signal('');
@@ -322,6 +390,11 @@ export class WorkerHistoryPage {
   withdrawAmount: number | null = null;
   withdrawPhone = '';
   uiMessage = signal<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Counter-offer modal
+  counterOfferJob = signal<any>(null);
+  counterOfferPrice = signal<number | null>(null);
+  counterOfferLoading = signal(false);
 
   readonly pageSize = 10;
   readonly jobStatusOptions = JOB_STATUS_OPTIONS;
@@ -493,5 +566,46 @@ export class WorkerHistoryPage {
     if (ps === 'PENDING') return 'bg-slate-50 text-slate-500 border-outline-variant';
     if (ps === 'REFUNDED') return 'bg-rose-50 text-rose-600 border-rose-100';
     return 'bg-surface-container-low text-on-surface-variant border-outline-variant';
+  }
+
+  openCounterOfferModal(job: any) {
+    this.counterOfferJob.set(job);
+    this.counterOfferPrice.set(job.earnings);
+  }
+
+  closeCounterOfferModal() {
+    this.counterOfferJob.set(null);
+    this.counterOfferPrice.set(null);
+  }
+
+  submitCounterOffer() {
+    if (!this.counterOfferJob() || !this.counterOfferPrice()) return;
+
+    this.counterOfferLoading.set(true);
+    const jobId = this.counterOfferJob().id;
+    const price = this.counterOfferPrice()!;
+
+    this.state.submitCounterOffer(jobId, price).subscribe({
+      next: () => {
+        this.counterOfferLoading.set(false);
+        this.closeCounterOfferModal();
+        this.showMessage('Counter-offer submitted successfully!', 'success');
+        this.notification.success('Counter-offer sent to client.');
+        this.refreshJobs();
+      },
+      error: (err: any) => {
+        this.counterOfferLoading.set(false);
+        const message = err.error?.message || err.error || 'Failed to submit counter-offer.';
+        this.showMessage(message, 'error');
+        this.notification.error(message);
+      }
+    });
+  }
+
+  refreshJobs() {
+    const user = this.state.currentWorker();
+    if (user && user.userId) {
+      this.state.fetchWorkerJobs(user.userId);
+    }
   }
 }

@@ -35,6 +35,7 @@ export interface WorkerProfile {
   rate: number;
   rating: number;
   reviews: number;
+  completedJobs?: number;
   skills: string[];
   bio: string;
   rejectionReason?: string;
@@ -49,6 +50,8 @@ export interface WorkerProfile {
     weekends: boolean;
     evenings: boolean;
   };
+  highlightedReview?: string;
+  reviewsList?: any[];
 }
 
 export interface Notification {
@@ -154,6 +157,8 @@ export interface Booking {
   disputedAt?: string;
   resolvedAt?: string;
   deadline?: string;
+  negotiatedPrice?: number;
+  escrowFunded?: boolean;
   // Dispute details
   disputeReason?: string;
   disputeEvidence?: string;
@@ -1098,7 +1103,7 @@ export class PlatformStateService {
     });
   }
 
-  hireWorker(workerId: string, description?: string): Observable<any> {
+  hireWorker(workerId: string, description?: string, jobPrice?: number): Observable<any> {
     const worker = this.workers().find(w => w.id === workerId);
     const user = this.auth.currentUser();
     if (!worker || !user || user.role !== 'Client') {
@@ -1119,6 +1124,12 @@ export class PlatformStateService {
       description: description || `Hire request for ${worker.category} service`,
       requiredExperience: worker.experienceYears ?? undefined
     };
+    
+    // Include jobPrice if provided, otherwise backend uses worker's hourly rate
+    if (jobPrice && jobPrice > 0) {
+      payload.jobPrice = jobPrice;
+    }
+    
     return this.http.post<any>(`${this.apiUrl}/jobs/request?clientId=${user.id}&workerUserId=${worker.userId}`, payload).pipe(
       tap(() => {
         this.fetchClientJobs(user.id);
@@ -1669,6 +1680,8 @@ export class PlatformStateService {
       // lifecycle
       startedAt: job.startedAt, submittedAt: job.submittedAt, approvedAt: job.approvedAt,
       disputedAt: job.disputedAt, resolvedAt: job.resolvedAt, deadline: job.deadline,
+      negotiatedPrice: job.negotiatedPrice,
+      escrowFunded: job.escrowFunded || false,
       // dispute
       disputeReason: job.disputeReason, disputeEvidence: job.disputeEvidence, disputeAttachmentUrl: job.disputeAttachmentUrl,
       disputeResponse: job.disputeResponse, disputeResponseEvidence: job.disputeResponseEvidence,
@@ -1721,6 +1734,42 @@ export class PlatformStateService {
         console.error('Error submitting review', err);
         this.notification.error('Failed to submit review.');
       }
+    });
+  }
+
+  fetchWorkerReviews(workerId: string) {
+    this.http.get(`${this.apiUrl}/reviews/worker/${workerId}`).subscribe({
+      next: (reviews: any) => {
+        this.workers.update(workers => {
+          return workers.map(w => {
+            if (w.id === workerId) {
+              return { ...w, reviewsList: reviews };
+            }
+            return w;
+          });
+        });
+      },
+      error: (err: HttpErrorResponse) => console.error('Error fetching worker reviews', err)
+    });
+  }
+
+  fetchWorkerRatingSummary(workerId: string) {
+    this.http.get(`${this.apiUrl}/reviews/worker/${workerId}/summary`).subscribe({
+      next: (summary: any) => {
+        this.workers.update(workers => {
+          return workers.map(w => {
+            if (w.id === workerId) {
+              return { 
+                ...w, 
+                rating: summary.averageRating,
+                reviews: summary.reviewCount
+              };
+            }
+            return w;
+          });
+        });
+      },
+      error: (err: HttpErrorResponse) => console.error('Error fetching worker rating summary', err)
     });
   }
 
@@ -1836,6 +1885,19 @@ export class PlatformStateService {
 
   getOffers(jobId: string): Observable<JobOffer[]> {
     return this.http.get<JobOffer[]>(`${this.apiUrl}/jobs/${jobId}/offers`);
+  }
+
+  // Counter-offer (direct price negotiation)
+  submitCounterOffer(jobId: string, counterPrice: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/counter-offer?counterPrice=${counterPrice}`, {});
+  }
+
+  acceptCounterOffer(jobId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/accept-counter-offer`, {});
+  }
+
+  submitClientCounterOffer(jobId: string, counterPrice: number): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/client-counter-offer?counterPrice=${counterPrice}`, {});
   }
 
   // ─── Progress Updates ─────────────────────────────────────────────────────

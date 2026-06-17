@@ -132,6 +132,46 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
           </section>
 
+          <!-- Counter-Offers Submitted Section -->
+          @if (counterOffersSubmitted().length > 0) {
+            <section>
+              <div class="flex items-center gap-3 mb-6 px-4">
+                <div class="w-1.5 h-6 bg-amber-500 rounded-full"></div>
+                <h2 class="text-xl font-black tracking-tight text-amber-600 uppercase">Your Counter-Offers</h2>
+              </div>
+              
+              <div class="space-y-1">
+                @for (job of counterOffersSubmitted(); track job.id) {
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-amber-50 hover:bg-amber-100 transition-all border-b border-amber-200 group">
+                    <div class="flex items-center gap-4 mb-4 sm:mb-0 min-w-0">
+                      <div class="w-12 h-12 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 font-black text-sm shrink-0">
+                        {{ job.clientName[0] }}
+                      </div>
+                      <div class="min-w-0">
+                        <h3 class="font-bold text-sm text-amber-700 truncate">{{ job.service }}</h3>
+                        <p class="text-[10px] text-amber-600 font-bold uppercase tracking-wider truncate">{{ job.clientName }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-6 shrink-0">
+                      <div class="text-right hidden md:block">
+                        <p class="text-[10px] uppercase tracking-widest text-amber-600 font-bold leading-none mb-1">Your Offer</p>
+                        <p class="font-black text-sm text-amber-700">KSh {{ job.negotiatedPrice }}</p>
+                      </div>
+                      <div class="flex gap-2">
+                        <button routerLink="../messages" 
+                                title="Discuss with client"
+                                class="px-3 py-2 bg-amber-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">
+                          Discuss
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
           <!-- System Controls Ledger -->
           <section>
              <div class="flex items-center gap-3 mb-6 px-4">
@@ -404,6 +444,13 @@ export class WorkerDashboardOverviewPage {
 
   pendingRequests = computed(() => {
     return this.state.workerBookings().filter(b => b.status === 'Pending');
+  });
+
+  // Counter-offers submitted by this worker (jobs where they set a negotiatedPrice)
+  counterOffersSubmitted = computed(() => {
+    return this.state.workerBookings().filter(b => 
+      b.negotiatedPrice && b.negotiatedPrice > 0 && b.status === 'Pending'
+    );
   });
 
   completionPercentage = computed(() => {

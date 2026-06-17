@@ -7,6 +7,7 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 import { AuthService } from '../../core/services/auth.service';
 import { NavbarComponent } from '../../shared/components/navbar';
 import { NotificationService } from '../../core/services/notification.service';
+import { JobOfferBanner } from '../../shared/components/job-offer-banner/job-offer-banner';
 
 @Component({
   selector: 'app-worker-layout',
@@ -18,7 +19,8 @@ import { NotificationService } from '../../core/services/notification.service';
     RouterLinkActive,
     MatIconModule,
     MatButtonModule,
-    NavbarComponent
+    NavbarComponent,
+    JobOfferBanner
   ],
   template: `
     <div class="min-h-screen bg-surface flex flex-col font-manrope">
@@ -27,6 +29,14 @@ import { NotificationService } from '../../core/services/notification.service';
         pageTitle="Dashboard" 
         [badge]="worker().status">
       </app-navbar>
+
+      <!-- Job Offer Banner -->
+      @if (showJobOfferBanner()) {
+        <app-job-offer-banner 
+          [jobOffer]="latestJobOffer()!"
+          (dismiss)="dismissJobOfferBanner()" 
+        />
+      }
 
       <div class="flex flex-1 overflow-hidden">
         <aside class="hidden lg:flex flex-col w-72 border-r border-outline-variant/30 bg-surface px-4 py-8 space-y-6 shrink-0">
@@ -318,6 +328,32 @@ export class WorkerLayout {
   worker = this.state.currentWorker;
   isHandsetMenuOpen = signal(false);
   isProgressCardExpanded = signal(true); // Default expanded
+  jobOfferBannerDismissed = signal(false);
+
+  // Job offer banner logic
+  pendingJobRequests = computed(() => {
+    return this.state.workerBookings().filter(b => b.status === 'Pending');
+  });
+
+  latestJobOffer = computed(() => {
+    const pending = this.pendingJobRequests();
+    if (pending.length === 0) return null;
+    const latest = pending[0];
+    return {
+      id: latest.id,
+      clientName: latest.clientName,
+      service: latest.service,
+      budget: latest.earnings
+    };
+  });
+
+  showJobOfferBanner = computed(() => {
+    return this.latestJobOffer() !== null && !this.jobOfferBannerDismissed();
+  });
+
+  dismissJobOfferBanner() {
+    this.jobOfferBannerDismissed.set(true);
+  }
 
   // Toggle progress card
   toggleProgressCard() {
