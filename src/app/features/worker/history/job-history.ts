@@ -22,7 +22,16 @@ type HistoryTab = 'wallet' | 'ledger';
   standalone: true,
   imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, FormsModule],
   template: `
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 font-manrope animate-in fade-in duration-700">
+    @if (state.currentWorker().status === 'loading' || !state.currentWorker().id) {
+      <!-- Loading State -->
+      <div class="flex items-center justify-center min-h-[60vh]">
+        <div class="text-center space-y-4">
+          <mat-icon class="!text-6xl text-brand-teal animate-spin">sync</mat-icon>
+          <p class="text-sm font-bold text-brand-teal uppercase tracking-widest">Loading Job History...</p>
+        </div>
+      </div>
+    } @else {
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 font-manrope animate-in fade-in duration-700">
 
       <!-- Header -->
       <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -228,11 +237,7 @@ type HistoryTab = 'wallet' | 'ledger';
 
                     <span class="px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border"
                           [ngClass]="job.statusBg + ' ' + job.statusColor">
-                      @if ((job.status === 'Accepted' || job.status === 'In Progress') && !job.escrowFunded) {
-                        Waiting For Payment
-                      } @else {
-                        {{ job.status }}
-                      }
+                      {{ job.status }}
                     </span>
 
                     @if (state.updatingJobIds().has(job.id)) {
@@ -362,6 +367,7 @@ type HistoryTab = 'wallet' | 'ledger';
           </div>
         </div>
       </div>
+    }
     }
   `,
   styles: [`
@@ -596,6 +602,21 @@ export class WorkerHistoryPage {
       error: (err: any) => {
         this.counterOfferLoading.set(false);
         const message = err.error?.message || err.error || 'Failed to submit counter-offer.';
+        this.showMessage(message, 'error');
+        this.notification.error(message);
+      }
+    });
+  }
+
+  rejectCounterOffer(jobId: string) {
+    this.state.rejectCounterOffer(jobId).subscribe({
+      next: () => {
+        this.showMessage('Counter-offer rejected successfully!', 'success');
+        this.notification.success('Counter-offer rejected.');
+        this.refreshJobs();
+      },
+      error: (err: any) => {
+        const message = err.error?.message || err.error || 'Failed to reject counter-offer.';
         this.showMessage(message, 'error');
         this.notification.error(message);
       }

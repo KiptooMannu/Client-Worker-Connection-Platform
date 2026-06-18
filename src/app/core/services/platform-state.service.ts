@@ -28,7 +28,7 @@ export interface WorkerProfile {
   initials: string;
   email: string;
   category: string;
-  status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft' | 'Suspended' | 'Approved' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT';
+  status: 'Pending' | 'Priority' | 'Verified' | 'Rejected' | 'Draft' | 'Suspended' | 'Approved' | 'APPROVED' | 'PENDING' | 'REJECTED' | 'DRAFT' | 'loading';
   image?: string;
   phoneNumber?: string;
   experienceYears?: number;
@@ -325,13 +325,18 @@ export class PlatformStateService {
       // lifecycle
       startedAt: b.startedAt, submittedAt: b.submittedAt, approvedAt: b.approvedAt,
       disputedAt: b.disputedAt, resolvedAt: b.resolvedAt, deadline: b.deadline,
+      negotiatedPrice: b.negotiatedPrice,
+      escrowFunded: b.escrowFunded || false,
       // dispute
       disputeReason: b.disputeReason, disputeEvidence: b.disputeEvidence, disputeAttachmentUrl: b.disputeAttachmentUrl,
       disputeResponse: b.disputeResponse, disputeResponseEvidence: b.disputeResponseEvidence,
       disputeResponseAttachmentUrl: b.disputeResponseAttachmentUrl,
       // admin
       adminDecisionReason: b.adminDecisionReason, adminEvidenceNotes: b.adminEvidenceNotes,
-      workerPartialAmount: b.workerPartialAmount, clientPartialAmount: b.clientPartialAmount
+      workerPartialAmount: b.workerPartialAmount, clientPartialAmount: b.clientPartialAmount,
+      paymentStatus: b.paymentStatus,
+      paymentAmount: b.paymentAmount,
+      platformFee: b.platformFee
     };
   }
 
@@ -350,7 +355,7 @@ export class PlatformStateService {
   private platformId = inject(PLATFORM_ID);
   private apiUrl = environment.apiUrl;
 
-  private getInitialWorkerState(): WorkerProfile {
+private getInitialWorkerState(): WorkerProfile {
     const defaultState: WorkerProfile = {
       id: '',
       userId: '',
@@ -358,7 +363,7 @@ export class PlatformStateService {
       initials: '',
       email: '',
       category: '',
-      status: 'Draft',
+      status: 'loading',
       rate: 0,
       rating: 0,
       reviews: 0,
@@ -413,7 +418,7 @@ export class PlatformStateService {
       initials: '',
       email: '',
       category: '',
-      status: 'Draft',
+      status: 'loading',
       rate: 0,
       rating: 0,
       reviews: 0,
@@ -497,7 +502,12 @@ export class PlatformStateService {
   public fetchWorkerProfile(userId: string) {
     this.http.get<any>(`${this.apiUrl}/workers/profile/${userId}`).subscribe({
       next: (data) => {
+        const currentStatus = this.currentWorker().status;
         const mapped = this.mapWorkerProfile(data);
+        // Preserve existing status if backend doesn't return one (prevents re-triggering verification)
+        if (!data?.status) {
+          mapped.status = currentStatus;
+        }
         this.currentWorker.set(mapped);
         if (mapped.phoneNumber) {
           this.auth.updateUser({ phoneNumber: mapped.phoneNumber });
@@ -520,11 +530,16 @@ export class PlatformStateService {
 
   updateWorkerProfile(userId: string, updates: any): Observable<any> {
     const backendPayload = this.mapToBackendUpdate(updates);
+    const currentStatus = this.currentWorker().status;
     return this.http.put<any>(`${this.apiUrl}/workers/profile/${userId}`, backendPayload).pipe(
       tap(res => {
         const profileData = res.workerProfile || res;
         if (profileData) {
           const mapped = this.mapWorkerProfile(profileData);
+          // Preserve existing status if backend doesn't return one (prevents re-triggering verification)
+          if (!profileData.status) {
+            mapped.status = currentStatus;
+          }
           this.currentWorker.set(mapped);
           if (mapped.phoneNumber) {
             this.auth.updateUser({ phoneNumber: mapped.phoneNumber });
@@ -1638,7 +1653,7 @@ export class PlatformStateService {
 
   fetchClientJobs(clientUserId: string) {
     this.http.get<any[]>(`${this.apiUrl}/jobs/client/${clientUserId}`).subscribe({
-      next: (jobs) => this.bookings.set(jobs.map(j => this.mapJobToBooking(j))),
+      next: (jobs) => this.bookings.set(jobs.map(j => this.mapBooking(j))),
       error: (err: HttpErrorResponse) => console.error('Error fetching client jobs', err)
     });
   }
@@ -1646,58 +1661,12 @@ export class PlatformStateService {
   fetchWorkerJobs(userId: string) {
     if (!userId) return;
     this.http.get<any[]>(`${this.apiUrl}/jobs/worker/user/${userId}`).subscribe({
-      next: (jobs) => this.bookings.set(jobs.map(j => this.mapJobToBooking(j))),
+      next: (jobs) => this.bookings.set(jobs.map(j => this.mapBooking(j))),
       error: (err: HttpErrorResponse) => console.error('Error fetching worker jobs', err)
     });
   }
 
-  private mapJobToBooking(job: any): Booking {
-    const clientName = job.clientName || 'Client';
-    const workerName = job.workerName || 'Worker';
-    const status = (job.status || 'PENDING').replace(/_/g, ' ');
-    const formattedStatus = status
-      .toLowerCase()
-      .split(' ')
-      .filter(Boolean)
-      .map((part: string) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(' ');
-
-    return {
-      id: job.id,
-      clientId: job.clientId,
-      clientName,
-      clientInitials: clientName.split(' ').filter((n: string) => n).map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'CL',
-      workerId: job.workerId,
-      workerName,
-      workerInitials: workerName.split(' ').filter((n: string) => n).map((p: string) => p[0]).join('').toUpperCase().slice(0, 2) || 'WK',
-      service: job.description || 'Service Request',
-      date: job.createdAt ? new Date(job.createdAt).toLocaleDateString() : 'N/A',
-      rawDate: job.createdAt ? new Date(job.createdAt).getTime() : 0,
-      earnings: job.totalCost || 0,
-      status: formattedStatus as any,
-      rating: job.rating,
-      hasReview: job.rating !== undefined && job.rating !== null,
-      // lifecycle
-      startedAt: job.startedAt, submittedAt: job.submittedAt, approvedAt: job.approvedAt,
-      disputedAt: job.disputedAt, resolvedAt: job.resolvedAt, deadline: job.deadline,
-      negotiatedPrice: job.negotiatedPrice,
-      escrowFunded: job.escrowFunded || false,
-      // dispute
-      disputeReason: job.disputeReason, disputeEvidence: job.disputeEvidence, disputeAttachmentUrl: job.disputeAttachmentUrl,
-      disputeResponse: job.disputeResponse, disputeResponseEvidence: job.disputeResponseEvidence,
-      disputeResponseAttachmentUrl: job.disputeResponseAttachmentUrl,
-      // admin
-      adminDecisionReason: job.adminDecisionReason, adminEvidenceNotes: job.adminEvidenceNotes,
-      workerPartialAmount: job.workerPartialAmount, clientPartialAmount: job.clientPartialAmount,
-      paymentStatus: job.paymentStatus,
-      paymentAmount: job.paymentAmount,
-      platformFee: job.platformFee,
-      workerNetAmount: job.workerNetAmount,
-      escrowMessage: job.escrowMessage,
-      mpesaReceiptNumber: job.mpesaReceiptNumber
-    };
-  }
-
+  // Removed - consolidated into mapBooking function
   fetchMarketplaceMetadata() {
     this.http.get<any[]>(`${this.apiUrl}/marketplace/skills`).subscribe({
       next: (skills) => {
@@ -1898,6 +1867,10 @@ export class PlatformStateService {
 
   submitClientCounterOffer(jobId: string, counterPrice: number): Observable<any> {
     return this.http.post(`${this.apiUrl}/jobs/${jobId}/client-counter-offer?counterPrice=${counterPrice}`, {});
+  }
+
+  rejectCounterOffer(jobId: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/jobs/${jobId}/reject-counter-offer`, {});
   }
 
   // ─── Progress Updates ─────────────────────────────────────────────────────

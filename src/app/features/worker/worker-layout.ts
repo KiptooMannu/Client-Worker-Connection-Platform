@@ -24,10 +24,10 @@ import { JobOfferBanner } from '../../shared/components/job-offer-banner/job-off
   ],
   template: `
     <div class="min-h-screen bg-surface flex flex-col font-manrope">
-      <app-navbar 
-        [showHireTalent]="false" 
-        pageTitle="Dashboard" 
-        [badge]="worker().status">
+      <app-navbar
+        [showHireTalent]="false"
+        pageTitle="Dashboard"
+        [badge]="worker().status === 'loading' ? '' : worker().status">
       </app-navbar>
 
       <!-- Job Offer Banner -->

@@ -657,11 +657,16 @@ export class WorkerProfilePage implements OnInit {
       return;
     }
 
+    const phoneNumber = this.form.phoneNumber();
+    if (!phoneNumber || phoneNumber.trim().length < 10) {
+      this.notification.error('Phone number is required and must be at least 10 digits.');
+      return;
+    }
+
     this.isSaving.set(true);
     
     // Get the current form values
     const fullName = this.form.name();
-    const phoneNumber = this.form.phoneNumber();
     const category = this.form.category();
     const hourlyRate = this.form.rate() !== null ? Number(this.form.rate()) : 0;
     const bio = this.form.bio();
@@ -669,7 +674,7 @@ export class WorkerProfilePage implements OnInit {
     const location = this.form.location();
     const preferredLocationsArray = (this.form.preferredLocations() || '').split(',').map(l => l.trim()).filter(l => l);
     
-    // DIRECTLY UPDATE THE SIGNAL with form values
+    // DIRECTLY UPDATE THE SIGNAL with form values (use the already-validated phoneNumber)
     this.state.currentWorker.update(current => ({
       ...current,
       name: fullName,

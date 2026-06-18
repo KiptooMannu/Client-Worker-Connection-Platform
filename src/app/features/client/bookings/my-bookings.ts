@@ -332,7 +332,7 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
               {{ payModal.retrying ? 'Retry Payment' : 'Pay via M-Pesa' }}
             </h3>
             <p class="text-slate-400 text-sm mb-8">
-              KES <span class="font-black text-slate-800">{{ payModal.booking.earnings | number }}</span>
+              KES <span class="font-black text-slate-800">{{ (payModal.booking.negotiatedPrice || payModal.booking.earnings) | number }}</span>
               will be charged via M-Pesa. If the transaction fails you'll see clear messages such as "Insufficient funds" or "Wrong PIN".
             </p>
 
@@ -694,7 +694,16 @@ private refreshBookings() {
   // ── Pay Modal ───────────────────────────────────────────────────────────
 
   openPayModal(booking: any, retrying = false) {
-    this.payModal = { booking, phone: '', loading: false, error: '', retrying };
+    // Refresh bookings to ensure we have the latest negotiated price
+    this.refreshBookings();
+    
+    // Get the updated booking data
+    const updatedBooking = this.state.bookings().find((b: any) => b.id === booking.id);
+    
+    // Use the updated booking if available, otherwise fall back to the original
+    const bookingToUse = updatedBooking || booking;
+    
+    this.payModal = { booking: bookingToUse, phone: '', loading: false, error: '', retrying };
   }
 
   closePayModal() { this.payModal = null; }

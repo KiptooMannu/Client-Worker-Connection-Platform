@@ -22,8 +22,17 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     RouterLink
   ],
   template: `
-    <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 font-manrope">
-      
+    @if (worker().status === 'loading' || !worker().id) {
+      <!-- Loading State -->
+      <div class="flex items-center justify-center min-h-[60vh]">
+        <div class="text-center space-y-4">
+          <mat-icon class="!text-6xl text-brand-teal animate-spin">sync</mat-icon>
+          <p class="text-sm font-bold text-brand-teal uppercase tracking-widest">Loading Dashboard...</p>
+        </div>
+      </div>
+    } @else {
+      <div class="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000 font-manrope">
+
       <!-- Status Hero Section -->
       <section>
         <div class="relative overflow-hidden rounded-[1.5rem] bg-brand-teal p-6 md:p-8 min-h-[260px] flex flex-col justify-between group shadow-xl shadow-brand-teal/10">
@@ -308,6 +317,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         </div>
       </div>
     </div>
+    }
   `,
   styles: [`
     :host { display: block; }

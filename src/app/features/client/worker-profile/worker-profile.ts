@@ -108,7 +108,7 @@ interface Booking {
             <!-- Mobile Primary Action -->
             <div class="w-full flex gap-2 sm:hidden">
               <button (click)="message()" class="flex-1 bg-blue-100 border-2 border-blue-400 text-blue-600 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-1.5">
-                <mat-icon class="!text-xs !w-auto !h-auto">chat_bubble</mat-icon>
+                <mat-icon class="!text-xs !w-auto !h-auto">handshake</mat-icon>
                 Negotiate
               </button>
               <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" class="flex-1 bg-white text-slate-900 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all shadow-xl disabled:opacity-50">
@@ -281,10 +281,14 @@ interface Booking {
 
             <div class="space-y-3">
               <button (click)="message()" class="w-full bg-blue-50 border-2 border-blue-400 text-blue-600 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest hover:bg-blue-100 transition-all active:scale-95 flex items-center justify-center gap-2">
-                <mat-icon class="!text-sm !w-auto !h-auto">chat_bubble_outline</mat-icon>
+                <mat-icon class="!text-sm !w-auto !h-auto">handshake</mat-icon>
                 Negotiate Terms
               </button>
-              <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" 
+              <button (click)="chatOnly()" class="w-full bg-slate-50 border-2 border-slate-200 text-slate-600 font-black py-3 rounded-xl text-[9px] uppercase tracking-widest hover:bg-slate-100 transition-all active:scale-95 flex items-center justify-center gap-2">
+                <mat-icon class="!text-xs !w-auto !h-auto">chat_bubble_outline</mat-icon>
+                Message Only
+              </button>
+              <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()"
                       class="w-full bg-slate-900 hover:bg-slate-800 text-white font-black py-4 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30 flex items-center justify-center gap-2">
                 <mat-icon class="!text-sm !w-auto !h-auto">check_circle</mat-icon>
                 {{ hasPendingRequest() ? 'REQUEST PENDING' : (hiring() ? 'SENDING...' : 'HIRE NOW') }}
@@ -438,6 +442,14 @@ export class ClientWorkerProfilePage {
   }
 
   message() {
+    const worker = this.workerRaw();
+    if (worker) {
+      // Navigate to proper negotiation page instead of just messaging
+      this.router.navigate(['/client', 'negotiate', worker.id]);
+    }
+  }
+
+  chatOnly() {
     const worker = this.workerRaw();
     if (worker) {
       this.state.startChat(worker.id);

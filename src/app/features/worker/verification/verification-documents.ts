@@ -28,8 +28,17 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     MatProgressSpinnerModule,
   ],
   template: `
-    <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
-      
+    @if (state.currentWorker().status === 'loading' || !state.currentWorker().id) {
+      <!-- Loading State -->
+      <div class="flex items-center justify-center min-h-[60vh]">
+        <div class="text-center space-y-4">
+          <mat-icon class="!text-6xl text-brand-teal animate-spin">sync</mat-icon>
+          <p class="text-sm font-bold text-brand-teal uppercase tracking-widest">Loading Verification...</p>
+        </div>
+      </div>
+    } @else {
+      <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
+
       <!-- Page Header -->
       <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">
         <div class="space-y-2">
@@ -252,6 +261,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
         </div>
       </footer>
     </div>
+    }
   `,
   styles: [`
     /* Fix icon alignment globally */
