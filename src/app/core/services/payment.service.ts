@@ -44,18 +44,23 @@ export interface StkPushResponse {
 export const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
   'WRONG_PIN':          'Incorrect M-Pesa PIN. Please try again.',
   'INSUFFICIENT_FUNDS': 'Insufficient funds in your M-Pesa account.',
-  'USER_CANCELLED':     'Payment was cancelled.',
+  'USER_CANCELLED':     'Payment was cancelled by you.',
   'REQUEST_CANCELLED':  'Payment request was cancelled.',
-  'TIMEOUT':            'Payment request timed out. Please try again.',
+  'TIMEOUT':            'Payment request timed out. Please enter your PIN faster next time.',
   'NETWORK_FAILURE':    'Unable to communicate with M-Pesa. Please try again.',
-  'MPESA_ERROR_1037':   'Incorrect M-Pesa PIN. Please try again.',
+  'PIN_BLOCKED':        'Your M-Pesa PIN has been blocked due to too many wrong attempts. Please reset it or contact Safaricom.',
+  'ACCOUNT_INACTIVE':   'Your M-Pesa account is inactive. Please contact Safaricom support.',
+  'NOT_STK_CAPABLE':    'Your phone number does not support M-Pesa STK. Please try with a different number.',
+  'SYSTEM_ERROR':       'M-Pesa system error. Please try again in a few minutes.',
+  'MPESA_ERROR_1037':   'Insufficient funds in your M-Pesa account.',
   'MPESA_ERROR_1034':   'Incorrect M-Pesa PIN. Please try again.',
   'MPESA_ERROR_1032':   'Payment was cancelled by user.',
   'MPESA_ERROR_1031':   'Payment request timed out. Please try again.',
   'MPESA_ERROR_1030':   'Payment request was cancelled.',
-  'MPESA_ERROR_1001':   'Payment request timed out. Please try again.',
+  'MPESA_ERROR_1001':   'Payment request timed out. Please enter your PIN faster next time.',
   'MPESA_ERROR_1':      'Insufficient funds in your M-Pesa account.',
   'MPESA_ERROR_2001':   'Unable to communicate with M-Pesa. Please try again.',
+  'MPESA_ERROR_2002':   'M-Pesa system error. Please try again in a few minutes.',
 };
 
 @Injectable({ providedIn: 'root' })
@@ -68,22 +73,23 @@ export class PaymentService {
     return this.http.post<StkPushResponse>(`${this.BASE}/mpesa/stkpush`, { jobId, phoneNumber });
   }
 
-  /**
-   * Polls payment status every 3 seconds until a terminal state.
-   * Hard timeout at 120 seconds to allow delayed Safaricom callbacks.
-   */
+/**
+    * Polls payment status every 3 seconds until a terminal state.
+    * Hard timeout at 65 seconds (STK expires at 60s on Safaricom side).
+    */
   pollPaymentStatus(jobId: string): Observable<PaymentStatusResponse> {
     const terminal = new Set<string>(['PAID', 'FAILED', 'REFUNDED', 'NO_PAYMENT']);
 
     return interval(3000).pipe(
       switchMap(() => this.getPaymentStatus(jobId)),
       takeWhile(resp => !terminal.has(resp.status), true),
-      timeout(120_000),
+      timeout(65_000),
       catchError(err => {
         if (err instanceof TimeoutError) {
           return of<PaymentStatusResponse>({
-            status: 'PENDING',
-            message: 'Still waiting for M-Pesa confirmation. You can refresh this page.',
+            status: 'FAILED',
+            failureReason: 'TIMEOUT',
+            message: 'Payment request timed out. Please try again.',
           });
         }
         return throwError(() => err);

@@ -244,18 +244,14 @@ type HistoryTab = 'wallet' | 'ledger';
                       <mat-icon class="animate-spin text-brand-teal !w-4 !h-4">sync</mat-icon>
                     } @else {
                       @if (job.status === 'Pending') {
-                        <div class="flex gap-1.5">
+                        <div class="flex gap-2">
                           <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')"
-                                  class="w-8 h-8 bg-surface-container text-brand-teal rounded-lg hover:bg-brand-teal hover:text-white transition-all flex items-center justify-center border border-outline-variant">
-                            <mat-icon class="!text-[16px] !w-auto !h-auto">check</mat-icon>
-                          </button>
-                          <button (click)="openCounterOfferModal(job)"
-                                  class="w-8 h-8 bg-surface-container text-amber-600 rounded-lg hover:bg-amber-600 hover:text-white transition-all flex items-center justify-center border border-outline-variant">
-                            <mat-icon class="!text-[16px] !w-auto !h-auto">attach_money</mat-icon>
+                                  class="px-3.5 py-2 bg-brand-teal text-white font-black text-[9px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm active:scale-95">
+                            Accept
                           </button>
                           <button (click)="state.updateJobStatus(job.id, 'REJECTED')"
-                                  class="w-8 h-8 bg-surface-container text-error rounded-lg hover:bg-error hover:text-white transition-all flex items-center justify-center border border-outline-variant">
-                            <mat-icon class="!text-[16px] !w-auto !h-auto">close</mat-icon>
+                                  class="px-3.5 py-2 border border-outline-variant text-on-surface-variant font-black text-[9px] uppercase tracking-widest rounded-lg hover:bg-error/10 hover:text-error hover:border-error/20 transition-all active:scale-95">
+                            Cancel
                           </button>
                         </div>
                       }

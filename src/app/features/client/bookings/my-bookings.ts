@@ -206,15 +206,6 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
                       </div>
                     }
 
-                    <!-- Negotiate button for pending jobs -->
-                    @if (b.status === 'Pending' && !b.negotiatedPrice) {
-                      <button (click)="openNegotiateModal(b)"
-                              class="px-3 py-1.5 bg-slate-600 text-white rounded-lg text-[9px] font-black
-                                     uppercase tracking-widest hover:bg-slate-700 transition-all active:scale-95 shadow-sm">
-                        Negotiate
-                      </button>
-                    }
-
                     <!-- PAY button -->
                     @if (b.status === 'Accepted') {
                       <div class="flex items-center gap-2">
