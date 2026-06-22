@@ -1,23 +1,23 @@
 import {
   Component, inject, signal, computed, OnDestroy, effect
 } from '@angular/core';
-import { CommonModule }     from '@angular/common';
-import { RouterLink }       from '@angular/router';
-import { FormsModule }      from '@angular/forms';
-import { MatCardModule }    from '@angular/material/card';
-import { MatButtonModule }  from '@angular/material/button';
-import { MatIconModule }    from '@angular/material/icon';
-import { MatTableModule }   from '@angular/material/table';
-import { MatChipsModule }   from '@angular/material/chips';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTableModule } from '@angular/material/table';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatSnackBar }      from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
-import { Subscription }     from 'rxjs';
+import { Subscription } from 'rxjs';
 
 import { PlatformStateService } from '../../../core/services/platform-state.service';
-import { NotificationService }  from '../../../core/services/notification.service';
-import { PaymentService }       from '../../../core/services/payment.service';
-import { AuthService }          from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { PaymentService } from '../../../core/services/payment.service';
+import { AuthService } from '../../../core/services/auth.service';
 import {
   getPaymentStatusLabel,
   JOB_STATUS_OPTIONS,
@@ -48,9 +48,9 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
 
       <!-- Escrow Alert Banner -->
       @if (showEscrowAlert()) {
-        <app-escrow-alert-banner 
+        <app-escrow-alert-banner
           (fundEscrow)="openPayModal(currentBooking())"
-          (dismiss)="dismissEscrowAlert()" 
+          (dismiss)="dismissEscrowAlert()"
         />
       }
 
@@ -64,37 +64,6 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
                 class="px-3.5 py-2 bg-white border border-slate-200 rounded-xl font-black text-[9px] uppercase tracking-widest text-slate-600 hover:border-brand-teal hover:text-brand-teal transition-all flex items-center gap-1.5 shadow-sm">
           <mat-icon class="!text-xs !w-auto !h-auto">download</mat-icon> Export
         </button>
-      </div>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 border-l-4 border-l-blue-500">
-          <div class="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 border border-slate-100/50">
-            <mat-icon class="!text-lg">engineering</mat-icon>
-          </div>
-          <div>
-            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Ongoing</p>
-            <p class="text-lg font-black text-slate-900 leading-none">{{ activeCount }}</p>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 border-l-4 border-l-emerald-500">
-          <div class="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 border border-slate-100/50">
-            <mat-icon class="!text-lg">payments</mat-icon>
-          </div>
-          <div>
-            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Paid</p>
-            <p class="text-lg font-black text-slate-900 leading-none">KES {{ totalSpent | number }}</p>
-          </div>
-        </div>
-        <div class="bg-white p-4 rounded-xl border border-slate-100 shadow-sm flex items-center gap-3 border-l-4 border-l-amber-500">
-          <div class="w-9 h-9 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400 border border-slate-100/50">
-            <mat-icon class="!text-lg">pending_actions</mat-icon>
-          </div>
-          <div>
-            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Pending</p>
-            <p class="text-lg font-black text-slate-900 leading-none">{{ pendingCount }}</p>
-          </div>
-        </div>
       </div>
 
       <!-- Inline message -->
@@ -150,7 +119,7 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
           <div class="divide-y divide-slate-100">
             @for (b of paginatedBookings(); track b.id) {
               <div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                
+
                 <!-- Worker Info -->
                 <div class="flex items-center gap-3.5 min-w-[240px]">
                   <div class="h-9 w-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 font-bold text-[10px] uppercase border border-slate-200 overflow-hidden shrink-0">
@@ -179,7 +148,7 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
 
                 <!-- Actions / Status -->
                 <div class="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-50">
-                  
+
                   <!-- Status badge -->
                   <span [ngClass]="getStatusClasses(b.status)">
                     {{ pollingJobId() === b.id ? 'Waiting...' : b.status }}
@@ -462,8 +431,8 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
               <label class="block text-[10px] font-black text-slate-700 uppercase tracking-wider mb-2">
                 Your Offer Price
               </label>
-              <input 
-                type="number" 
+              <input
+                type="number"
                 [(ngModel)]="negotiatePrice"
                 placeholder="Enter your price"
                 class="w-full h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600 focus:bg-white transition-all"
@@ -473,13 +442,13 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
               </p>
             </div>
             <div class="p-6 border-t border-slate-100 flex gap-3">
-              <button 
+              <button
                 (click)="closeNegotiateModal()"
                 class="flex-1 py-3 border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all"
               >
                 Cancel
               </button>
-              <button 
+              <button
                 (click)="submitNegotiation()"
                 [disabled]="negotiateLoading() || !negotiatePrice() || negotiatePrice()! <= 0"
                 class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
@@ -505,18 +474,18 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
 })
 export class ClientBookingsPage implements OnDestroy {
 
-  state        = inject(PlatformStateService);
-  private auth    = inject(AuthService);
-  private notif   = inject(NotificationService);
+  state = inject(PlatformStateService);
+  private auth = inject(AuthService);
+  private notif = inject(NotificationService);
   private payment = inject(PaymentService);
-  private snack   = inject(MatSnackBar);
-  private http    = inject(HttpClient);
+  private snack = inject(MatSnackBar);
+  private http = inject(HttpClient);
 
   displayedColumns = ['worker', 'date', 'cost', 'status'];
 
   // Pagination
-  currentPage  = signal(1);
-  itemsPerPage = signal(8);
+  currentPage = signal(1);
+  itemsPerPage = signal(5);
   searchQuery = signal('');
   statusFilter = signal('All');
   paymentStatusFilter = signal<PaymentStatusFilter>('All');
@@ -575,24 +544,23 @@ export class ClientBookingsPage implements OnDestroy {
   }
 
   // Payment polling state
-  pollingJobId   = signal<string | null>(null);
+  pollingJobId = signal<string | null>(null);
   releasingJobId = signal<string | null>(null);
   private pollSub?: Subscription;
 
   // Modals
-  payModal:      { booking: any; phone: string; loading: boolean; error: string; retrying: boolean } | null = null;
+  payModal: { booking: any; phone: string; loading: boolean; error: string; retrying: boolean } | null = null;
   releaseConfirm: any = null;
-  reviewBooking:  any = null;
-  reviewRating        = 0;
-  reviewComment       = '';
+  reviewBooking: any = null;
+  reviewRating = 0;
+  reviewComment = '';
 
   // Escrow guidance
   escrowAlertDismissed = signal(false);
 
   currentBooking = computed(() => {
     const bookings = this.state.bookings();
-    // Find the most recent booking that needs escrow funding (Accepted but not paid)
-    return bookings.find((b: any) => 
+    return bookings.find((b: any) =>
       (b.status === 'Accepted' || b.status === 'ACCEPTED') && !this.escrowAlertDismissed()
     ) || null;
   });
@@ -607,7 +575,7 @@ export class ClientBookingsPage implements OnDestroy {
     if (!booking) return [];
 
     const status = booking.status?.toLowerCase() || '';
-    
+
     return [
       { step: 1, label: 'Job Posted', status: 'completed' },
       { step: 2, label: 'Worker Accepted', status: 'completed' },
@@ -673,27 +641,21 @@ export class ClientBookingsPage implements OnDestroy {
 
   // ── Private helper ───────────────────────────────────────────────────────
 
-private refreshBookings() {
-  const user = this.auth.currentUser();
-  if (user) {
-    this.state.fetchClientJobs(user.id);
-  } else {
-    console.warn('[ClientBookingsPage] Cannot refresh: No authenticated user');
+  private refreshBookings() {
+    const user = this.auth.currentUser();
+    if (user) {
+      this.state.fetchClientJobs(user.id);
+    } else {
+      console.warn('[ClientBookingsPage] Cannot refresh: No authenticated user');
+    }
   }
-}
 
   // ── Pay Modal ───────────────────────────────────────────────────────────
 
   openPayModal(booking: any, retrying = false) {
-    // Refresh bookings to ensure we have the latest negotiated price
     this.refreshBookings();
-    
-    // Get the updated booking data
     const updatedBooking = this.state.bookings().find((b: any) => b.id === booking.id);
-    
-    // Use the updated booking if available, otherwise fall back to the original
     const bookingToUse = updatedBooking || booking;
-    
     this.payModal = { booking: bookingToUse, phone: '', loading: false, error: '', retrying };
   }
 
@@ -704,7 +666,7 @@ private refreshBookings() {
     const { booking, phone } = this.payModal;
 
     this.payModal.loading = true;
-    this.payModal.error   = '';
+    this.payModal.error = '';
 
     this.payment.initiateStkPush(booking.id, phone).subscribe({
       next: (resp) => {
@@ -777,8 +739,7 @@ private refreshBookings() {
         this.uiMessage.set({ text: 'Work approved. Funds released to the worker wallet.', type: 'success' });
         this.snack.open('Work approved. Funds released to the worker wallet.', 'OK', { duration: 5000 });
         this.refreshBookings();
-        
-        // Auto-popup review modal after payment release
+
         setTimeout(() => {
           const updatedBooking = this.state.bookings().find((b: any) => b.id === booking.id);
           if (updatedBooking && updatedBooking.status === 'Approved' && !updatedBooking.hasReview) {
@@ -812,11 +773,11 @@ private refreshBookings() {
   showHistory() {
     const rows = this.state.bookings().map((b: any) =>
       `${b.clientName},${b.workerName},${b.status},${b.date},${b.earnings}`);
-    const csv  = ['Employer,Worker,Status,Date,Amount (KES)', ...rows].join('\n');
+    const csv = ['Employer,Worker,Status,Date,Amount (KES)', ...rows].join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const a    = document.createElement('a');
-    a.href     = url;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
     a.download = `bookings-${Date.now()}.csv`;
     a.click();
     URL.revokeObjectURL(url);
@@ -825,36 +786,31 @@ private refreshBookings() {
 
   // ── Helpers ─────────────────────────────────────────────────────────────
 
-  get activeCount()  { return this.state.bookings().filter((b: any) => ['Accepted','In Progress','Submitted'].includes(b.status)).length; }
-  get pendingCount() { return this.state.bookings().filter((b: any) => b.status === 'Pending').length; }
-  get totalSpent()   { return this.state.bookings().filter((b: any) => ['Approved','Completed'].includes(b.status)).reduce((s: number, b: any) => s + b.earnings, 0); }
-
   getStatusClasses(status: string) {
     const base = 'px-3 py-1.5 rounded-xl text-[9px] font-bold uppercase tracking-wider border transition-colors ';
     switch ((status || '').toLowerCase()) {
-      case 'approved':           return base + 'bg-slate-50 text-indigo-600 border-indigo-100';
-      case 'accepted':           return base + 'bg-brand-teal-soft text-brand-teal border-brand-teal/30';
-      case 'submitted':          return base + 'bg-emerald-50/50 text-emerald-600 border-emerald-100';
-      case 'pending':            return base + 'bg-slate-50 text-slate-500 border-slate-200';
-      case 'in progress':        return base + 'bg-indigo-50/30 text-indigo-500 border-indigo-100';
-      case 'cancelled':          return base + 'bg-slate-50 text-rose-400 border-rose-100';
-      case 'disputed':           return base + 'bg-rose-50 text-rose-600 border-rose-200';
+      case 'completed': return base + 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'approved': return base + 'bg-emerald-50/60 text-emerald-600 border-emerald-100';
+      case 'accepted': return base + 'bg-brand-teal-soft text-brand-teal border-brand-teal/30';
+      case 'submitted': return base + 'bg-emerald-50/50 text-emerald-600 border-emerald-100';
+      case 'pending': return base + 'bg-slate-50 text-slate-500 border-slate-200';
+      case 'in progress': return base + 'bg-indigo-50/30 text-indigo-500 border-indigo-100';
+      case 'cancelled': return base + 'bg-slate-50 text-rose-400 border-rose-100';
+      case 'disputed': return base + 'bg-rose-50 text-rose-600 border-rose-200';
       case 'revision requested': return base + 'bg-amber-50 text-amber-600 border-amber-100';
-      default:                   return base + 'bg-slate-50 text-slate-400 border-slate-100';
+      default: return base + 'bg-slate-50 text-slate-400 border-slate-100';
     }
   }
 
   ngOnDestroy() { this.pollSub?.unsubscribe(); }
 
-  // Auto-refresh bookings when counter-offer notification arrives
   counterOfferListener = effect(() => {
     const notifications = this.state.notifications();
-    const counterOfferNotifs = notifications.filter(n => 
+    const counterOfferNotifs = notifications.filter(n =>
       n.title?.includes('Counter-Offer') || n.message?.includes('counter-offer') || n.message?.includes('Counter-offer')
     );
-    
+
     if (counterOfferNotifs.length > 0) {
-      // Refresh bookings when a counter-offer notification arrives
       const lastNotif = counterOfferNotifs[counterOfferNotifs.length - 1];
       if (!lastNotif.isRead) {
         setTimeout(() => this.refreshBookings(), 500);
