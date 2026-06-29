@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { lastValueFrom } from 'rxjs';
 import { DisputeService } from '../../../core/services/dispute.service';
 import { environment } from '../../../../environments/environment';
+import { DocumentUploadComponent } from '../document-upload/document-upload.component';
 
 @Component({
   selector: 'app-file-dispute-dialog',
@@ -26,7 +27,8 @@ import { environment } from '../../../../environments/environment';
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    DocumentUploadComponent
   ],
   template: `
     <div class="p-6">
@@ -68,29 +70,17 @@ import { environment } from '../../../../environments/environment';
         </mat-form-field>
 
         <!-- Evidence Upload -->
-        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4">
-          <label class="block mb-2 font-semibold">Upload Evidence (Optional)</label>
-          <p class="text-sm text-gray-600 mb-3">
-            Supported: Screenshots, Photos, Videos, PDFs, Contracts, Receipts
-          </p>
-          <input #fileInput type="file" multiple accept=".jpg,.jpeg,.png,.gif,.pdf,.mp4,.avi,.mov,.doc,.docx"
-                 (change)="onFileSelected($event)" class="hidden" />
-          <button type="button" mat-raised-button color="primary"
-                  (click)="fileInput.click()" class="w-full">
-            <mat-icon>cloud_upload</mat-icon> Choose Files
-          </button>
-
-          <!-- Selected Files Display -->
-          <div *ngIf="selectedFiles.length > 0" class="mt-4">
-            <p class="font-semibold mb-2">Selected Files ({{ selectedFiles.length }}):</p>
-            <div *ngFor="let file of selectedFiles; let i = index" class="flex justify-between items-center p-2 bg-gray-100 rounded mb-2">
-              <span class="text-sm">{{ file.name }}</span>
-              <button type="button" mat-icon-button (click)="removeFile(i)">
-                <mat-icon>close</mat-icon>
-              </button>
-            </div>
-          </div>
-        </div>
+        <app-document-upload
+          label="Upload Evidence (Optional)"
+          description="Supported: Screenshots, Photos, Videos, PDFs, Contracts, Receipts"
+          buttonText="Choose Files"
+          [allowMultiple]="true"
+          [acceptedFileTypes]="'.jpg,.jpeg,.png,.gif,.pdf,.mp4,.avi,.mov,.doc,.docx'"
+          [maxFileSize]="10 * 1024 * 1024"
+          [isUploading]="isSubmitting"
+          (filesChanged)="onFilesChanged($event)"
+          (fileRemoved)="removeFile($event)">
+        </app-document-upload>
 
         <!-- Action Buttons -->
         <div class="flex gap-3 justify-end mt-6">
@@ -138,17 +128,8 @@ export class FileDisputeDialogComponent {
     }
   }
 
-  onFileSelected(event: any): void {
-    const files = event.target.files;
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      // Validate file size (max 10MB)
-      if (file.size > 10 * 1024 * 1024) {
-        alert(`File ${file.name} is too large. Maximum size is 10MB.`);
-        continue;
-      }
-      this.selectedFiles.push(file);
-    }
+  onFilesChanged(files: File[]): void {
+    this.selectedFiles = files;
   }
 
   removeFile(index: number): void {

@@ -11,6 +11,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
+import { DocumentUploadComponent } from '../../../shared/components/document-upload/document-upload.component';
 
 @Component({
   selector: 'app-worker-verification',
@@ -26,6 +27,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     MatDividerModule,
     MatListModule,
     MatProgressSpinnerModule,
+    DocumentUploadComponent,
   ],
   template: `
     @if (state.currentWorker().status === 'loading' || !state.currentWorker().id) {
@@ -81,9 +83,9 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
       }
 
       @if (workerStatus !== 'Pending') {
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div class="max-w-3xl mx-auto space-y-8">
           <!-- Main Upload Area -->
-          <div class="md:col-span-7 space-y-8">
+          <div class="space-y-8">
             
             <!-- ID Documents -->
             <section class="space-y-4">
@@ -91,43 +93,69 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
               
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- ID Front -->
-                <div (click)="fileInputFront.click()" class="group relative aspect-[1.5/1] bg-surface-container-low rounded-xl flex flex-col items-center justify-center border border-outline-variant hover:border-brand-teal transition-all cursor-pointer overflow-hidden shadow-sm">
-                  <input #fileInputFront type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Front')" class="hidden">
+                <div 
+                  class="border-2 border-dashed border-gray-300 rounded-lg p-4 transition-all hover:border-brand-teal"
+                  [class.bg-brand-teal/5]="isDraggingFront()"
+                  (dragover)="onDragOver($event, 'front')"
+                  (dragleave)="onDragLeave($event, 'front')"
+                  (drop)="onDrop($event, 'ID-Front')">
+                  <label class="block mb-2 font-semibold text-gray-700">ID Front Side <span class="text-error">*</span></label>
+                  <p class="text-sm text-gray-600 mb-3">Upload the front of your ID card (drag & drop or click)</p>
+                  <input #fileInputFront type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Front')" class="hidden" />
+                  <button type="button" mat-raised-button color="primary"
+                          (click)="fileInputFront.click()" class="w-full" [disabled]="isSubmitting()">
+                    <mat-icon *ngIf="!isSubmitting()">cloud_upload</mat-icon>
+                    <mat-spinner *ngIf="isSubmitting()" diameter="20" class="mr-2"></mat-spinner>
+                    {{ getFileUrl('ID-Front') ? 'Replace Front' : 'Upload Front' }}
+                  </button>
+
                   @if (getFileUrl('ID-Front')) {
-                    <img [src]="getFileUrl('ID-Front')" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-brand-teal/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
-                      <span class="bg-white px-3 py-1.5 rounded-lg text-brand-teal text-[10px] font-black uppercase tracking-widest shadow-lg">Replace Front</span>
-                    </div>
-                    <div class="absolute top-2 right-2 bg-brand-teal text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
-                       <mat-icon class="!text-[14px] flex items-center justify-center">check</mat-icon>
-                    </div>
-                  } @else {
-                    <div class="flex flex-col items-center gap-2">
-                      <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center text-brand-teal border border-outline-variant shadow-sm">
-                        <mat-icon class="!text-2xl flex items-center justify-center">add_a_photo</mat-icon>
+                    <div class="mt-4">
+                      <div class="relative aspect-[1.5/1] rounded-lg overflow-hidden border border-gray-200">
+                        @if (uploadingFileTypes().has('ID-Front')) {
+                          <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                            <mat-spinner diameter="30"></mat-spinner>
+                          </div>
+                        }
+                        <img [src]="getFileUrl('ID-Front')" class="w-full h-full object-cover">
+                        <div class="absolute top-2 right-2 bg-brand-teal text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
+                          <mat-icon class="!text-[14px] flex items-center justify-center">check</mat-icon>
+                        </div>
                       </div>
-                      <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Front Side <span class="text-error">*</span></span>
                     </div>
                   }
                 </div>
 
                 <!-- ID Back -->
-                <div (click)="fileInputBack.click()" class="group relative aspect-[1.5/1] bg-surface-container-low rounded-xl flex flex-col items-center justify-center border border-outline-variant hover:border-brand-teal transition-all cursor-pointer overflow-hidden shadow-sm">
-                  <input #fileInputBack type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Back')" class="hidden">
+                <div 
+                  class="border-2 border-dashed border-gray-300 rounded-lg p-4 transition-all hover:border-brand-teal"
+                  [class.bg-brand-teal/5]="isDraggingBack()"
+                  (dragover)="onDragOver($event, 'back')"
+                  (dragleave)="onDragLeave($event, 'back')"
+                  (drop)="onDrop($event, 'ID-Back')">
+                  <label class="block mb-2 font-semibold text-gray-700">ID Back Side <span class="text-error">*</span></label>
+                  <p class="text-sm text-gray-600 mb-3">Upload the back of your ID card (drag & drop or click)</p>
+                  <input #fileInputBack type="file" accept="image/*,.pdf" (change)="onFileSelected($event, 'ID-Back')" class="hidden" />
+                  <button type="button" mat-raised-button color="primary"
+                          (click)="fileInputBack.click()" class="w-full" [disabled]="isSubmitting()">
+                    <mat-icon *ngIf="!isSubmitting()">cloud_upload</mat-icon>
+                    <mat-spinner *ngIf="isSubmitting()" diameter="20" class="mr-2"></mat-spinner>
+                    {{ getFileUrl('ID-Back') ? 'Replace Back' : 'Upload Back' }}
+                  </button>
+
                   @if (getFileUrl('ID-Back')) {
-                    <img [src]="getFileUrl('ID-Back')" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-brand-teal/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all backdrop-blur-[2px]">
-                      <span class="bg-white px-3 py-1.5 rounded-lg text-brand-teal text-[10px] font-black uppercase tracking-widest shadow-lg">Replace Back</span>
-                    </div>
-                    <div class="absolute top-2 right-2 bg-brand-teal text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
-                       <mat-icon class="!text-[14px] flex items-center justify-center">check</mat-icon>
-                    </div>
-                  } @else {
-                    <div class="flex flex-col items-center gap-2">
-                      <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center text-brand-teal border border-outline-variant shadow-sm">
-                        <mat-icon class="!text-2xl flex items-center justify-center">add_a_photo</mat-icon>
+                    <div class="mt-4">
+                      <div class="relative aspect-[1.5/1] rounded-lg overflow-hidden border border-gray-200">
+                        @if (uploadingFileTypes().has('ID-Back')) {
+                          <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                            <mat-spinner diameter="30"></mat-spinner>
+                          </div>
+                        }
+                        <img [src]="getFileUrl('ID-Back')" class="w-full h-full object-cover">
+                        <div class="absolute top-2 right-2 bg-brand-teal text-white w-6 h-6 rounded-full flex items-center justify-center shadow-sm">
+                          <mat-icon class="!text-[14px] flex items-center justify-center">check</mat-icon>
+                        </div>
                       </div>
-                      <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Back Side <span class="text-error">*</span></span>
                     </div>
                   }
                 </div>
@@ -137,101 +165,52 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             <!-- Work Certificates -->
             <section class="space-y-4">
               <h3 class="font-label-md text-label-md text-brand-teal uppercase tracking-widest px-1">Work Certificates</h3>
-              <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 space-y-6">
-                <div class="flex items-center justify-between gap-4">
-                  <div class="flex-1">
-                    <h4 class="font-bold text-brand-teal mb-1">Upload Certificates</h4>
-                    <p class="text-xs text-on-surface-variant leading-relaxed">Safety training, trade school diplomas, or special licenses.</p>
-                  </div>
-                  <button (click)="bulkFileInput.click()" class="w-12 h-12 bg-brand-teal text-white rounded-lg flex items-center justify-center shadow-lg active:scale-95 transition-transform">
-                    <mat-icon class="flex items-center justify-center">upload_file</mat-icon>
-                  </button>
-                  <input #bulkFileInput type="file" multiple accept=".pdf,.jpg,.png" (change)="onFileSelected($event, 'Certification')" class="hidden">
-                </div>
-              </div>
+              <app-document-upload
+                label="Upload Certificates"
+                description="Safety training, trade school diplomas, or special licenses. Supported: PDF, JPG, PNG"
+                buttonText="Choose Certificate Files"
+                [allowMultiple]="true"
+                [acceptedFileTypes]="'.pdf,.jpg,.png'"
+                [maxFileSize]="10 * 1024 * 1024"
+                [isUploading]="isSubmitting()"
+                (filesChanged)="onCertificateFilesChanged($event)">
+              </app-document-upload>
             </section>
           </div>
 
-          <!-- Sidebar: Your Files -->
-          <aside class="md:col-span-5 space-y-6">
-            <div class="bg-brand-teal text-white rounded-xl p-6 shadow-xl relative overflow-hidden group">
-              <div class="absolute inset-0 opacity-5 pointer-events-none" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
-              
-              <div class="relative z-10">
-                <div class="flex items-center justify-between mb-8">
-                  <h3 class="text-xl font-black tracking-tight">Your Files</h3>
-                  <mat-icon class="text-white/60 flex items-center justify-center">folder</mat-icon>
-                </div>
+          <!-- Submit Section -->
+          <div class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm space-y-4">
+             <div>
+                <h4 class="font-bold text-brand-teal">Submit for Review</h4>
+                <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">
+                  Our team will check your documents. This usually takes less than 24 hours.
+                </p>
+             </div>
+             
+             <button (click)="submitApplication()" 
+                     [disabled]="isSubmitting() || uploadedFiles().length === 0 || state.currentWorkerCompletion() < 100"
+                     class="w-full py-4 bg-brand-teal text-white rounded-lg font-bold text-sm uppercase tracking-widest hover:opacity-90 disabled:opacity-30 disabled:grayscale transition-all shadow-lg shadow-brand-teal/10 active:scale-[0.98] flex items-center justify-center gap-2">
+                @if (isSubmitting()) {
+                  <mat-spinner diameter="16" color="accent" class="!inline-block"></mat-spinner>
+                  <span>Sending...</span>
+                } @else {
+                  <mat-icon class="!text-[18px] flex items-center justify-center">send</mat-icon>
+                  <span>Submit for Review</span>
+                }
+             </button>
 
-                <div class="space-y-4">
-                  <div class="flex items-center justify-between bg-white/10 p-3 rounded-lg border border-white/5">
-                    <div class="flex items-center gap-3">
-                      <mat-icon class="text-secondary-container-fixed flex items-center justify-center">lock</mat-icon>
-                      <div>
-                        <p class="text-[9px] text-white/40 font-black uppercase tracking-widest">Security</p>
-                        <p class="text-xs font-bold">Your files are safe</p>
-                      </div>
-                    </div>
-                    <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">ACTIVE</span>
+             @if (state.currentWorkerCompletion() < 100) {
+               <div class="flex items-start gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                  <mat-icon class="text-amber-600 !text-[16px] flex items-center justify-center shrink-0">info_outline</mat-icon>
+                  <div class="space-y-1">
+                    <p class="text-[10px] font-black text-amber-800 uppercase tracking-wider">Missing Information</p>
+                    <p class="text-[10px] text-amber-700 leading-relaxed">
+                      Please complete your profile first: add your bio, skills, work history, certificates, and both sides of your ID.
+                    </p>
                   </div>
-
-                  <div class="space-y-2 mt-6">
-                     <p class="text-[10px] font-black text-white/40 uppercase tracking-widest mb-3">Uploaded • {{ uploadedFiles().length }} Files</p>
-                     @for (file of uploadedFiles(); track file.id) {
-                       <div class="flex items-center justify-between p-2 hover:bg-white/5 rounded transition-colors group/item">
-                          <div class="flex items-center gap-2 truncate">
-                             <mat-icon class="text-white/40 !text-sm flex items-center justify-center">description</mat-icon>
-                             <span class="text-[11px] text-white/80 font-medium truncate">{{ file.name }}</span>
-                          </div>
-                          <button (click)="removeFile(file)" class="opacity-0 group-hover/item:opacity-100 text-white/40 hover:text-white transition-opacity">
-                             <mat-icon class="!text-[14px] flex items-center justify-center">delete</mat-icon>
-                          </button>
-                       </div>
-                     }
-                     @if (uploadedFiles().length === 0) {
-                        <div class="text-center py-6 border border-dashed border-white/10 rounded-lg">
-                           <p class="text-[10px] text-white/30 italic">No files uploaded yet</p>
-                        </div>
-                     }
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Submit Section -->
-            <div class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm space-y-4">
-               <div>
-                  <h4 class="font-bold text-brand-teal">Submit for Review</h4>
-                  <p class="text-xs text-on-surface-variant mt-1 leading-relaxed">
-                    Our team will check your documents. This usually takes less than 24 hours.
-                  </p>
                </div>
-               
-               <button (click)="submitApplication()" 
-                       [disabled]="isSubmitting() || uploadedFiles().length === 0 || state.currentWorkerCompletion() < 100"
-                       class="w-full py-4 bg-brand-teal text-white rounded-lg font-bold text-sm uppercase tracking-widest hover:opacity-90 disabled:opacity-30 disabled:grayscale transition-all shadow-lg shadow-brand-teal/10 active:scale-[0.98] flex items-center justify-center gap-2">
-                  @if (isSubmitting()) {
-                    <mat-spinner diameter="16" color="accent" class="!inline-block"></mat-spinner>
-                    <span>Sending...</span>
-                  } @else {
-                    <mat-icon class="!text-[18px] flex items-center justify-center">send</mat-icon>
-                    <span>Submit for Review</span>
-                  }
-               </button>
-
-               @if (state.currentWorkerCompletion() < 100) {
-                 <div class="flex items-start gap-2 p-3 bg-amber-50 rounded-lg border border-amber-200">
-                    <mat-icon class="text-amber-600 !text-[16px] flex items-center justify-center shrink-0">info_outline</mat-icon>
-                    <div class="space-y-1">
-                      <p class="text-[10px] font-black text-amber-800 uppercase tracking-wider">Missing Information</p>
-                      <p class="text-[10px] text-amber-700 leading-relaxed">
-                        Please complete your profile first: add your bio, skills, work history, certificates, and both sides of your ID.
-                      </p>
-                    </div>
-                 </div>
-               }
-            </div>
-          </aside>
+             }
+          </div>
         </div>
       } @else {
         <!-- Waiting for Review -->
@@ -283,6 +262,10 @@ export class WorkerVerificationPage {
   private notification = inject(NotificationService);
   private router = inject(Router);
   isSubmitting = signal(false);
+  certificateFiles: File[] = [];
+  uploadingFileTypes = signal<Set<string>>(new Set());
+  isDraggingFront = signal(false);
+  isDraggingBack = signal(false);
 
   get workerStatus() { return this.state.currentWorker().status; }
   get rejectionReason() { return (this.state.currentWorker() as any).rejectionReason; }
@@ -320,6 +303,10 @@ export class WorkerVerificationPage {
         this.notification.error('User identity not found. Please re-login.');
         return;
       }
+
+      // Set loading state for this file type
+      this.uploadingFileTypes.update(set => new Set(set).add(type));
+
       this.state.uploadDocument(userId, type, file.name, file).subscribe({
         next: (doc) => {
           this.state.currentWorker.update(w => {
@@ -342,11 +329,100 @@ export class WorkerVerificationPage {
             };
           });
           this.notification.success(`${file.name} uploaded`);
+          // Remove loading state
+          this.uploadingFileTypes.update(set => {
+            const newSet = new Set(set);
+            newSet.delete(type);
+            return newSet;
+          });
+        },
+        error: () => {
+          this.notification.error(`Failed to upload ${file.name}`);
+          // Remove loading state on error
+          this.uploadingFileTypes.update(set => {
+            const newSet = new Set(set);
+            newSet.delete(type);
+            return newSet;
+          });
+        }
+      });
+    }
+    input.value = '';
+  }
+
+  onCertificateFilesChanged(files: File[]): void {
+    this.certificateFiles = files;
+    // Auto-upload certificate files when they are selected
+    this.uploadCertificateFiles(files);
+  }
+
+  onDragOver(event: DragEvent, side: 'front' | 'back'): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (side === 'front') {
+      this.isDraggingFront.set(true);
+    } else {
+      this.isDraggingBack.set(true);
+    }
+  }
+
+  onDragLeave(event: DragEvent, side: 'front' | 'back'): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (side === 'front') {
+      this.isDraggingFront.set(false);
+    } else {
+      this.isDraggingBack.set(false);
+    }
+  }
+
+  onDrop(event: DragEvent, type: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDraggingFront.set(false);
+    this.isDraggingBack.set(false);
+
+    const files = event.dataTransfer?.files;
+    if (!files || files.length === 0) return;
+
+    // Create a mock event object to reuse the existing file selection logic
+    const mockEvent = { target: { files } } as any;
+    this.onFileSelected(mockEvent, type);
+  }
+
+  private async uploadCertificateFiles(files: File[]) {
+    const userId = this.state.currentWorker().userId;
+    if (!userId) {
+      this.notification.error('User identity not found. Please re-login.');
+      return;
+    }
+
+    for (const file of files) {
+      // Check for duplicates
+      const isDuplicate = (this.worker().uploadedDocuments || []).some(d => d.name === file.name && d.type === 'Certification');
+      if (isDuplicate) {
+        this.notification.error(`${file.name} is already uploaded.`);
+        continue;
+      }
+
+      this.state.uploadDocument(userId, 'Certification', file.name, file).subscribe({
+        next: (doc) => {
+          this.state.currentWorker.update(w => ({
+            ...w,
+            uploadedDocuments: [...(w.uploadedDocuments || []), {
+              id: doc.id,
+              name: doc.name,
+              type: doc.type,
+              status: 'uploaded',
+              url: doc.documentUrl,
+              file
+            }]
+          }));
+          this.notification.success(`${file.name} uploaded`);
         },
         error: () => this.notification.error(`Failed to upload ${file.name}`)
       });
     }
-    input.value = '';
   }
 
   removeFile(file: any) {

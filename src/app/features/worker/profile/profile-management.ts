@@ -16,6 +16,7 @@ import { FormsModule } from '@angular/forms';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { toObservable } from '@angular/core/rxjs-interop';
+import { DocumentUploadComponent } from '../../../shared/components/document-upload/document-upload.component';
 
 @Component({
   selector: 'app-worker-profile',
@@ -32,7 +33,8 @@ import { toObservable } from '@angular/core/rxjs-interop';
     MatSelectModule,
     MatSlideToggleModule,
     MatProgressSpinnerModule,
-    FormsModule
+    FormsModule,
+    DocumentUploadComponent
   ],
   template: `
     <!-- Loading State -->
@@ -44,7 +46,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
         </div>
       </div>
     } @else {
-      <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
+      <div class="max-w-3xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
         
         <!-- Rejection Alert -->
         @if (status === 'Rejected' && rejectionReason) {
@@ -61,31 +63,51 @@ import { toObservable } from '@angular/core/rxjs-interop';
         }
 
         <!-- Profile Header & Picture -->
-        <section class="flex flex-col items-center pt-8">
-          <div class="relative group overflow-visible">
-            <div class="w-32 h-32 rounded-xl border border-outline-variant bg-surface overflow-hidden shadow-sm">
+        <section class="space-y-6 pt-8">
+          <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+            <!-- Profile Picture Upload -->
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 transition-all hover:border-brand-teal">
+              <label class="block mb-2 font-semibold text-gray-700">Profile Picture</label>
+              <p class="text-sm text-gray-600 mb-3">Upload your professional photo</p>
+              <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden" />
+              <button type="button" mat-raised-button color="primary"
+                      (click)="avatarInput.click()" class="w-full" [disabled]="isUploadingAvatar()">
+                <mat-icon *ngIf="!isUploadingAvatar()">cloud_upload</mat-icon>
+                <mat-spinner *ngIf="isUploadingAvatar()" diameter="20" class="mr-2"></mat-spinner>
+                {{ worker().image ? 'Replace Photo' : 'Upload Photo' }}
+              </button>
+
               @if (worker().image) {
-                <img [src]="worker().image" alt="Profile" class="w-full h-full object-cover">
-              } @else {
-                <div class="w-full h-full flex items-center justify-center bg-surface-container text-2xl font-black text-brand-teal">
-                  {{ worker().initials }}
+                <div class="mt-4">
+                  <div class="relative w-32 h-32 rounded-lg overflow-hidden border border-gray-200 mx-auto">
+                    @if (isUploadingAvatar()) {
+                      <div class="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                        <mat-spinner diameter="30"></mat-spinner>
+                      </div>
+                    }
+                    <img [src]="worker().image" alt="Profile" class="w-full h-full object-cover">
+                    <button (click)="removeProfilePicture()" class="absolute top-2 right-2 bg-white border border-outline-variant text-error w-8 h-8 rounded-full flex items-center justify-center shadow-sm hover:bg-error/10 transition-colors">
+                      <mat-icon class="!text-[16px] flex items-center justify-center">delete_outline</mat-icon>
+                    </button>
+                  </div>
                 </div>
               }
             </div>
-            <button (click)="avatarInput.click()" class="absolute bottom-0 right-0 translate-x-1/2 translate-y-1/2 z-20 bg-white text-slate-900 w-11 h-11 rounded-full shadow-2xl active:scale-95 transition-transform hover:bg-slate-100 border border-slate-200 flex items-center justify-center">
-              <mat-icon class="!text-[18px] flex items-center justify-center">photo_camera</mat-icon>
-            </button>
-            <input #avatarInput type="file" accept="image/*" (change)="onAvatarSelected($event)" class="hidden">
-            
-            @if (worker().image) {
-              <button (click)="removeProfilePicture()" class="absolute top-0 right-0 -translate-x-1/2 -translate-y-1/2 z-20 w-8 h-8 bg-white border border-outline-variant text-error rounded-full flex items-center justify-center shadow-2xl hover:bg-error/10 transition-colors">
-                <mat-icon class="!text-[16px] flex items-center justify-center">delete_outline</mat-icon>
-              </button>
-            }
-          </div>
-          <div class="text-center mt-6">
-            <h1 class="text-2xl font-black text-brand-teal">{{ worker().name || 'Worker' }}</h1>
-            <p class="text-on-surface-variant text-sm">{{ worker().category }}</p>
+
+            <!-- Profile Info -->
+            <div class="flex-1">
+              <h1 class="text-2xl font-black text-brand-teal">{{ worker().name || 'Worker' }}</h1>
+              <p class="text-on-surface-variant text-sm mt-1">{{ worker().category }}</p>
+              <div class="flex items-center gap-4 mt-4 p-4 bg-white border border-outline-variant rounded-xl shadow-sm">
+                <div class="text-right">
+                  <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest block">Profile Ready</span>
+                  <h2 class="text-2xl font-black text-brand-teal">{{ completionPercentage() }}%</h2>
+                </div>
+                <div class="h-12 w-12 rounded-lg bg-secondary-container flex items-center justify-center">
+                  <mat-icon class="text-on-secondary-container flex items-center justify-center" style="font-variation-settings: 'FILL' 1;">security</mat-icon>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -101,16 +123,6 @@ import { toObservable } from '@angular/core/rxjs-interop';
           }
         </nav>
 
-        <!-- Profile Strength Indicator -->
-        <section class="flex flex-col gap-2 px-2">
-          <div class="flex justify-between items-end">
-            <span class="font-label-md text-label-md text-brand-teal uppercase tracking-wider">Profile Readiness</span>
-            <span class="font-bold text-brand-teal">{{ completionPercentage() }}%</span>
-          </div>
-          <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
-            <div class="bg-brand-teal h-full transition-all duration-1000" [style.width.%]="completionPercentage()"></div>
-          </div>
-        </section>
 
         <!-- Form Content Area -->
         <div class="bg-white border border-outline-variant rounded-xl p-6 md:p-8 shadow-sm">
@@ -433,6 +445,7 @@ export class WorkerProfilePage implements OnInit {
   activeTab = signal<'identity' | 'experience' | 'certifications' | 'availability'>('identity');
   isLoading = signal(true);
   isSaving = signal(false);
+  isUploadingAvatar = signal(false);
 
   tabs: { id: 'identity' | 'experience' | 'certifications' | 'availability', label: string, icon: string }[] = [
     { id: 'identity', label: 'Identity', icon: 'person' },
@@ -610,6 +623,7 @@ export class WorkerProfilePage implements OnInit {
       return;
     }
 
+    this.isUploadingAvatar.set(true);
     this.notification.info('Uploading profile picture...');
     this.state.uploadProfilePicture(userId, file).subscribe({
       next: (response: any) => {
@@ -617,9 +631,11 @@ export class WorkerProfilePage implements OnInit {
         this.state.currentWorker.set(mapped);
         this.populateForm(mapped);
         this.notification.success('Profile picture updated!');
+        this.isUploadingAvatar.set(false);
       },
       error: (err: any) => {
         this.notification.error(`Upload failed: ${err.error || err.message || 'Unknown error'}`);
+        this.isUploadingAvatar.set(false);
       }
     });
   }
