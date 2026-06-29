@@ -13,22 +13,24 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-manrope">
+    <div class="min-h-screen bg-slate-50 p-4 font-manrope">
 
       @if (!worker()) {
         <!-- Loading State -->
-        <div class="text-center py-16">
-          <mat-icon class="!text-5xl text-slate-300 mb-4">search</mat-icon>
-          <p class="text-slate-500 font-medium">Loading worker details...</p>
+        <div class="flex items-center justify-center py-16">
+          <div class="text-center">
+            <mat-icon class="!text-5xl text-slate-300 mb-4">search</mat-icon>
+            <p class="text-slate-500 font-medium">Loading worker details...</p>
+          </div>
         </div>
       }
 
       @if (worker()) {
-        <div class="w-full max-w-2xl">
+        <div class="w-full max-w-2xl mx-auto">
 
           <!-- Back Button -->
           <button (click)="goBack()"
-                  class="flex items-center gap-2 text-slate-400 hover:text-slate-700 font-black text-[10px] uppercase tracking-widest mb-8 transition-colors group">
+                  class="flex items-center gap-2 text-slate-400 hover:text-slate-700 font-black text-[10px] uppercase tracking-widest mb-4 transition-colors group">
             <mat-icon class="!text-base group-hover:-translate-x-0.5 transition-transform">arrow_back</mat-icon>
             Back to Marketplace
           </button>
@@ -37,9 +39,9 @@ import { AuthService } from '../../../core/services/auth.service';
           <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden mb-6">
 
             <!-- Worker Header -->
-            <div class="p-8 border-b border-slate-50">
-              <div class="flex items-start gap-6">
-                <div class="w-20 h-20 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-brand-teal font-black text-2xl uppercase shrink-0">
+            <div class="p-6 sm:p-8 border-b border-slate-50">
+              <div class="flex items-start gap-4 sm:gap-6">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden flex items-center justify-center text-brand-teal font-black text-xl sm:text-2xl uppercase shrink-0">
                   @if (worker()?.image) {
                     <img [src]="worker()!.image" class="w-full h-full object-cover" [alt]="worker()!.name">
                   } @else {
@@ -163,27 +165,27 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
           }
 
-          <!-- Action Buttons -->
-          <div class="flex gap-4">
-            <button (click)="goBack()"
-                    class="flex-1 py-4 rounded-2xl border border-slate-200 text-slate-400 font-black
-                           text-[10px] uppercase tracking-widest hover:text-slate-600 hover:border-slate-300 transition-colors">
-              Cancel
-            </button>
-            <button (click)="hire()"
-                    [disabled]="loading()"
-                    class="flex-[2] bg-brand-teal text-white py-4 rounded-2xl font-black text-[10px]
-                           uppercase tracking-widest hover:opacity-90 disabled:opacity-40 disabled:cursor-wait
-                           transition-all active:scale-95 shadow-lg shadow-brand-teal/20 flex items-center justify-center gap-2">
-              @if (loading()) {
-                <mat-icon class="animate-spin !text-base">sync</mat-icon>
-                Sending Request...
-              } @else {
-                <mat-icon class="!text-base">handshake</mat-icon>
-                Hire {{ workerFirstName() }}
-              }
-            </button>
-          </div>
+<!-- Action Buttons -->
+           <div class="flex flex-col sm:flex-row gap-3">
+             <button (click)="goBack()"
+                     class="py-4 px-6 rounded-2xl border border-slate-200 text-slate-400 font-black
+                            text-[10px] uppercase tracking-widest hover:text-slate-600 hover:border-slate-300 transition-colors">
+               Cancel
+             </button>
+             <button (click)="hire()"
+                     [disabled]="loading()"
+                     class="flex-1 bg-brand-teal text-white py-4 rounded-2xl font-black text-[10px]
+                            uppercase tracking-widest hover:opacity-90 disabled:opacity-40 disabled:cursor-wait
+                            transition-all active:scale-95 shadow-lg shadow-brand-teal/20 flex items-center justify-center gap-2">
+               @if (loading()) {
+                 <mat-icon class="animate-spin !text-base">sync</mat-icon>
+                 Sending Request...
+               } @else {
+                 <mat-icon class="!text-base">handshake</mat-icon>
+                 Hire {{ workerFirstName() }}
+               }
+             </button>
+           </div>
 
           <p class="text-center text-[9px] text-slate-400 font-medium mt-4 uppercase tracking-widest">
             No charges yet. You'll fund escrow on the next step.

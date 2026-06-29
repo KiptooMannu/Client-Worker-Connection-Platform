@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, interval, switchMap, takeWhile, timeout, catchError, of, throwError, TimeoutError } from 'rxjs';
+import { Observable, timer, switchMap, takeWhile, timeout, catchError, of, throwError, TimeoutError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
 export interface PaymentStatusResponse {
@@ -48,6 +48,7 @@ export const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
   'REQUEST_CANCELLED':  'Payment request was cancelled.',
   'TIMEOUT':            'Payment request timed out. Please enter your PIN faster next time.',
   'NETWORK_FAILURE':    'Unable to communicate with M-Pesa. Please try again.',
+  'INITIATOR_INVALID':  'Incorrect M-Pesa PIN or security credential. Please verify your payment configuration.',
   'PIN_BLOCKED':        'Your M-Pesa PIN has been blocked due to too many wrong attempts. Please reset it or contact Safaricom.',
   'ACCOUNT_INACTIVE':   'Your M-Pesa account is inactive. Please contact Safaricom support.',
   'NOT_STK_CAPABLE':    'Your phone number does not support M-Pesa STK. Please try with a different number.',
@@ -58,8 +59,7 @@ export const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
   'MPESA_ERROR_1031':   'Payment request timed out. Please try again.',
   'MPESA_ERROR_1030':   'Payment request was cancelled.',
   'MPESA_ERROR_1001':   'Payment request timed out. Please enter your PIN faster next time.',
-  'MPESA_ERROR_1':      'Insufficient funds in your M-Pesa account.',
-  'MPESA_ERROR_2001':   'Unable to communicate with M-Pesa. Please try again.',
+  'MPESA_ERROR_2001':   'Incorrect M-Pesa PIN or security credential. Please verify your payment configuration.',
   'MPESA_ERROR_2002':   'M-Pesa system error. Please try again in a few minutes.',
 };
 
@@ -78,9 +78,9 @@ export class PaymentService {
     * Hard timeout at 65 seconds (STK expires at 60s on Safaricom side).
     */
   pollPaymentStatus(jobId: string): Observable<PaymentStatusResponse> {
-    const terminal = new Set<string>(['PAID', 'FAILED', 'REFUNDED', 'NO_PAYMENT']);
+    const terminal = new Set<string>(['PAID', 'FAILED', 'REFUNDED', 'NO_PAYMENT', 'PAYOUT_FAILED', 'DISPUTED']);
 
-    return interval(3000).pipe(
+    return timer(0, 3000).pipe(
       switchMap(() => this.getPaymentStatus(jobId)),
       takeWhile(resp => !terminal.has(resp.status), true),
       timeout(65_000),
@@ -112,9 +112,39 @@ export class PaymentService {
     if (!failureReason) {
       return fallbackMessage || 'Payment failed. Please try again.';
     }
-    return PAYMENT_FAILURE_MESSAGES[failureReason]
-      ?? fallbackMessage
-      ?? 'Payment failed. Please try again.';
+
+    const normalized = failureReason.trim();
+    const normalizedKey = normalized
+      .toUpperCase()
+      .replace(/[\s\.-]+/g, '_')
+      .replace(/[^A-Z0-9_]/g, '');
+
+    const mapped = PAYMENT_FAILURE_MESSAGES[normalized] || PAYMENT_FAILURE_MESSAGES[normalizedKey];
+    if (mapped) {
+      return mapped;
+    }
+
+    const lower = normalized.toLowerCase();
+    if (lower.includes('insufficient')) {
+      return PAYMENT_FAILURE_MESSAGES['INSUFFICIENT_FUNDS'];
+    }
+    if (lower.includes('wrong pin') || lower.includes('incorrect pin')) {
+      return PAYMENT_FAILURE_MESSAGES['WRONG_PIN'];
+    }
+    if (lower.includes('cancelled') || lower.includes('canceled')) {
+      return PAYMENT_FAILURE_MESSAGES['USER_CANCELLED'];
+    }
+    if (lower.includes('timeout') || lower.includes('timed out')) {
+      return PAYMENT_FAILURE_MESSAGES['TIMEOUT'];
+    }
+    if (lower.includes('inactive')) {
+      return PAYMENT_FAILURE_MESSAGES['ACCOUNT_INACTIVE'];
+    }
+    if (lower.includes('stm') || lower.includes('stk') && lower.includes('capable')) {
+      return PAYMENT_FAILURE_MESSAGES['NOT_STK_CAPABLE'];
+    }
+
+    return fallbackMessage || normalized;
   }
 
   retryPayment(jobId: string, phoneNumber: string): Observable<StkPushResponse> {

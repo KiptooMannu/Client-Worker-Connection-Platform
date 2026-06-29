@@ -14,13 +14,14 @@ import {
   PAYMENT_STATUS_OPTIONS,
   PaymentStatusFilter
 } from '../../../core/utils/payment-status.util';
+import { DisputeStatusButtonComponent } from '../../../shared/components/dispute-status-button/dispute-status-button.component';
 
 type HistoryTab = 'wallet' | 'ledger';
 
 @Component({
   selector: 'app-worker-history',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, FormsModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, FormsModule, DisputeStatusButtonComponent],
   template: `
     @if (state.currentWorker().status === 'loading' || !state.currentWorker().id) {
       <!-- Loading State -->
@@ -94,15 +95,15 @@ type HistoryTab = 'wallet' | 'ledger';
 
       <!-- Tab switcher -->
       <div class="flex gap-2 mb-6 p-1 bg-surface-container-low rounded-xl border border-outline-variant w-fit">
+        <button (click)="activeTab.set('ledger')"
+                [ngClass]="activeTab() === 'ledger' ? 'bg-brand-teal text-white shadow-sm' : 'text-on-surface-variant hover:text-brand-teal'"
+                class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5">
+          <mat-icon class="!text-sm !w-auto !h-auto">receipt_long</mat-icon> Job Ledger
+        </button>
         <button (click)="activeTab.set('wallet')"
                 [ngClass]="activeTab() === 'wallet' ? 'bg-brand-teal text-white shadow-sm' : 'text-on-surface-variant hover:text-brand-teal'"
                 class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5">
           <mat-icon class="!text-sm !w-auto !h-auto">account_balance_wallet</mat-icon> Wallet & Withdrawals
-        </button>
-        <button (click)="activeTab.set('ledger')"
-                [ngClass]="activeTab() === 'ledger' ? 'bg-brand-teal text-white shadow-sm' : 'text-on-surface-variant hover:text-brand-teal'"
-                class="px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5">
-          <mat-icon class="!text-sm !w-auto !h-auto">receipt_long</mat-icon> Operational Ledger
         </button>
       </div>
 
@@ -132,7 +133,7 @@ type HistoryTab = 'wallet' | 'ledger';
           </div>
 
           <div class="divide-y divide-outline-variant">
-            @for (txn of sortedWalletTransactions(); track txn.id) {
+            @for (txn of pagedWalletTransactions(); track txn.id) {
               <div class="px-5 py-3 flex items-center justify-between gap-4 hover:bg-surface-container-low/50 transition-colors">
                 <div class="flex items-center gap-3 min-w-0">
                   <mat-icon class="!text-[16px] !w-auto !h-auto shrink-0"
@@ -159,6 +160,31 @@ type HistoryTab = 'wallet' | 'ledger';
               </div>
             }
           </div>
+
+          @if (sortedWalletTransactions().length > walletPageSize) {
+            <div class="p-3 border-t border-outline-variant bg-surface-container-low/30 flex items-center justify-between">
+              <span class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">
+                Showing {{ walletPageStart() + 1 }}-{{ walletPageEnd() }} of {{ sortedWalletTransactions().length }}
+              </span>
+              <div class="flex gap-1.5">
+                <button (click)="prevWalletPage()" [disabled]="walletPage() === 1"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover:text-brand-teal transition-all bg-white">
+                  <mat-icon class="!text-base">chevron_left</mat-icon>
+                </button>
+                @for (p of walletPageNumbers(); track p) {
+                  <button (click)="goToWalletPage(p)"
+                          [ngClass]="p === walletPage() ? 'bg-brand-teal text-white border-brand-teal' : 'bg-white text-on-surface-variant border-outline-variant hover:text-brand-teal'"
+                          class="w-7 h-7 flex items-center justify-center rounded-lg border text-[10px] font-black transition-all">
+                    {{ p }}
+                  </button>
+                }
+                <button (click)="nextWalletPage()" [disabled]="walletPage() >= walletTotalPages()"
+                        class="w-7 h-7 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover:text-brand-teal transition-all bg-white">
+                  <mat-icon class="!text-base">chevron_right</mat-icon>
+                </button>
+              </div>
+            </div>
+          }
         </div>
       }
 
@@ -267,6 +293,17 @@ type HistoryTab = 'wallet' | 'ledger';
                             <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Waiting for Payment</span>
                           </div>
                         }
+                      }
+
+                      <!-- DISPUTE button (shows horizontally with other actions) -->
+                      @if ((job.status === 'Submitted' || job.status === 'In Progress' || job.status === 'Revision Requested' || (job.status === 'Completed' && job.hasReview) || (job.status === 'Approved' && job.escrowFunded)) && (job.escrowFunded || false)) {
+                        <app-dispute-status-button 
+                          [jobId]="job.id"
+                          [bookingStatus]="job.status"
+                          [paymentStatus]="job.paymentStatus || ''"
+                          [escrowFunded]="job.escrowFunded || false"
+                          [disputedAt]="job.disputedAt || null">
+                        </app-dispute-status-button>
                       }
                     }
                   </div>
@@ -383,11 +420,12 @@ export class WorkerHistoryPage {
   private notification = inject(NotificationService);
   private http = inject(HttpClient);
 
-  activeTab = signal<HistoryTab>('wallet');
+  activeTab = signal<HistoryTab>('ledger');
   searchQuery = signal('');
   statusFilter = signal('All');
   paymentStatusFilter = signal<PaymentStatusFilter>('All');
   currentPage = signal(1);
+  walletPage = signal(1);
   withdrawing = signal(false);
   withdrawAmount: number | null = null;
   withdrawPhone = '';
@@ -398,6 +436,7 @@ export class WorkerHistoryPage {
   counterOfferPrice = signal<number | null>(null);
   counterOfferLoading = signal(false);
 
+  readonly walletPageSize = 10;
   readonly pageSize = 10;
   readonly jobStatusOptions = JOB_STATUS_OPTIONS;
   readonly paymentStatusOptions = PAYMENT_STATUS_OPTIONS;
@@ -425,6 +464,19 @@ export class WorkerHistoryPage {
       return bTime - aTime;
     })
   );
+
+  walletTotalPages = computed(() => Math.max(1, Math.ceil(this.sortedWalletTransactions().length / this.walletPageSize)));
+  pagedWalletTransactions = computed(() => {
+    const start = (this.walletPage() - 1) * this.walletPageSize;
+    return this.sortedWalletTransactions().slice(start, start + this.walletPageSize);
+  });
+  walletPageStart = computed(() => (this.walletPage() - 1) * this.walletPageSize);
+  walletPageEnd = computed(() => Math.min(this.walletPageStart() + this.walletPageSize, this.sortedWalletTransactions().length));
+  walletPageNumbers = computed(() => {
+    const total = this.walletTotalPages();
+    const start = Math.max(0, this.walletPage() - 2);
+    return Array.from({ length: Math.min(5, total) }, (_, i) => start + i + 1).filter(p => p <= total);
+  });
 
   filteredJobs = computed(() => {
     const query = this.searchQuery().trim().toLowerCase();
@@ -503,6 +555,14 @@ export class WorkerHistoryPage {
   prevPage() { this.goToPage(this.currentPage() - 1); }
   nextPage() { this.goToPage(this.currentPage() + 1); }
 
+  goToWalletPage(page: number) {
+    if (page < 1 || page > this.walletTotalPages()) return;
+    this.walletPage.set(page);
+  }
+
+  prevWalletPage() { this.goToWalletPage(this.walletPage() - 1); }
+  nextWalletPage() { this.goToWalletPage(this.walletPage() + 1); }
+
   withdraw() {
     if (!this.withdrawAmount || !this.withdrawPhone) return;
     this.withdrawing.set(true);
@@ -553,7 +613,7 @@ export class WorkerHistoryPage {
       return 'Released to wallet';
     }
     if (ps === 'PENDING') {
-      return 'Awaiting client payment';
+      return null;
     }
     if (ps === 'REFUNDED') {
       return 'Payment refunded';

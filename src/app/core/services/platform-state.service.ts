@@ -321,7 +321,7 @@ export class PlatformStateService {
       status: displayStatus as any,
       earnings: b.totalCost || 0,
       rating: b.rating,
-      hasReview: b.rating !== undefined && b.rating !== null,
+      hasReview: typeof b.rating === 'number' && b.rating > 0,
       // lifecycle
       startedAt: b.startedAt, submittedAt: b.submittedAt, approvedAt: b.approvedAt,
       disputedAt: b.disputedAt, resolvedAt: b.resolvedAt, deadline: b.deadline,
@@ -851,9 +851,9 @@ private getInitialWorkerState(): WorkerProfile {
       })),
       certifications: (data.certifications || []).map((cert: any) => ({
         id: cert.id,
-        name: cert.name,
-        issuer: cert.issuer,
-        year: cert.year
+        name: cert.name || cert.title || cert.certificateName || 'Certification',
+        issuer: cert.issuer || cert.issuingOrganization || cert.organization || 'Unknown',
+        year: cert.year || cert.issuedYear || new Date().getFullYear().toString()
       })),
       uploadedDocuments: (data.documents || []).map((doc: any) => ({
         id: doc.id,

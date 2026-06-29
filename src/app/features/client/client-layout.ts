@@ -1,6 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { Event, NavigationEnd, Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { PlatformStateService } from '../../core/services/platform-state.service';
@@ -67,31 +67,33 @@ import { NavbarComponent } from '../../shared/components/navbar';
       </div>
 
       <!-- Mobile Bottom Navigation Bar -->
-      <div class="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-4 z-[100] pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
-        <a routerLink="marketplace" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">explore</mat-icon>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Find</span>
-        </a>
-        <a routerLink="bookings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">event_note</mat-icon>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Bookings</span>
-        </a>
-        <a routerLink="messages" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <div class="relative">
-            <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">chat_bubble_outline</mat-icon>
-            @if (state.unreadMessagesCount() > 0) {
-              <span class="absolute -top-1 -right-1 w-4 h-4 bg-brand-teal text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white font-black">
-                {{ state.unreadMessagesCount() }}
-              </span>
-            }
-          </div>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Chats</span>
-        </a>
-        <a routerLink="settings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
-          <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">settings</mat-icon>
-          <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Settings</span>
-        </a>
-      </div>
+      @if (showBottomNav()) {
+        <div class="lg:hidden fixed bottom-0 left-0 right-0 h-20 bg-white border-t border-slate-100 flex items-center justify-around px-4 z-[100] pb-safe shadow-[0_-4px_20px_rgba(0,0,0,0.03)]">
+          <a routerLink="marketplace" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+            <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">explore</mat-icon>
+            <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Find</span>
+          </a>
+          <a routerLink="bookings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+            <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">event_note</mat-icon>
+            <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Bookings</span>
+          </a>
+          <a routerLink="messages" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+            <div class="relative">
+              <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">chat_bubble_outline</mat-icon>
+              @if (state.unreadMessagesCount() > 0) {
+                <span class="absolute -top-1 -right-1 w-4 h-4 bg-brand-teal text-white text-[8px] flex items-center justify-center rounded-full border-2 border-white font-black">
+                  {{ state.unreadMessagesCount() }}
+                </span>
+              }
+            </div>
+            <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Chats</span>
+          </a>
+          <a routerLink="settings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+            <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">settings</mat-icon>
+            <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Settings</span>
+          </a>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -108,4 +110,16 @@ import { NavbarComponent } from '../../shared/components/navbar';
 export class ClientLayout {
   state = inject(PlatformStateService);
   auth = inject(AuthService);
+  router = inject(Router);
+
+  currentRoute = signal('');
+  showBottomNav = computed(() => !this.currentRoute().startsWith('/client/profile'));
+
+  constructor() {
+    this.router.events.subscribe((event: Event) => {
+      if (event instanceof NavigationEnd) {
+        this.currentRoute.set(event.urlAfterRedirects || event.url);
+      }
+    });
+  }
 }

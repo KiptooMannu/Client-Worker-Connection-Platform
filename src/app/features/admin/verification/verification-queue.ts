@@ -224,27 +224,31 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 <p class="text-sm font-black text-slate-900">{{ detailedReview.skills?.length || 0 }}</p>
               </div>
 
-              <div class="mt-8 space-y-4">
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
-                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">History</span>
-                  <p class="text-sm font-black text-slate-900">{{ detailedReview.workHistory?.length || 0 }}</p>
-                </div>
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
-                  <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Docs</span>
-                  <p class="text-sm font-black text-slate-900">{{ detailedReview.uploadedDocuments?.length || 0 }}</p>
-                </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Base Compensation</span>
-                  <div class="flex items-baseline gap-1">
-                    <span class="text-2xl font-black text-slate-900">KSh {{ detailedReview.rate }}</span>
-                  </div>
-                </div>
-                <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
-                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Location Context</span>
-                  <p class="text-sm font-bold text-slate-900 mb-1">{{ detailedReview.location }}</p>
-                  <p class="text-[11px] text-slate-400 font-medium leading-relaxed">{{ detailedReview.preferredLocations?.join(', ') }}</p>
-                </div>
-              </div>
+<div class="mt-8 space-y-4">
+                 <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
+                   <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">History</span>
+                   <p class="text-sm font-black text-slate-900">{{ detailedReview.workHistory?.length || 0 }}</p>
+                 </div>
+                 <div class="bg-white p-4 rounded-2xl border border-slate-200/60 shadow-sm text-center">
+                   <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Docs</span>
+                   <p class="text-sm font-black text-slate-900">{{ detailedReview.uploadedDocuments?.length || 0 }}</p>
+                 </div>
+                 <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
+                   <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Phone Number</span>
+                   <p class="text-sm font-bold text-slate-900">{{ detailedReview.phoneNumber || detailedReview.contactPhone || 'Not provided' }}</p>
+                 </div>
+                 <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
+                   <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Base Compensation</span>
+                   <div class="flex items-baseline gap-1">
+                     <span class="text-2xl font-black text-slate-900">KSh {{ detailedReview.rate }}</span>
+                   </div>
+                 </div>
+                 <div class="bg-white p-5 rounded-3xl border border-slate-200/60 shadow-sm">
+                   <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Location Context</span>
+                   <p class="text-sm font-bold text-slate-900 mb-1">{{ detailedReview.location }}</p>
+                   <p class="text-[11px] text-slate-400 font-medium leading-relaxed">{{ detailedReview.preferredLocations?.join(', ') }}</p>
+                 </div>
+               </div>
             </div>
 
             <!-- Right Content Section -->
@@ -301,27 +305,33 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                         </div>
                       </div>
 
-                      <div>
-                        <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Security Documents</h4>
-                        <div class="space-y-4">
-                          @for (doc of detailedReview.uploadedDocuments; track doc.name) {
-                            <div class="p-4 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-brand-teal/30 hover:bg-brand-teal-soft transition-all">
-                              <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-brand-teal">
-                                  <mat-icon class="!text-xl">{{ doc.type.toLowerCase().includes('identification') ? 'badge' : 'verified' }}</mat-icon>
-                                </div>
-                                <div>
-                                  <p class="text-xs font-bold text-slate-900">{{ doc.name }}</p>
-                                  <p class="text-[10px] text-slate-400 uppercase">{{ doc.type }}</p>
-                                </div>
-                              </div>
-                              <button class="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-brand-teal group-hover:border-brand-teal/20 shadow-sm transition-all">
-                                <mat-icon class="!text-base">download</mat-icon>
-                              </button>
-                            </div>
-                          }
-                        </div>
-                      </div>
+<div>
+                         <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6">Security Documents</h4>
+                         <div class="space-y-4">
+                           @for (doc of detailedReview.uploadedDocuments; track doc.name) {
+                             <div class="p-4 rounded-2xl border border-slate-100 flex items-center justify-between group hover:border-brand-teal/30 hover:bg-brand-teal-soft transition-all">
+                               <div class="flex items-center gap-4">
+                                 <div class="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-brand-teal">
+                                   <mat-icon class="!text-xl">{{ doc.type.toLowerCase().includes('identification') || doc.type.toLowerCase().includes('id') ? 'badge' : 'verified' }}</mat-icon>
+                                 </div>
+                                 <div>
+                                   <p class="text-xs font-bold text-slate-900">{{ doc.name }}</p>
+                                   <p class="text-[10px] text-slate-400 uppercase">{{ doc.type }}</p>
+                                   @if (doc.url) {
+                                     <button (click)="viewDocument(doc.url)" class="text-[9px] text-brand-teal underline mt-1">View Document</button>
+                                   }
+                                 </div>
+                               </div>
+                               <button (click)="downloadDocument(doc)" class="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-brand-teal group-hover:border-brand-teal/20 shadow-sm transition-all cursor-pointer">
+                                 <mat-icon class="!text-base">download</mat-icon>
+                               </button>
+                             </div>
+                           }
+                           @if (detailedReview.uploadedDocuments?.length === 0) {
+                             <p class="text-xs text-slate-400 italic">No documents uploaded.</p>
+                           }
+                         </div>
+                       </div>
                    </div>
                 </div>
               </div>
@@ -570,12 +580,24 @@ export class AdminVerificationPage implements OnInit {
             setTimeout(() => this.state.fetchPendingWorkers(), 300);
           }, 500);
         },
-        error: (err) => {
-          this.isProcessing.set(false);
-          console.error('Error rejecting worker:', err);
-          // Show error notification
-        }
-      });
-    }
-  }
+error: (err) => {
+           this.isProcessing.set(false);
+           console.error('Error rejecting worker:', err);
+           // Show error notification
+         }
+       });
+     }
+   }
+
+   viewDocument(url: string) {
+     window.open(url, '_blank');
+   }
+
+   downloadDocument(doc: { id?: string; name: string; url?: string; type: string }) {
+     if (doc.url) {
+       window.open(doc.url, '_blank');
+     } else {
+       console.warn('Document has no URL available for download:', doc.name);
+     }
+   }
 }

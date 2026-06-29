@@ -130,6 +130,18 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/jobs/job-tracker').then(m => m.AdminJobTrackerPage)
       },
       {
+        path: 'disputes',
+        loadComponent: () => import('./features/admin/disputes/admin-dispute-dashboard.component').then(m => m.AdminDisputeDashboardComponent)
+      },
+      {
+        path: 'disputes/:id',
+        loadComponent: () => import('./features/admin/disputes/admin-dispute-detail.component').then(m => m.AdminDisputeDetailComponent)
+      },
+      {
+        path: 'disputes/:id/edit',
+        loadComponent: () => import('./features/admin/disputes/admin-dispute-detail.component').then(m => m.AdminDisputeDetailComponent)
+      },
+      {
         path: 'fees',
         loadComponent: () => import('./features/admin/fees/fee-tracking').then(m => m.AdminFeeTrackingPage)
       },

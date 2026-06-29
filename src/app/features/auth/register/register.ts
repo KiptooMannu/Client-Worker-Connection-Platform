@@ -36,7 +36,7 @@ import { NotificationService } from '../../../core/services/notification.service
             </div>
 
             <!-- OTP Input Form -->
-            <form (submit)="onVerifyOtp()" class="space-y-4">
+            <form (ngSubmit)="onVerifyOtp()" class="space-y-4">
               <div *ngIf="otpError()" class="rounded-xl border border-rose-200 bg-rose-50 text-rose-900 px-4 py-3 text-sm">
                 {{ otpError() }}
               </div>
@@ -70,7 +70,7 @@ import { NotificationService } from '../../../core/services/notification.service
           </div>
 
           <!-- Registration Form (shown when not complete) -->
-          <form *ngIf="!registrationComplete()" (submit)="onSubmit()" class="space-y-4">
+          <form *ngIf="!registrationComplete()" (ngSubmit)="onSubmit()" class="space-y-4">
             <div *ngIf="formError()" class="rounded-xl border border-rose-200 bg-rose-50 text-rose-900 px-4 py-3">
               <p class="font-semibold text-sm">Registration error</p>
               <p class="text-[13px] mt-1">{{ formError() }}</p>

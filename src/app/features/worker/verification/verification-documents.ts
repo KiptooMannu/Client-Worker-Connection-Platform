@@ -87,7 +87,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             
             <!-- ID Documents -->
             <section class="space-y-4">
-              <h3 class="font-label-md text-label-md text-brand-teal uppercase tracking-widest px-1">Your ID Cards</h3>
+              <h3 class="font-label-md text-label-md text-brand-teal uppercase tracking-widest px-1">Your ID Cards <span class="text-error">*</span></h3>
               
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- ID Front -->
@@ -106,7 +106,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                       <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center text-brand-teal border border-outline-variant shadow-sm">
                         <mat-icon class="!text-2xl flex items-center justify-center">add_a_photo</mat-icon>
                       </div>
-                      <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Front Side</span>
+                      <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Front Side <span class="text-error">*</span></span>
                     </div>
                   }
                 </div>
@@ -127,7 +127,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                       <div class="w-14 h-14 rounded-full bg-white flex items-center justify-center text-brand-teal border border-outline-variant shadow-sm">
                         <mat-icon class="!text-2xl flex items-center justify-center">add_a_photo</mat-icon>
                       </div>
-                      <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Back Side</span>
+                      <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Back Side <span class="text-error">*</span></span>
                     </div>
                   }
                 </div>

@@ -64,7 +64,7 @@ interface Booking {
     RouterLink
   ],
   template: `
-    <div class="max-w-4xl mx-auto pb-24 font-manrope animate-in fade-in duration-700">
+    <div class="max-w-4xl mx-auto pb-32 lg:pb-24 font-manrope animate-in fade-in duration-700">
       <!-- Breadcrumb Navigation -->
       <nav class="p-4 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
         <a routerLink="/employer" class="hover:text-slate-900 transition-colors">Marketplace</a>
@@ -106,7 +106,7 @@ interface Booking {
             </div>
 
             <!-- Mobile Primary Action -->
-            <div class="w-full flex gap-2 sm:hidden">
+            <div class="w-full flex gap-2 lg:hidden">
               <button (click)="message()" class="flex-1 bg-blue-100 border-2 border-blue-400 text-blue-600 font-black py-4 rounded-xl text-[10px] uppercase tracking-widest active:scale-95 transition-all flex items-center justify-center gap-1.5">
                 <mat-icon class="!text-xs !w-auto !h-auto">handshake</mat-icon>
                 Negotiate
@@ -139,7 +139,7 @@ interface Booking {
             </div>
             <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center shadow-sm">
               <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Projects</p>
-              <p class="text-lg font-black text-slate-900">{{ workerData().workHistory.length }}</p>
+              <p class="text-lg font-black text-slate-900">{{ projectCount() }}</p>
             </div>
           </div>
 
@@ -203,7 +203,7 @@ interface Booking {
             <div class="bg-slate-50 rounded-2xl p-6 border border-slate-100 mb-8">
               <div class="flex items-center gap-4">
                 <div class="text-center">
-                  <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ workerData().rating.toFixed(1) || '0.0' }}</p>
+                  <p class="text-4xl font-black text-slate-900 tracking-tighter">{{ getRatingDisplay() }}</p>
                   <div class="flex items-center gap-0.5 mt-1 justify-center">
                     @for (s of [1,2,3,4,5]; track s) {
                       <mat-icon class="!text-sm !w-auto !h-auto text-amber-400" [class.material-fill]="s <= (workerData().rating || 0)">star</mat-icon>
@@ -219,7 +219,7 @@ interface Booking {
               </div>
             </div>
 
-            <!-- Individual Reviews - FIXED -->
+            <!-- Individual Reviews -->
             @if (hasReviews()) {
               <div class="space-y-6">
                 @for (review of reviewsList(); track review.id) {
@@ -303,36 +303,40 @@ interface Booking {
             </div>
           </div>
 
-           <!-- Credentials -->
-           <section class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-             <div class="flex items-center gap-2 mb-6">
-               <div class="w-1 h-4 bg-slate-900 rounded-full"></div>
-               <h2 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Certificates</h2>
-             </div>
+          <!-- Credentials -->
+          <section class="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
+            <div class="flex items-center gap-2 mb-6">
+              <div class="w-1 h-4 bg-slate-900 rounded-full"></div>
+              <h2 class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Certificates</h2>
+            </div>
 
-             <div class="space-y-6">
-               @if (displayCerts().length) {
-                 @for (c of displayCerts(); track c.name) {
-                   <div class="flex items-start gap-4">
-                     <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 shrink-0">
-                       <mat-icon class="!text-slate-400 !text-lg">workspace_premium</mat-icon>
-                     </div>
-                     <div>
-                       <h4 class="text-[11px] font-black text-slate-900 leading-tight">{{ c.name }}</h4>
-                       <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ c.issuer }} · {{ c.year }}</p>
-                     </div>
-                   </div>
-                 }
-               } @else {
-                 <p class="text-[9px] text-slate-500 italic">No certifications added.</p>
-               }
-             </div>
-           </section>
+            <div class="space-y-6">
+              @if (displayCerts().length) {
+                @for (c of displayCerts(); track c.name) {
+                  <div class="flex items-start gap-4">
+                    <div class="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100 shrink-0">
+                      <mat-icon class="!text-slate-400 !text-lg">workspace_premium</mat-icon>
+                    </div>
+                    <div>
+                      <h4 class="text-[11px] font-black text-slate-900 leading-tight">{{ c.name }}</h4>
+                      <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ c.issuer }} · {{ c.year }}</p>
+                    </div>
+                  </div>
+                }
+              } @else {
+                <p class="text-[9px] text-slate-500 italic">No certifications added.</p>
+              }
+            </div>
+          </section>
         </aside>
       </div>
 
+      <!-- Spacer div to prevent content from being hidden behind sticky bar -->
+      <div class="lg:hidden h-32"></div>
+
       <!-- Sticky Mobile Engagement Bar -->
-      <div class="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-md border-t border-slate-200 z-50">
+      <div class="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50" 
+           style="padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));">
         <div class="max-w-md mx-auto flex items-center justify-between gap-4">
           <div>
             <div class="flex items-baseline gap-1">
@@ -343,17 +347,92 @@ interface Booking {
               <span class="text-[9px] font-black text-slate-500 ml-1">{{ workerData().reviews }} reviews</span>
             </div>
           </div>
-          <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" 
-                  class="bg-slate-900 hover:bg-slate-800 text-white font-black py-4 px-8 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30">
-            {{ hasPendingRequest() ? 'PENDING' : (hiring() ? 'SENDING...' : 'HIRE NOW') }}
-          </button>
+          <div class="flex gap-2">
+            <button (click)="message()" 
+                    class="bg-blue-50 border-2 border-blue-400 text-blue-600 font-black py-3 px-4 rounded-xl text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 active:scale-95">
+              <mat-icon class="!text-xs !w-auto !h-auto">handshake</mat-icon>
+              Negotiate
+            </button>
+            <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" 
+                    class="bg-slate-900 hover:bg-slate-800 text-white font-black py-3 px-6 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30">
+              {{ hasPendingRequest() ? 'PENDING' : (hiring() ? 'SENDING...' : 'HIRE NOW') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    :host { display: block; min-height: 100vh; background: #f8fafc; }
-    ::ng-deep mat-icon { vertical-align: middle; }
+    :host { 
+      display: block; 
+      min-height: 100vh; 
+      background: #f8fafc; 
+    }
+    
+    ::ng-deep mat-icon { 
+      vertical-align: middle; 
+    }
+    
+    /* Enhanced bottom spacing to prevent overlap */
+    .pb-32 {
+      padding-bottom: 8rem !important;
+    }
+    
+    /* Mobile specific adjustments */
+    @media (max-width: 640px) {
+      .pb-32 {
+        padding-bottom: 11rem !important; /* Extra space for mobile */
+      }
+      
+      /* Ensure sticky bar doesn't overlap content */
+      .fixed.bottom-0 {
+        height: auto;
+        min-height: 80px;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
+      }
+      
+      /* Better spacing for mobile buttons */
+      .fixed.bottom-0 .max-w-md {
+        gap: 0.5rem;
+      }
+      
+      .fixed.bottom-0 button {
+        font-size: 9px !important;
+        padding: 0.75rem 1rem !important;
+      }
+    }
+    
+    /* Safe area support for notched phones */
+    @supports (padding: max(0px)) {
+      .fixed.bottom-0 {
+        padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
+      }
+    }
+    
+    /* Smooth animations */
+    .animate-in {
+      animation: fadeIn 0.7s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    /* Improved touch targets for mobile */
+    @media (max-width: 640px) {
+      button, 
+      .cursor-pointer {
+        min-height: 44px;
+        min-width: 44px;
+      }
+    }
   `]
 })
 export class ClientWorkerProfilePage {
@@ -361,12 +440,20 @@ export class ClientWorkerProfilePage {
   router = inject(Router);
   state = inject(PlatformStateService);
   hiring = signal(false);
+  workerId = signal<string | null>(null);
 
-  // Get the raw worker data with safe fallback
+  // Get the raw worker data with safe fallback from marketplace workers or the loaded current worker profile
   private workerRaw = computed(() => {
-    const id = this.route.snapshot.paramMap.get('id');
-    const w = this.state.workers().find(w => w.id === id);
-    return (w && w.status === 'Verified') ? w : null;
+    const id = this.workerId();
+    const current = this.state.currentWorker();
+    if (current && (current.id === id || current.userId === id) && current.status === 'Verified') {
+      return current;
+    }
+    const workerFromList = this.state.workers().find(w => w.id === id || w.userId === id);
+    if (workerFromList && workerFromList.status === 'Verified') {
+      return workerFromList;
+    }
+    return null;
   });
 
   // Worker data with safe defaults for null/undefined
@@ -395,6 +482,7 @@ export class ClientWorkerProfilePage {
   // Computed signals for template - cleaner and safer
   displayCerts = computed(() => this.workerData().certifications);
   displayHistory = computed(() => this.workerData().workHistory);
+  projectCount = computed(() => this.workerData().workHistory.length);
   
   // Safe computed for reviews
   reviewsList = computed(() => this.workerData().reviewsList);
@@ -414,11 +502,30 @@ export class ClientWorkerProfilePage {
     );
   });
 
+  // Helper method to safely format rating
+  getRatingDisplay(): string {
+    const rating = this.workerData().rating;
+    return rating !== undefined && rating !== null ? rating.toFixed(1) : '0.0';
+  }
+
   constructor() {
-    // Fetch reviews and rating summary when worker ID changes
+    this.route.paramMap.subscribe(params => {
+      this.workerId.set(params.get('id'));
+    });
+
+    effect(() => {
+      const id = this.workerId();
+      if (id) {
+        this.state.fetchWorkerProfile(id);
+      }
+    });
+
     effect(() => {
       const worker = this.workerRaw();
       if (worker) {
+        if (worker.userId) {
+          this.state.fetchWorkerJobs(worker.userId);
+        }
         this.state.fetchWorkerReviews(worker.id);
         this.state.fetchWorkerRatingSummary(worker.id);
       }

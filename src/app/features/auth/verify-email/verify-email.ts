@@ -100,7 +100,7 @@ import { NotificationService } from '../../../core/services/notification.service
               <p class="font-body-lg text-sm text-secondary">Enter your email and the 6-digit verification code</p>
             </div>
 
-            <form (submit)="onSubmitOtp()" class="space-y-4 text-left">
+            <form (ngSubmit)="onSubmitOtp()" class="space-y-4 text-left">
               <div *ngIf="errorMessage" class="rounded-xl border border-rose-200 bg-rose-50 text-rose-900 px-4 py-3 text-sm">
                 {{ errorMessage }}
               </div>

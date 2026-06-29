@@ -120,13 +120,13 @@ import { toObservable } from '@angular/core/rxjs-interop';
             <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
-                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name</label>
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name <span class="text-error">*</span></label>
                   <input [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" 
                          class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors" 
                          placeholder="Julian Thorne">
                 </div>
                 <div class="space-y-2">
-                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Phone Number</label>
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Phone Number <span class="text-error">*</span></label>
                   <input [ngModel]="form.phoneNumber()" (ngModelChange)="form.phoneNumber.set($event)" 
                          class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors" 
                          placeholder="e.g. +254 700 000000">
@@ -135,7 +135,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 
               <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="space-y-2">
-                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Craft Category</label>
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Craft Category <span class="text-error">*</span></label>
                   <div class="relative">
                     <select [ngModel]="form.category()" (ngModelChange)="form.category.set($event)"
                             class="w-full appearance-none bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors">
@@ -174,7 +174,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
               </div>
 
               <div class="space-y-2">
-                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Professional Bio</label>
+                <label class="font-label-md text-label-md text-on-surface-variant ml-1">Professional Bio <span class="text-error">*</span></label>
                 <textarea [ngModel]="form.bio()" (ngModelChange)="form.bio.set($event)" rows="4"
                           class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors resize-none"
                           placeholder="Detail your expertise and operational background..."></textarea>
@@ -182,7 +182,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
 
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
-                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Core Skills (Comma separated)</label>
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Core Skills (Comma separated) <span class="text-error">*</span></label>
                   <input [ngModel]="form.skills()" (ngModelChange)="form.skills.set($event)"
                          class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors"
                          placeholder="e.g. Irrigation, Safety Audits, Harvesting">
@@ -208,7 +208,7 @@ import { toObservable } from '@angular/core/rxjs-interop';
           @if (activeTab() === 'experience') {
             <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div class="flex justify-between items-center mb-2">
-                <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Work History</h2>
+                <h2 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">Work History <span class="text-error">*</span></h2>
                 <button (click)="addWorkHistory()" class="text-brand-teal font-bold text-xs flex items-center gap-1 hover:underline">
                   <mat-icon class="!text-sm flex items-center">add</mat-icon> Add Entry
                 </button>
@@ -379,16 +379,6 @@ import { toObservable } from '@angular/core/rxjs-interop';
 
         <!-- Action Footer -->
         <section class="pt-4 flex flex-col gap-3">
-          <button (click)="saveProfile()" [disabled]="isSaving()" 
-                  class="w-full bg-brand-teal text-white py-4 rounded-xl font-bold text-sm uppercase tracking-widest shadow-lg shadow-brand-teal/10 hover:bg-opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2">
-            @if (isSaving()) {
-              <mat-spinner diameter="20" color="accent" class="!inline-block"></mat-spinner>
-              <span>Synchronizing...</span>
-            } @else {
-              <mat-icon class="!text-[18px]">sync</mat-icon>
-              <span>Commit Profile Changes</span>
-            }
-          </button>
           <button (click)="goToDocuments()" class="w-full bg-surface border border-outline-variant text-brand-teal py-4 rounded-xl font-bold text-sm uppercase tracking-widest hover:bg-surface-container-low transition-all flex items-center justify-center gap-2">
             <mat-icon class="!text-[18px]">folder_open</mat-icon>
             Upload Documents

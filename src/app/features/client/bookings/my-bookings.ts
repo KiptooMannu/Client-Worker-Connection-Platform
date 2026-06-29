@@ -10,7 +10,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 
@@ -28,6 +27,7 @@ import {
 import { EscrowProgressBar, EscrowStep } from '../../../shared/components/escrow-progress-bar/escrow-progress-bar';
 import { EscrowAlertBanner } from '../../../shared/components/escrow-alert-banner/escrow-alert-banner';
 import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-tooltip';
+import { DisputeStatusButtonComponent } from '../../../shared/components/dispute-status-button/dispute-status-button.component';
 
 @Component({
   selector: 'app-client-bookings',
@@ -36,7 +36,8 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
     CommonModule, RouterLink, FormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
     MatTableModule, MatChipsModule, MatDividerModule,
-    EscrowProgressBar, EscrowAlertBanner, EscrowTooltip
+    EscrowProgressBar, EscrowAlertBanner, EscrowTooltip,
+    DisputeStatusButtonComponent
   ],
   template: `
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-700 font-manrope">
@@ -146,21 +147,26 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
                   </div>
                 </div>
 
-                <!-- Actions / Status -->
-                <div class="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-50">
+                <!-- Status & Actions Column -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between sm:justify-end gap-2 sm:gap-3 border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-50">
 
-                  <!-- Status badge -->
-                  <span [ngClass]="getStatusClasses(b.status)">
-                    {{ pollingJobId() === b.id ? 'Waiting...' : b.status }}
-                  </span>
-
-                  <!-- Loading spinner while polling -->
-                  @if (pollingJobId() === b.id) {
-                    <mat-icon class="animate-spin text-indigo-500 !w-4 !h-4">sync</mat-icon>
-                  }
+                  <!-- Status badge with subtext -->
+                  <div class="flex flex-col items-start sm:items-end gap-0.5">
+                    <div class="flex items-center gap-2">
+                      <span [ngClass]="getStatusClasses(b.status)">
+                        {{ pollingJobId() === b.id ? 'Waiting...' : b.status }}
+                      </span>
+                      @if (pollingJobId() === b.id) {
+                        <mat-icon class="animate-spin text-indigo-500 !w-4 !h-4">sync</mat-icon>
+                      }
+                    </div>
+                    @if (b.paymentStatus === 'RELEASED' || b.status === 'Completed' || b.status === 'Approved') {
+                      <span class="text-[8px] font-bold text-teal-600 uppercase tracking-tight">Released to Wallet</span>
+                    }
+                  </div>
 
                   <!-- Actions -->
-                  <div class="flex items-center gap-2">
+                  <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
                     <!-- Counter-offer badge and accept button -->
                     @if (b.negotiatedPrice && b.status === 'Pending') {
                       <div class="flex items-center gap-2">
@@ -188,8 +194,8 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
                     }
 
                     <!-- RETRY button -->
-                    @else if (b.status === 'Rejected' || b.status === 'REJECTED') {
-                      <button (click)="openPayModal(b)"
+                    @else if (b.status === 'Rejected' || b.status === 'REJECTED' || b.paymentStatus?.toLowerCase() === 'failed' || b.paymentStatus?.toLowerCase() === 'payout_failed') {
+                      <button (click)="openPayModal(b, true)"
                               class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-[9px] font-black
                                      uppercase tracking-widest hover:bg-rose-700 transition-all active:scale-95 shadow-sm">
                         Retry Payment
@@ -214,12 +220,23 @@ import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-
                     }
 
                     <!-- FEEDBACK button -->
-                    @else if (b.status === 'Approved' && !b.hasReview) {
+                    @if ((b.status === 'Approved' || b.status === 'Completed') && !b.hasReview) {
                       <button (click)="openReviewModal(b)"
                               class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
                                      uppercase tracking-widest hover:bg-brand-teal transition-all active:scale-95 shadow-sm">
                         Feedback
                       </button>
+                    }
+
+                    <!-- DISPUTE button (shows alongside feedback or separately) -->
+                    @if ((b.status === 'Submitted' || b.status === 'In Progress' || b.status === 'Revision Requested' || (b.status === 'Completed' && b.hasReview) || (b.status === 'Approved' && b.escrowFunded)) && (b.escrowFunded || false)) {
+                      <app-dispute-status-button 
+                        [jobId]="b.id"
+                        [bookingStatus]="b.status"
+                        [paymentStatus]="b.paymentStatus || ''"
+                        [escrowFunded]="b.escrowFunded || false"
+                        [disputedAt]="b.disputedAt || null">
+                      </app-dispute-status-button>
                     }
 
                     <!-- CANCEL button -->
@@ -478,7 +495,6 @@ export class ClientBookingsPage implements OnDestroy {
   private auth = inject(AuthService);
   private notif = inject(NotificationService);
   private payment = inject(PaymentService);
-  private snack = inject(MatSnackBar);
   private http = inject(HttpClient);
 
   displayedColumns = ['worker', 'date', 'cost', 'status'];
@@ -594,13 +610,13 @@ export class ClientBookingsPage implements OnDestroy {
     this.state.acceptCounterOffer(booking.id).subscribe({
       next: () => {
         this.uiMessage.set({ text: 'Counter-offer accepted! You can now pay the negotiated price.', type: 'success' });
-        this.snack.open('Counter-offer accepted!', 'OK', { duration: 5000 });
+        this.notif.success('Counter-offer accepted! You can now pay the negotiated price.');
         this.refreshBookings();
       },
       error: (err: any) => {
         const message = err.error?.message || err.error || 'Failed to accept counter-offer.';
         this.uiMessage.set({ text: message, type: 'error' });
-        this.snack.open(message, 'OK', { duration: 5000 });
+        this.notif.error(message);
       }
     });
   }
@@ -627,14 +643,14 @@ export class ClientBookingsPage implements OnDestroy {
         this.negotiateLoading.set(false);
         this.closeNegotiateModal();
         this.uiMessage.set({ text: 'Negotiation offer sent to worker!', type: 'success' });
-        this.snack.open('Negotiation offer sent!', 'OK', { duration: 5000 });
+        this.notif.success('Negotiation offer sent to worker!');
         this.refreshBookings();
       },
       error: (err: any) => {
         this.negotiateLoading.set(false);
         const message = err.error?.message || err.error || 'Failed to submit negotiation.';
         this.uiMessage.set({ text: message, type: 'error' });
-        this.snack.open(message, 'OK', { duration: 5000 });
+        this.notif.error(message);
       }
     });
   }
@@ -652,11 +668,11 @@ export class ClientBookingsPage implements OnDestroy {
 
   // ── Pay Modal ───────────────────────────────────────────────────────────
 
-  openPayModal(booking: any, retrying = false) {
+  openPayModal(booking: any, retrying = false, errorMessage = '') {
     this.refreshBookings();
     const updatedBooking = this.state.bookings().find((b: any) => b.id === booking.id);
     const bookingToUse = updatedBooking || booking;
-    this.payModal = { booking: bookingToUse, phone: '', loading: false, error: '', retrying };
+    this.payModal = { booking: bookingToUse, phone: '', loading: false, error: errorMessage, retrying };
   }
 
   closePayModal() { this.payModal = null; }
@@ -671,7 +687,7 @@ export class ClientBookingsPage implements OnDestroy {
     this.payment.initiateStkPush(booking.id, phone).subscribe({
       next: (resp) => {
         this.closePayModal();
-        this.snack.open('STK push sent — check your phone for the PIN prompt', 'OK', { duration: 5000 });
+        this.notif.success('STK push sent — check your phone for the PIN prompt');
         this.startPolling(booking.id);
       },
       error: (err) => {
@@ -696,25 +712,29 @@ export class ClientBookingsPage implements OnDestroy {
         if (resp.status === 'PAID') {
           this.pollingJobId.set(null);
           const receipt = resp.mpesaReceiptNumber ? ` Receipt: ${resp.mpesaReceiptNumber}` : '';
-          this.snack.open(`Payment confirmed!${receipt}`, 'OK', { duration: 6000 });
+          this.notif.success(`Payment confirmed!${receipt}`);
           this.refreshBookings();
-        } else if (resp.status === 'FAILED') {
+        } else if (resp.status === 'FAILED' || resp.status === 'PAYOUT_FAILED') {
           this.pollingJobId.set(null);
           const msg = this.payment.getFailureMessage(resp.failureReason, resp.message);
-          this.snack.open(msg, 'Retry', { duration: 8000 })
-            .onAction().subscribe(() => {
+          this.notif.error(msg, {
+            actionLabel: 'Retry',
+            action: () => {
               const b = this.state.bookings().find((b: any) => b.id === jobId);
-              if (b) this.openPayModal(b, true);
-            });
+              if (b) this.openPayModal(b, true, msg);
+            }
+          });
           this.refreshBookings();
         } else if (resp.status === 'REFUNDED') {
           this.pollingJobId.set(null);
-          this.snack.open('Payment was refunded to your wallet.', 'OK', { duration: 6000 });
+          this.notif.info('Payment was refunded to your wallet.');
           this.refreshBookings();
         } else if (resp.status === 'PENDING' && resp.message?.includes('refresh')) {
           this.pollingJobId.set(null);
-          this.snack.open('Payment may still be processing. Refresh to check status.', 'Refresh', { duration: 8000 })
-            .onAction().subscribe(() => this.refreshBookings());
+          this.notif.info('Payment may still be processing. Refresh to check status.', {
+            actionLabel: 'Refresh',
+            action: () => this.refreshBookings()
+          });
         }
       },
       error: () => {
@@ -737,7 +757,7 @@ export class ClientBookingsPage implements OnDestroy {
       next: () => {
         this.releasingJobId.set(null);
         this.uiMessage.set({ text: 'Work approved. Funds released to the worker wallet.', type: 'success' });
-        this.snack.open('Work approved. Funds released to the worker wallet.', 'OK', { duration: 5000 });
+        this.notif.success('Work approved. Funds released to the worker wallet.');
         this.refreshBookings();
 
         setTimeout(() => {

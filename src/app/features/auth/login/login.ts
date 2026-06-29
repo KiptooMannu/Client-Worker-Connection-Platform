@@ -30,7 +30,7 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
 
             <!-- Form -->
-            <form (submit)="onSubmit()" class="space-y-4 text-left">
+            <form (ngSubmit)="onSubmit()" class="space-y-4 text-left">
               <div class="space-y-1.5">
                 <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="email">Email Address</label>
                 <div class="relative group">
