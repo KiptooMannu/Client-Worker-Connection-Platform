@@ -10,10 +10,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { Subscription } from 'rxjs';
 
-import { PlatformStateService } from '../../../core/services/platform-state.service';
+import { PlatformStateService, Booking } from '../../../core/services/platform-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -26,8 +27,8 @@ import {
 } from '../../../core/utils/payment-status.util';
 import { EscrowProgressBar, EscrowStep } from '../../../shared/components/escrow-progress-bar/escrow-progress-bar';
 import { EscrowAlertBanner } from '../../../shared/components/escrow-alert-banner/escrow-alert-banner';
-import { EscrowTooltip } from '../../../shared/components/escrow-tooltip/escrow-tooltip';
 import { DisputeStatusButtonComponent } from '../../../shared/components/dispute-status-button/dispute-status-button.component';
+import { CancelHireDialogComponent } from '../../../shared/components/cancel-hire-dialog/cancel-hire-dialog.component';
 
 @Component({
   selector: 'app-client-bookings',
@@ -36,7 +37,8 @@ import { DisputeStatusButtonComponent } from '../../../shared/components/dispute
     CommonModule, RouterLink, FormsModule,
     MatCardModule, MatButtonModule, MatIconModule,
     MatTableModule, MatChipsModule, MatDividerModule,
-    EscrowProgressBar, EscrowAlertBanner, EscrowTooltip,
+    MatDialogModule,
+    EscrowProgressBar, EscrowAlertBanner,
     DisputeStatusButtonComponent
   ],
   template: `
@@ -182,14 +184,21 @@ import { DisputeStatusButtonComponent } from '../../../shared/components/dispute
                     }
 
                     <!-- PAY button -->
-                    @if (b.status === 'Accepted') {
+                    @if (b.status === 'Accepted' || b.status === 'ACCEPTED' || b.status === 'Awaiting Funding' || b.status === 'AWAITING_FUNDING') {
                       <div class="flex items-center gap-2">
                         <button (click)="openPayModal(b)"
                                 class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-[9px] font-black
                                        uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-sm">
                           Pay
                         </button>
-                        <app-escrow-tooltip />
+                        <button (click)="openCancelHireDialog(b)"
+                                class="px-2.5 py-1.5 border border-rose-200 text-rose-600 rounded-lg text-[9px]
+                                       font-black uppercase tracking-widest hover:bg-rose-50 transition-all bg-white active:scale-95">
+                          Cancel
+                        </button>
+                      </div>
+                      <div class="text-[8px] text-slate-400 font-medium mt-1">
+                        Expires in {{ getTimeRemaining(b) }}
                       </div>
                     }
 
@@ -204,19 +213,28 @@ import { DisputeStatusButtonComponent } from '../../../shared/components/dispute
 
                     <!-- APPROVE button -->
                     @else if (b.status === 'Submitted') {
-                      <button (click)="openReleaseConfirm(b)"
-                              [disabled]="releasingJobId() === b.id"
-                              class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
-                                     uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-95 shadow-sm
-                                     disabled:opacity-50 disabled:cursor-wait">
-                        {{ releasingJobId() === b.id ? 'Approving...' : 'Approve Work' }}
-                      </button>
-                      <button (click)="state.updateJobStatus(b.id, 'REVISION_REQUESTED')"
-                              title="Request revision"
-                              class="w-7 h-7 flex items-center justify-center border border-slate-200
-                                     text-slate-400 rounded-lg hover:text-amber-600 transition-all bg-white active:scale-95">
-                        <mat-icon class="!text-sm">rebase_edit</mat-icon>
-                      </button>
+                      @if (b.hasActiveDispute) {
+                        <button disabled
+                                class="px-3 py-1.5 bg-slate-300 text-slate-500 rounded-lg text-[9px] font-black
+                                       uppercase tracking-widest cursor-not-allowed shadow-sm"
+                                title="This job is currently under dispute and is awaiting administrator review">
+                          Under Dispute
+                        </button>
+                      } @else {
+                        <button (click)="openReleaseConfirm(b)"
+                                [disabled]="releasingJobId() === b.id"
+                                class="px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black
+                                       uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-95 shadow-sm
+                                       disabled:opacity-50 disabled:cursor-wait">
+                          {{ releasingJobId() === b.id ? 'Approving...' : 'Approve Work' }}
+                        </button>
+                        <button (click)="state.updateJobStatus(b.id, 'REVISION_REQUESTED')"
+                                title="Request revision"
+                                class="w-7 h-7 flex items-center justify-center border border-slate-200
+                                       text-slate-400 rounded-lg hover:text-amber-600 transition-all bg-white active:scale-95">
+                          <mat-icon class="!text-sm">rebase_edit</mat-icon>
+                        </button>
+                      }
                     }
 
                     <!-- FEEDBACK button -->
@@ -392,14 +410,32 @@ import { DisputeStatusButtonComponent } from '../../../shared/components/dispute
             <p class="text-slate-500 font-medium mb-12 text-lg">
               Your feedback helps {{ reviewBooking.workerName }} and the community.
             </p>
-            <div class="flex justify-center gap-4 mb-12">
-              @for (star of [1,2,3,4,5]; track star) {
-                <button (click)="reviewRating = star" class="transition-all hover:scale-125 active:scale-95">
-                  <mat-icon class="!text-5xl !w-auto !h-auto transition-colors"
-                            [ngClass]="reviewRating >= star ? 'text-amber-400' : 'text-slate-100'">
-                    star
-                  </mat-icon>
-                </button>
+            <div class="flex flex-col items-center mb-12">
+              <div class="flex justify-center gap-3 mb-4">
+                @for (star of [1,2,3,4,5]; track star) {
+                  <button 
+                    (click)="reviewRating = star" 
+                    (mouseenter)="hoverRating = star"
+                    (mouseleave)="hoverRating = 0"
+                    [attr.aria-label]="'Rate ' + star + ' stars'"
+                    [attr.aria-pressed]="reviewRating >= star"
+                    class="transition-all hover:scale-125 active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-400/50 rounded-full p-2"
+                    tabindex="0"
+                    (keydown.enter)="reviewRating = star">
+                    <mat-icon class="!text-5xl !w-auto !h-auto transition-all"
+                              [ngClass]="(reviewRating >= star || hoverRating >= star) ? 'text-amber-400 drop-shadow-lg' : 'text-slate-200'">
+                      star
+                    </mat-icon>
+                  </button>
+                }
+              </div>
+              @if (reviewRating > 0) {
+                <div class="text-center">
+                  <span class="text-2xl font-black text-amber-400">{{ reviewRating }}/5</span>
+                  <span class="text-slate-400 ml-2 text-sm font-medium">{{ getRatingText(reviewRating) }}</span>
+                </div>
+              } @else {
+                <p class="text-slate-400 text-sm font-medium">Select a rating to continue</p>
               }
             </div>
             <div class="space-y-6">
@@ -496,6 +532,7 @@ export class ClientBookingsPage implements OnDestroy {
   private notif = inject(NotificationService);
   private payment = inject(PaymentService);
   private http = inject(HttpClient);
+  private dialog = inject(MatDialog);
 
   displayedColumns = ['worker', 'date', 'cost', 'status'];
 
@@ -522,10 +559,10 @@ export class ClientBookingsPage implements OnDestroy {
     const paymentStatus = this.paymentStatusFilter();
 
     return [...this.state.bookings()]
-      .sort((a: any, b: any) => (b.rawDate || 0) - (a.rawDate || 0))
-      .filter((b: any) => status === 'All' || b.status === status)
-      .filter((b: any) => matchesPaymentStatusFilter(b.status, paymentStatus))
-      .filter((b: any) => {
+      .sort((a: Booking, b: Booking) => (b.rawDate || 0) - (a.rawDate || 0))
+      .filter((b: Booking) => status === 'All' || b.status === status)
+      .filter((b: Booking) => matchesPaymentStatusFilter(b.status, paymentStatus))
+      .filter((b: Booking) => {
         if (!query) return true;
         const haystack = [
           b.workerName,
@@ -569,6 +606,7 @@ export class ClientBookingsPage implements OnDestroy {
   releaseConfirm: any = null;
   reviewBooking: any = null;
   reviewRating = 0;
+  hoverRating = 0;
   reviewComment = '';
 
   // Escrow guidance
@@ -577,7 +615,7 @@ export class ClientBookingsPage implements OnDestroy {
   currentBooking = computed(() => {
     const bookings = this.state.bookings();
     return bookings.find((b: any) =>
-      (b.status === 'Accepted' || b.status === 'ACCEPTED') && !this.escrowAlertDismissed()
+      (b.status === 'Accepted' || b.status === 'ACCEPTED' || b.status === 'Awaiting Funding' || b.status === 'AWAITING_FUNDING') && !this.escrowAlertDismissed()
     ) || null;
   });
 
@@ -585,6 +623,11 @@ export class ClientBookingsPage implements OnDestroy {
     const booking = this.currentBooking();
     return booking !== null && !this.escrowAlertDismissed();
   });
+
+  private isAwaitingFunding(status: string) {
+    const normalized = (status || '').toLowerCase();
+    return normalized === 'accepted' || normalized === 'awaiting funding';
+  }
 
   escrowSteps = computed<EscrowStep[]>(() => {
     const booking = this.currentBooking();
@@ -595,7 +638,7 @@ export class ClientBookingsPage implements OnDestroy {
     return [
       { step: 1, label: 'Job Posted', status: 'completed' },
       { step: 2, label: 'Worker Accepted', status: 'completed' },
-      { step: 3, label: 'Fund Escrow', status: status === 'accepted' ? 'warning' : 'completed' },
+      { step: 3, label: 'Fund Escrow', status: status === 'accepted' || status === 'awaiting funding' ? 'warning' : 'completed' },
       { step: 4, label: 'Work Begins', status: status === 'in_progress' || status === 'assigned' ? 'current' : 'pending' },
       { step: 5, label: 'Delivery', status: status === 'submitted' ? 'current' : 'pending' },
       { step: 6, label: 'Release Payment', status: status === 'approved' || status === 'completed' ? 'current' : 'pending' }
@@ -780,7 +823,23 @@ export class ClientBookingsPage implements OnDestroy {
 
   // ── Review ──────────────────────────────────────────────────────────────
 
-  openReviewModal(booking: any) { this.reviewBooking = booking; this.reviewRating = 0; this.reviewComment = ''; }
+  openReviewModal(booking: any) { 
+    this.reviewBooking = booking; 
+    this.reviewRating = 0; 
+    this.hoverRating = 0;
+    this.reviewComment = ''; 
+  }
+
+  getRatingText(rating: number): string {
+    switch(rating) {
+      case 1: return 'Poor';
+      case 2: return 'Fair';
+      case 3: return 'Good';
+      case 4: return 'Very Good';
+      case 5: return 'Excellent';
+      default: return '';
+    }
+  }
 
   submitReview() {
     if (!this.reviewBooking || !this.reviewRating) return;
@@ -812,6 +871,7 @@ export class ClientBookingsPage implements OnDestroy {
       case 'completed': return base + 'bg-emerald-50 text-emerald-700 border-emerald-200';
       case 'approved': return base + 'bg-emerald-50/60 text-emerald-600 border-emerald-100';
       case 'accepted': return base + 'bg-brand-teal-soft text-brand-teal border-brand-teal/30';
+      case 'awaiting funding': return base + 'bg-amber-50 text-amber-700 border-amber-100';
       case 'submitted': return base + 'bg-emerald-50/50 text-emerald-600 border-emerald-100';
       case 'pending': return base + 'bg-slate-50 text-slate-500 border-slate-200';
       case 'in progress': return base + 'bg-indigo-50/30 text-indigo-500 border-indigo-100';
@@ -823,6 +883,47 @@ export class ClientBookingsPage implements OnDestroy {
   }
 
   ngOnDestroy() { this.pollSub?.unsubscribe(); }
+
+  // ── Cancel Hire ───────────────────────────────────────────────────────────
+
+  openCancelHireDialog(booking: any) {
+    const dialogRef = this.dialog.open(CancelHireDialogComponent, {
+      width: '500px',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(reason => {
+      if (reason) {
+        this.state.cancelHire(booking.id, reason).subscribe({
+          next: () => {
+            this.notif.success('Hire cancelled successfully');
+          },
+          error: (err) => {
+            console.error('Error cancelling hire', err);
+            this.notif.error('Failed to cancel hire');
+          }
+        });
+      }
+    });
+  }
+
+  getTimeRemaining(booking: any): string {
+    if (!booking.date) return '';
+    
+    const acceptedDate = new Date(booking.date);
+    const now = new Date();
+    const expiryHours = 48; // Configurable expiry period
+    const expiryDate = new Date(acceptedDate.getTime() + expiryHours * 60 * 60 * 1000);
+    
+    const diffMs = expiryDate.getTime() - now.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (diffMs <= 0) return 'Expired';
+    if (diffHours > 24) return `${diffHours} hours`;
+    if (diffHours > 0) return `${diffHours}h ${diffMins}m`;
+    return `${diffMins} minutes`;
+  }
 
   counterOfferListener = effect(() => {
     const notifications = this.state.notifications();

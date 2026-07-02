@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { PlatformStateService } from '../../core/services/platform-state.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NavbarComponent } from '../../shared/components/navbar';
+import { MyDisputesComponent } from '../../shared/components/my-disputes/my-disputes.component';
 
 @Component({
   selector: 'app-client-layout',
@@ -17,7 +18,8 @@ import { NavbarComponent } from '../../shared/components/navbar';
     RouterLinkActive,
     MatIconModule,
     MatButtonModule,
-    NavbarComponent
+    NavbarComponent,
+    MyDisputesComponent
   ],
   template: `
     <div class="min-h-screen bg-surface flex flex-col font-manrope">
@@ -39,6 +41,10 @@ import { NavbarComponent } from '../../shared/components/navbar';
             <a routerLink="bookings" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
               <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">event_note</mat-icon>
               My Bookings
+            </a>
+            <a routerLink="disputes" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
+              <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">gavel</mat-icon>
+              Disputes
             </a>
             <a routerLink="messages" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
               <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">chat_bubble_outline</mat-icon>
@@ -76,6 +82,10 @@ import { NavbarComponent } from '../../shared/components/navbar';
           <a routerLink="bookings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
             <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">event_note</mat-icon>
             <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Bookings</span>
+          </a>
+          <a routerLink="disputes" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+            <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">gavel</mat-icon>
+            <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Disputes</span>
           </a>
           <a routerLink="messages" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
             <div class="relative">

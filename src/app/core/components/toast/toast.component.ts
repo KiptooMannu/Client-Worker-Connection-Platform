@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 import { ToastService, ToastType, Toast } from '../../services/toast.service';
@@ -23,7 +23,7 @@ import { ToastService, ToastType, Toast } from '../../services/toast.service';
               {{ toast.actionLabel }}
             </button>
           </div>
-          <div *ngIf="toast.duration && toast.duration > 0" class="absolute bottom-0 left-0 h-1 progress-bar" [ngClass]="getProgressClass(toast.type)" [style.animation]="'progressBar ' + toast.duration + 'ms linear forwards'"></div>
+          <div *ngIf="toast.duration && toast.duration > 0" class="absolute bottom-0 left-0 h-1 progress-bar" [ngClass]="getProgressClass(toast.type)" [style.width.%]="getProgress(toast.id, toast.duration)"></div>
         </div>
       </div>
     </div>
@@ -49,21 +49,8 @@ import { ToastService, ToastType, Toast } from '../../services/toast.service';
     }
     
     .progress-bar {
-      animation-name: progressBar;
-      animation-timing-function: linear;
-      animation-fill-mode: forwards;
-      animation-iteration-count: 1;
+      transition: width 16ms linear;
       width: 100%;
-      transform-origin: left;
-    }
-    
-    @keyframes progressBar {
-      from {
-        transform: scaleX(1);
-      }
-      to {
-        transform: scaleX(0);
-      }
     }
     
     .backdrop-blur-sm {
@@ -73,6 +60,75 @@ import { ToastService, ToastType, Toast } from '../../services/toast.service';
 })
 export class ToastComponent {
   toastService = inject(ToastService);
+  private progressMap = signal<Record<string, number>>({});
+  private startTimeMap = signal<Record<string, number>>({});
+
+  constructor() {
+    effect(() => {
+      const toasts = this.toastService.activeToasts();
+      const currentProgress = this.progressMap();
+      const currentStartTimes = this.startTimeMap();
+      
+      // Initialize progress for new toasts
+      const newProgress = { ...currentProgress };
+      const newStartTimes = { ...currentStartTimes };
+      let hasChanges = false;
+      
+      for (const toast of toasts) {
+        if (!(toast.id in currentStartTimes) && toast.duration && toast.duration > 0) {
+          newStartTimes[toast.id] = Date.now();
+          newProgress[toast.id] = 100;
+          hasChanges = true;
+        }
+      }
+      
+      // Remove dismissed toasts
+      for (const id in currentStartTimes) {
+        if (!toasts.find(t => t.id === id)) {
+          delete newStartTimes[id];
+          delete newProgress[id];
+          hasChanges = true;
+        }
+      }
+      
+      if (hasChanges) {
+        this.startTimeMap.set(newStartTimes);
+        this.progressMap.set(newProgress);
+      }
+      
+      // Update progress for active toasts
+      if (Object.keys(newStartTimes).length > 0) {
+        this.updateProgress(toasts, newStartTimes);
+      }
+    });
+  }
+
+  private updateProgress(toasts: Toast[], startTimes: Record<string, number>): void {
+    const currentProgress = this.progressMap();
+    const newProgress = { ...currentProgress };
+    let hasChanges = false;
+    
+    for (const toast of toasts) {
+      if (toast.duration && toast.duration > 0 && toast.id in startTimes) {
+        const elapsed = Date.now() - startTimes[toast.id];
+        const remaining = Math.max(0, toast.duration - elapsed);
+        const progress = (remaining / toast.duration) * 100;
+        
+        if (newProgress[toast.id] !== progress) {
+          newProgress[toast.id] = progress;
+          hasChanges = true;
+        }
+      }
+    }
+    
+    if (hasChanges) {
+      this.progressMap.set(newProgress);
+    }
+  }
+
+  getProgress(toastId: string, duration: number): number {
+    return this.progressMap()[toastId] ?? 100;
+  }
 
   dismiss(id: string): void {
     this.toastService.dismiss(id);

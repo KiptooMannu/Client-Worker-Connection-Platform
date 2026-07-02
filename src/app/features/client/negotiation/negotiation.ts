@@ -143,20 +143,6 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
           </div>
 
-          <!-- Escrow Education Banner -->
-          <div class="bg-slate-900 rounded-2xl p-6 mb-6 flex items-start gap-4">
-            <div class="w-10 h-10 bg-brand-teal/20 rounded-xl flex items-center justify-center shrink-0 mt-0.5">
-              <mat-icon class="text-brand-teal !text-xl">lock</mat-icon>
-            </div>
-            <div>
-              <p class="text-white font-black text-sm mb-1">Your Payment is Protected</p>
-              <p class="text-slate-400 text-xs leading-relaxed font-medium">
-                After hiring, you'll fund an escrow account before work begins. Your money is held safely and only released to
-                the worker once you approve the completed work. You can request revisions or a refund if needed.
-              </p>
-            </div>
-          </div>
-
           <!-- Error Message -->
           @if (errorMsg()) {
             <div class="mb-4 p-4 bg-rose-50 border border-rose-100 rounded-xl flex items-center gap-3">
@@ -186,10 +172,6 @@ import { AuthService } from '../../../core/services/auth.service';
                }
              </button>
            </div>
-
-          <p class="text-center text-[9px] text-slate-400 font-medium mt-4 uppercase tracking-widest">
-            No charges yet. You'll fund escrow on the next step.
-          </p>
 
         </div>
       }

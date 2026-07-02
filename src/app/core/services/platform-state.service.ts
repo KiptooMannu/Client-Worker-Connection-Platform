@@ -149,7 +149,7 @@ export interface Booking {
   earnings: number;
   rating?: number;
   hasReview?: boolean;
-  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Rejected' | 'Cancelled' | 'Revision Requested' | 'In Progress' | 'Submitted' | 'Disputed' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED' | 'SUBMITTED' | 'APPROVED' | 'DISPUTED' | 'REVISION_REQUESTED' | 'Assigned' | 'Negotiating' | 'Partially Settled' | 'Force Completed' | 'Refunded';
+  status: 'Pending' | 'Approved' | 'Completed' | 'Processing' | 'Accepted' | 'Awaiting Funding' | 'Rejected' | 'Cancelled' | 'Revision Requested' | 'In Progress' | 'Submitted' | 'Disputed' | 'PENDING' | 'ACCEPTED' | 'COMPLETED' | 'REJECTED' | 'SUBMITTED' | 'APPROVED' | 'DISPUTED' | 'REVISION_REQUESTED' | 'Assigned' | 'Negotiating' | 'Partially Settled' | 'Force Completed' | 'Refunded' | 'AWAITING_FUNDING' | 'CLIENT_CANCELLED' | 'WORKER_CANCELLED' | 'EXPIRED';
 
   startedAt?: string;
   submittedAt?: string;
@@ -159,6 +159,7 @@ export interface Booking {
   deadline?: string;
   negotiatedPrice?: number;
   escrowFunded?: boolean;
+  hasActiveDispute?: boolean;
   // Dispute details
   disputeReason?: string;
   disputeEvidence?: string;
@@ -178,6 +179,11 @@ export interface Booking {
   workerNetAmount?: number;
   escrowMessage?: string;
   mpesaReceiptNumber?: string;
+  // Cancellation details
+  cancellationReason?: string;
+  cancelledBy?: string;
+  cancelledAt?: string;
+  expiryDate?: string;
 }
 
 export interface ClientProfile {
@@ -268,6 +274,181 @@ export class PlatformStateService {
         });
       })
     );
+  }
+
+  /**
+   * Cancel a hire (client-side) with reason
+   */
+  cancelHire(jobId: string, reason: string): Observable<any> {
+    const user = this.auth.currentUser();
+    if (!user) return throwError(() => new Error('You must be logged in to cancel a hire.'));
+
+    this.updatingJobIds.update(set => {
+      const next = new Set(set);
+      next.add(jobId);
+      return next;
+    });
+
+    const payload = {
+      status: 'CLIENT_CANCELLED',
+      cancellationReason: reason,
+      cancelledBy: user.id,
+      cancelledAt: new Date().toISOString()
+    };
+
+    return this.http.put(`${this.apiUrl}/jobs/${jobId}/cancel`, payload).pipe(
+      tap(() => {
+        this.fetchClientJobs(user.id);
+        this.notification.success('Hire cancelled successfully');
+      }),
+      catchError((err: HttpErrorResponse) => {
+        console.error('Error cancelling hire', err);
+        const body = err.error;
+        const message = typeof body === 'string'
+          ? body
+          : body?.message || body?.error || 'Failed to cancel hire';
+        this.notification.error(message);
+        return throwError(() => err);
+      }),
+      finalize(() => {
+        this.updatingJobIds.update(set => {
+          const next = new Set(set);
+          next.delete(jobId);
+          return next;
+        });
+      })
+    );
+  }
+
+  /**
+   * Withdraw acceptance (worker-side) with reason
+   */
+  withdrawAcceptance(jobId: string, reason: string): Observable<any> {
+    const user = this.auth.currentUser();
+    if (!user) return throwError(() => new Error('You must be logged in to withdraw acceptance.'));
+
+    this.updatingJobIds.update(set => {
+      const next = new Set(set);
+      next.add(jobId);
+      return next;
+    });
+
+    const payload = {
+      status: 'WORKER_CANCELLED',
+      cancellationReason: reason,
+      cancelledBy: user.id,
+      cancelledAt: new Date().toISOString()
+    };
+
+    return this.http.put(`${this.apiUrl}/jobs/${jobId}/withdraw`, payload).pipe(
+      tap(() => {
+        this.fetchWorkerJobs(this.currentWorker().userId || user.id);
+        this.notification.success('Acceptance withdrawn successfully');
+      }),
+      catchError((err: HttpErrorResponse) => {
+        console.error('Error withdrawing acceptance', err);
+        const body = err.error;
+        const message = typeof body === 'string'
+          ? body
+          : body?.message || body?.error || 'Failed to withdraw acceptance';
+        this.notification.error(message);
+        return throwError(() => err);
+      }),
+      finalize(() => {
+        this.updatingJobIds.update(set => {
+          const next = new Set(set);
+          next.delete(jobId);
+          return next;
+        });
+      })
+    );
+  }
+
+  /**
+   * Expire a job (system-side automatic expiry)
+   */
+  expireJob(jobId: string): Observable<any> {
+    const payload = {
+      status: 'EXPIRED',
+      cancellationReason: 'Job expired due to lack of funding within the allowed time period',
+      cancelledBy: 'SYSTEM',
+      cancelledAt: new Date().toISOString()
+    };
+
+    return this.http.put(`${this.apiUrl}/jobs/${jobId}/expire`, payload).pipe(
+      tap(() => {
+        console.log(`Job ${jobId} expired successfully`);
+      }),
+      catchError((err: HttpErrorResponse) => {
+        console.error('Error expiring job', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  /**
+   * Check and expire unfunded jobs that have exceeded the time limit
+   * This should be called periodically (e.g., every hour)
+   */
+  checkAndExpireJobs() {
+    const user = this.auth.currentUser();
+    if (!user) return;
+
+    const expiryHours = 48; // Configurable expiry period
+    const now = Date.now();
+    const expiryMs = expiryHours * 60 * 60 * 1000;
+
+    const bookings = this.bookings();
+    const expiredJobs: string[] = [];
+
+    bookings.forEach((booking: Booking) => {
+      // Check if job is in Accepted status and not funded
+      const isAccepted = booking.status === 'Accepted' || booking.status === 'ACCEPTED' || booking.status === 'Awaiting Funding' || booking.status === 'AWAITING_FUNDING';
+      const isNotFunded = !booking.escrowFunded;
+      
+      if (isAccepted && isNotFunded && booking.rawDate) {
+        const acceptedTime = booking.rawDate;
+        const timeElapsed = now - acceptedTime;
+        
+        if (timeElapsed > expiryMs) {
+          expiredJobs.push(booking.id);
+        }
+      }
+    });
+
+    // Expire all identified jobs
+    if (expiredJobs.length > 0) {
+      console.log(`Found ${expiredJobs.length} expired jobs, expiring them...`);
+      expiredJobs.forEach(jobId => {
+        this.expireJob(jobId).subscribe({
+          next: () => {
+            console.log(`Job ${jobId} expired`);
+            // Refresh bookings after expiry
+            if (user.role === 'Worker') {
+              this.fetchWorkerJobs(this.currentWorker().userId || user.id);
+            } else if (user.role === 'Client') {
+              this.fetchClientJobs(user.id);
+            }
+          },
+          error: (err) => {
+            console.error(`Failed to expire job ${jobId}`, err);
+          }
+        });
+      });
+    }
+  }
+
+  /**
+   * Start periodic job expiry check (runs every hour)
+   */
+  startJobExpiryCheck() {
+    // Check immediately on start
+    this.checkAndExpireJobs();
+    
+    // Then check every hour
+    setInterval(() => {
+      this.checkAndExpireJobs();
+    }, 60 * 60 * 1000); // 1 hour
   }
 
   fetchWalletSummary() {
@@ -1321,6 +1502,34 @@ private getInitialWorkerState(): WorkerProfile {
   fetchChats(userId: string) {
     console.log('[PlatformState] Fetching chats for userId:', userId);
 
+    // Load deleted and archived conversations from localStorage
+    const deletedKey = `deleted_chats_${userId}`;
+    const archivedKey = `archived_chats_${userId}`;
+    
+    const deletedChats = new Map<string, number>(); // userId -> deletion timestamp
+    const deletedData = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+    const now = Date.now();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    
+    // Filter out expired deleted chats (older than 30 days)
+    const validDeletedChats: string[] = [];
+    for (const item of deletedData) {
+      if (typeof item === 'string') {
+        // Old format: just the userId
+        deletedChats.set(item, now - thirtyDaysMs + 1); // Treat as recently deleted
+        validDeletedChats.push(item);
+      } else if (item && item.id && item.timestamp) {
+        // New format: { id: string, timestamp: number }
+        if (now - item.timestamp < thirtyDaysMs) {
+          deletedChats.set(item.id, item.timestamp);
+          validDeletedChats.push(item);
+        }
+      }
+    }
+    localStorage.setItem(deletedKey, JSON.stringify(validDeletedChats));
+    
+    const archivedSet = new Set<string>(JSON.parse(localStorage.getItem(archivedKey) || '[]'));
+
     this.http.get<any>(`${this.apiUrl}/messages/user/${userId}/recent`).pipe(timeout(30000)).subscribe({
       next: (res) => {
         const data = res.content || res || [];
@@ -1359,6 +1568,11 @@ private getInitialWorkerState(): WorkerProfile {
           const existingChatMap = new Map(currentChats.map(c => [c.id, c]));
 
           for (const inc of incomingChats) {
+            // Skip if chat is deleted (in trash)
+            if (deletedChats.has(inc.id)) {
+              continue;
+            }
+
             const existing = existingChatMap.get(inc.id);
             if (existing) {
               existingChatMap.set(inc.id, {
@@ -1366,10 +1580,16 @@ private getInitialWorkerState(): WorkerProfile {
                 lastMessage: inc.lastMessage,
                 time: inc.time,
                 rawTime: inc.rawTime,
-                unread: inc.unread
+                unread: inc.unread,
+                // Preserve archived status from localStorage
+                archived: archivedSet.has(inc.id) ? true : existing.archived
               });
             } else {
-              existingChatMap.set(inc.id, inc);
+              existingChatMap.set(inc.id, {
+                ...inc,
+                // Set archived status from localStorage
+                archived: archivedSet.has(inc.id)
+              });
             }
           }
 
@@ -1406,18 +1626,24 @@ private getInitialWorkerState(): WorkerProfile {
   }
 
   /**
-   * Delete a conversation (soft delete client-side persistent)
+   * Delete a conversation (soft delete with 30-day trash retention)
    */
   deleteConversation(userId: string, otherUserId: string): Observable<any> {
     try {
       const deletedKey = `deleted_chats_${userId}`;
-      const deletedSet = new Set<string>(JSON.parse(localStorage.getItem(deletedKey) || '[]'));
-      deletedSet.add(otherUserId);
-      localStorage.setItem(deletedKey, JSON.stringify(Array.from(deletedSet)));
+      const deletedData = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+      
+      // Add with timestamp for 30-day retention
+      deletedData.push({
+        id: otherUserId,
+        timestamp: Date.now()
+      });
+      
+      localStorage.setItem(deletedKey, JSON.stringify(deletedData));
 
       // Remove the chat from the local state
       this.chats.update(chats => chats.filter(c => c.id !== otherUserId));
-      this.notification.success('Conversation deleted');
+      this.notification.success('Conversation moved to trash (30 days)');
       return of({ success: true });
     } catch (err) {
       console.error('Error deleting conversation', err);
@@ -1475,6 +1701,74 @@ private getInitialWorkerState(): WorkerProfile {
     } catch (err) {
       console.error('Error unarchiving conversation', err);
       this.notification.error('Failed to restore conversation');
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * Restore a conversation from trash (client-side persistent)
+   */
+  restoreConversation(userId: string, otherUserId: string): Observable<any> {
+    try {
+      const deletedKey = `deleted_chats_${userId}`;
+      const deletedData = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+      
+      // Remove from deleted list
+      const filteredData = deletedData.filter((item: any) => {
+        if (typeof item === 'string') {
+          return item !== otherUserId;
+        } else if (item && item.id) {
+          return item.id !== otherUserId;
+        }
+        return true;
+      });
+      
+      localStorage.setItem(deletedKey, JSON.stringify(filteredData));
+
+      // Re-add to chats if it exists in the backend data
+      this.chats.update(chats => {
+        const existing = chats.find(c => c.id === otherUserId);
+        if (existing) {
+          return chats; // Already in chats
+        }
+        // If not in local state, it will be re-fetched from backend on next fetchChats
+        return chats;
+      });
+
+      this.notification.success('Conversation restored from trash');
+      return of({ success: true });
+    } catch (err) {
+      console.error('Error restoring conversation', err);
+      this.notification.error('Failed to restore conversation');
+      return throwError(() => err);
+    }
+  }
+
+  /**
+   * Permanently delete a conversation (remove from trash)
+   */
+  permanentlyDeleteConversation(userId: string, otherUserId: string): Observable<any> {
+    try {
+      const deletedKey = `deleted_chats_${userId}`;
+      const deletedData = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+      
+      // Remove from deleted list
+      const filteredData = deletedData.filter((item: any) => {
+        if (typeof item === 'string') {
+          return item !== otherUserId;
+        } else if (item && item.id) {
+          return item.id !== otherUserId;
+        }
+        return true;
+      });
+      
+      localStorage.setItem(deletedKey, JSON.stringify(filteredData));
+
+      this.notification.success('Conversation permanently deleted');
+      return of({ success: true });
+    } catch (err) {
+      console.error('Error permanently deleting conversation', err);
+      this.notification.error('Failed to permanently delete conversation');
       return throwError(() => err);
     }
   }

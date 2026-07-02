@@ -68,6 +68,10 @@ export const routes: Routes = [
         loadComponent: () => import('./shared/components/messages').then(m => m.SharedMessagesComponent)
       },
       {
+        path: 'disputes',
+        loadComponent: () => import('./shared/components/my-disputes/my-disputes.component').then(m => m.MyDisputesComponent)
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./shared/components/settings').then(m => m.SharedSettingsPage)
       }
@@ -99,6 +103,10 @@ export const routes: Routes = [
       {
         path: 'bookings',
         loadComponent: () => import('./features/client/bookings/my-bookings').then(m => m.ClientBookingsPage)
+      },
+      {
+        path: 'disputes',
+        loadComponent: () => import('./shared/components/my-disputes/my-disputes.component').then(m => m.MyDisputesComponent)
       },
       {
         path: 'settings',

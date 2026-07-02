@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
@@ -21,7 +22,7 @@ type HistoryTab = 'wallet' | 'ledger';
 @Component({
   selector: 'app-worker-history',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, FormsModule, DisputeStatusButtonComponent],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatDialogModule, FormsModule, DisputeStatusButtonComponent],
   template: `
     @if (state.currentWorker().status === 'loading' || !state.currentWorker().id) {
       <!-- Loading State -->
@@ -281,16 +282,28 @@ type HistoryTab = 'wallet' | 'ledger';
                           </button>
                         </div>
                       }
-                      @if (job.status === 'Accepted' || job.status === 'Revision Requested' || job.status === 'In Progress') {
+                      @if (job.status === 'Accepted' || job.status === 'ACCEPTED' || job.status === 'Awaiting Funding' || job.status === 'AWAITING_FUNDING' || job.status === 'Revision Requested' || job.status === 'In Progress') {
                         @if (job.escrowFunded) {
                           <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')"
                                   class="px-3 py-1.5 bg-brand-teal text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-1">
                             <mat-icon class="!text-sm !w-auto !h-auto">send</mat-icon> Deliver
                           </button>
                         } @else {
-                          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200">
-                            <mat-icon class="!text-sm !w-auto !h-auto text-slate-400">hourglass_empty</mat-icon>
-                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Waiting for Payment</span>
+                          <div class="flex flex-col gap-2">
+                            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200">
+                              <mat-icon class="!text-sm !w-auto !h-auto text-slate-400">hourglass_empty</mat-icon>
+                              <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Waiting for Payment</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <button (click)="openWithdrawAcceptanceDialog(job)"
+                                      class="px-2.5 py-1.5 border border-amber-200 text-amber-600 rounded-lg text-[9px]
+                                             font-black uppercase tracking-widest hover:bg-amber-50 transition-all bg-white active:scale-95">
+                                Withdraw
+                              </button>
+                              <span class="text-[8px] text-slate-400 font-medium">
+                                {{ getTimeRemaining(job) }}
+                              </span>
+                            </div>
                           </div>
                         }
                       }
@@ -419,6 +432,7 @@ export class WorkerHistoryPage {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
   private http = inject(HttpClient);
+  private dialog = inject(MatDialog);
 
   activeTab = signal<HistoryTab>('ledger');
   searchQuery = signal('');
@@ -580,6 +594,48 @@ export class WorkerHistoryPage {
         this.withdrawing.set(false);
       }
     });
+  }
+
+  // ── Withdraw Acceptance ───────────────────────────────────────────────────
+
+  async openWithdrawAcceptanceDialog(job: any) {
+    const { WithdrawAcceptanceDialogComponent } = await import('../../../shared/components/withdraw-acceptance-dialog/withdraw-acceptance-dialog.component');
+    const dialogRef = this.dialog.open(WithdrawAcceptanceDialogComponent, {
+      width: '500px',
+      disableClose: true
+    });
+
+    dialogRef.afterClosed().subscribe(reason => {
+      if (reason) {
+        this.state.withdrawAcceptance(job.id, reason).subscribe({
+          next: () => {
+            this.notification.success('Acceptance withdrawn successfully');
+          },
+          error: (err) => {
+            console.error('Error withdrawing acceptance', err);
+            this.notification.error('Failed to withdraw acceptance');
+          }
+        });
+      }
+    });
+  }
+
+  getTimeRemaining(job: any): string {
+    if (!job.date) return '';
+    
+    const acceptedDate = new Date(job.date);
+    const now = new Date();
+    const expiryHours = 48; // Configurable expiry period
+    const expiryDate = new Date(acceptedDate.getTime() + expiryHours * 60 * 60 * 1000);
+    
+    const diffMs = expiryDate.getTime() - now.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (diffMs <= 0) return 'Expired';
+    if (diffHours > 24) return `${diffHours} hours`;
+    if (diffHours > 0) return `${diffHours}h ${diffMins}m`;
+    return `${diffMins} minutes`;
   }
 
   exportHistory() {

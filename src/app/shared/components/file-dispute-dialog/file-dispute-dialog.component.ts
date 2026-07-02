@@ -13,6 +13,7 @@ import { lastValueFrom } from 'rxjs';
 import { DisputeService } from '../../../core/services/dispute.service';
 import { environment } from '../../../../environments/environment';
 import { DocumentUploadComponent } from '../document-upload/document-upload.component';
+import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-file-dispute-dialog',
@@ -109,12 +110,12 @@ export class FileDisputeDialogComponent {
 
   constructor(
     private fb: FormBuilder,
-    private disputeService: DisputeService,
-    public dialogRef: MatDialogRef<FileDisputeDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { jobId: string; paymentStatus?: string; bookingStatus?: string },
-    private dialog: MatDialog,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef
+    private disputeService: DisputeService,
+    private dialogRef: MatDialogRef<FileDisputeDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: { jobId: string; paymentStatus?: string; bookingStatus?: string },
+    private cdr: ChangeDetectorRef,
+    private notification: NotificationService
   ) {
     this.disputeForm = this.fb.group({
       disputeReasonKey: ['', Validators.required],
@@ -182,6 +183,7 @@ export class FileDisputeDialogComponent {
         next: (response: any) => {
           this.isSubmitting = false;
           this.cdr.detectChanges();
+          this.notification.success('Dispute filed successfully');
           this.dialogRef.close(response);
         },
         error: (error: any) => {
@@ -189,14 +191,14 @@ export class FileDisputeDialogComponent {
           this.cdr.detectChanges();
           console.error('Error filing dispute:', error);
           const message = this.getUserFriendlyErrorMessage(error);
-          alert(message);
+          this.notification.error(message);
         }
       });
     }).catch(error => {
       this.isSubmitting = false;
       this.cdr.detectChanges();
       console.error('File upload error:', error);
-      alert('Failed to upload evidence files. Please try again.');
+      this.notification.error('Failed to upload evidence files. Please try again.');
     });
   }
 

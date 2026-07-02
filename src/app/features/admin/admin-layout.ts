@@ -130,6 +130,7 @@ export class AdminLayout {
   menuItems = [
     { path: 'dashboard',    label: 'Overview',     icon: 'grid_view' },
     { path: 'jobs',         label: 'Job Tracker',  icon: 'track_changes' },
+    { path: 'disputes',     label: 'Disputes',     icon: 'gavel' },
     { path: 'fees',         label: 'Platform Fees', icon: 'payments' },
     { path: 'verification', label: 'Verify Users', icon: 'fact_check' },
     { path: 'users',        label: 'Users',        icon: 'people_alt' },

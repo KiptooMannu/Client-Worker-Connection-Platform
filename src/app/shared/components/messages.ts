@@ -57,6 +57,15 @@ interface UserContact {
             
             <button 
               class="action-btn" 
+              [class.active]="showTrash()"
+              (click)="toggleTrashView()"
+              title="Toggle trash">
+              <mat-icon>{{ showTrash() ? 'inbox' : 'delete' }}</mat-icon>
+              <span>{{ showTrash() ? 'Inbox' : 'Trash' }}</span>
+            </button>
+            
+            <button 
+              class="action-btn" 
               (click)="showBulkActions.set(true)"
               title="Select multiple">
               <mat-icon>checklist</mat-icon>
@@ -71,17 +80,26 @@ interface UserContact {
               
               <div class="bulk-actions-group">
                 @if (selectedConversations().size > 0) {
-                  <button class="action-btn danger-pill" (click)="bulkDelete()" title="Delete selected">
-                    <mat-icon>delete</mat-icon>
-                  </button>
-                  @if (showArchive()) {
-                    <button class="action-btn pill" (click)="bulkUnarchive()" title="Unarchive selected">
-                      <mat-icon>unarchive</mat-icon>
+                  @if (showTrash()) {
+                    <button class="action-btn pill" (click)="bulkRestore()" title="Restore selected">
+                      <mat-icon>restore</mat-icon>
+                    </button>
+                    <button class="action-btn danger-pill" (click)="bulkPermanentlyDelete()" title="Permanently delete selected">
+                      <mat-icon>delete_forever</mat-icon>
                     </button>
                   } @else {
-                    <button class="action-btn pill" (click)="bulkArchive()" title="Archive selected">
-                      <mat-icon>archive</mat-icon>
+                    <button class="action-btn danger-pill" (click)="bulkDelete()" title="Delete selected">
+                      <mat-icon>delete</mat-icon>
                     </button>
+                    @if (showArchive()) {
+                      <button class="action-btn pill" (click)="bulkUnarchive()" title="Unarchive selected">
+                        <mat-icon>unarchive</mat-icon>
+                      </button>
+                    } @else {
+                      <button class="action-btn pill" (click)="bulkArchive()" title="Archive selected">
+                        <mat-icon>archive</mat-icon>
+                      </button>
+                    }
                   }
                 }
                 <button class="action-btn close-pill" (click)="exitSelectMode()" title="Exit select mode">
@@ -119,8 +137,8 @@ interface UserContact {
             </div>
           } @else if (filteredUsers().length === 0) {
             <div class="empty-state">
-              <mat-icon>{{ showArchive() ? 'archive' : 'forum' }}</mat-icon>
-              <p>{{ searchQuery() ? 'No results' : (showArchive() ? 'No archived conversations' : 'No conversations yet') }}</p>
+              <mat-icon>{{ showTrash() ? 'delete' : (showArchive() ? 'archive' : 'forum') }}</mat-icon>
+              <p>{{ searchQuery() ? 'No results' : (showTrash() ? 'Trash is empty' : (showArchive() ? 'No archived conversations' : 'No conversations yet')) }}</p>
             </div>
           }
 
@@ -144,7 +162,11 @@ interface UserContact {
                 </div>
                 <div class="contact-meta">
                   <span class="contact-name">{{ user.username }}</span>
-                  <span class="contact-preview">{{ (user.unread || 0) > 0 ? 'New message' : (user.role || 'Participant') }}</span>
+                  @if (showTrash() && 'daysRemaining' in user) {
+                    <span class="contact-preview">{{ user.daysRemaining }} days remaining</span>
+                  } @else {
+                    <span class="contact-preview">{{ (user.unread || 0) > 0 ? 'New message' : (user.role || 'Participant') }}</span>
+                  }
                 </div>
                 <div class="contact-actions">
                   @if ((user.unread || 0) > 0) {
@@ -164,25 +186,36 @@ interface UserContact {
               <!-- Context Menu -->
               @if (activeMenu() === user.id) {
                 <div class="context-menu" (click)="$event.stopPropagation()">
-                  <button (click)="markConversationAsRead(user.id); closeMenu()">
-                    <mat-icon>mark_email_read</mat-icon>
-                    Mark as read
-                  </button>
-                  @if (showArchive()) {
-                    <button (click)="unarchiveConversation(user.id); closeMenu()">
-                      <mat-icon>unarchive</mat-icon>
-                      Unarchive
+                  @if (showTrash()) {
+                    <button (click)="restoreConversation(user.id); closeMenu()">
+                      <mat-icon>restore</mat-icon>
+                      Restore
+                    </button>
+                    <button class="danger" (click)="permanentlyDeleteConversation(user.id); closeMenu()">
+                      <mat-icon>delete_forever</mat-icon>
+                      Delete Forever
                     </button>
                   } @else {
-                    <button (click)="archiveConversation(user.id); closeMenu()">
-                      <mat-icon>archive</mat-icon>
-                      Archive
+                    <button (click)="markConversationAsRead(user.id); closeMenu()">
+                      <mat-icon>mark_email_read</mat-icon>
+                      Mark as read
+                    </button>
+                    @if (showArchive()) {
+                      <button (click)="unarchiveConversation(user.id); closeMenu()">
+                        <mat-icon>unarchive</mat-icon>
+                        Unarchive
+                      </button>
+                    } @else {
+                      <button (click)="archiveConversation(user.id); closeMenu()">
+                        <mat-icon>archive</mat-icon>
+                        Archive
+                      </button>
+                    }
+                    <button class="danger" (click)="deleteConversation(user.id); closeMenu()">
+                      <mat-icon>delete</mat-icon>
+                      Delete
                     </button>
                   }
-                  <button class="danger" (click)="deleteConversation(user.id); closeMenu()">
-                    <mat-icon>delete</mat-icon>
-                    Delete
-                  </button>
                 </div>
               }
             </div>
@@ -1348,10 +1381,12 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
   // New signals for Archive, Delete and Bulk actions
   showArchive = signal(false);
+  showTrash = signal(false);
   showDeleteConfirm = signal<string | null>(null); // Stores ID of conversation to delete
   showBulkActions = signal(false);
   selectedConversations = signal<Set<string>>(new Set());
   activeMenu = signal<string | null>(null);
+  deletedChats = signal<Map<string, number>>(new Map()); // userId -> deletion timestamp
 
   // FIX BUG 1: track whether the initial user load has been started
   // to prevent the search effect from triggering a duplicate/cancelled request
@@ -1416,6 +1451,42 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     return Array.from(uniqueArchived.values());
   });
 
+  trashUsers = computed<UserContact[]>(() => {
+    const allU = this.allUsers();
+    const deleted = this.deletedChats();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    
+    const uniqueTrash = new Map<string, UserContact & { deletionDate: number; daysRemaining: number }>();
+    
+    deleted.forEach((timestamp, userId) => {
+      // Skip expired items
+      if (now - timestamp > thirtyDaysMs) return;
+      
+      const found = allU.find(u => u.id === userId);
+      const chat = this.state.chats().find(c => c.id === userId);
+      const name = chat?.name || found?.username || 'Unknown User';
+      const email = chat?.email || found?.email || '';
+      const role = chat?.role || found?.role || '';
+      const image = chat?.image || found?.image;
+      
+      const daysRemaining = Math.ceil((thirtyDaysMs - (now - timestamp)) / (24 * 60 * 60 * 1000));
+      
+      uniqueTrash.set(userId, {
+        id: userId,
+        username: name,
+        email: email,
+        role: role,
+        unread: 0,
+        image: image,
+        deletionDate: timestamp,
+        daysRemaining: daysRemaining
+      } as UserContact & { deletionDate: number; daysRemaining: number });
+    });
+    
+    return Array.from(uniqueTrash.values()).sort((a, b) => b.deletionDate - a.deletionDate);
+  });
+
   activeUsers = computed<UserContact[]>(() => {
     return this.recentUsers().filter(u => {
       const chat = this.state.chats().find(c => c.id === u.id);
@@ -1426,7 +1497,15 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   filteredUsers = computed<UserContact[]>(() => {
     const q = this.searchQuery().trim();
     const all = this.allUsers();
-    const source = this.showArchive() ? this.archivedUsers() : this.activeUsers();
+    
+    let source: UserContact[];
+    if (this.showTrash()) {
+      source = this.trashUsers();
+    } else if (this.showArchive()) {
+      source = this.archivedUsers();
+    } else {
+      source = this.activeUsers();
+    }
 
     if (!q) {
       return source;
@@ -1917,6 +1996,7 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
   toggleArchiveView() {
     this.showArchive.update(v => !v);
+    this.showTrash.set(false); // Close trash when opening archive
     this.selectedUser.set(null); // Clear selected user when switching views
     this.selectedConversations.set(new Set()); // Clear selections
     this.showBulkActions.set(false);
@@ -1927,6 +2007,37 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
         this.state.fetchArchivedConversations(user.id).subscribe();
       }
     }
+  }
+
+  toggleTrashView() {
+    this.showTrash.update(v => !v);
+    this.showArchive.set(false); // Close archive when opening trash
+    this.selectedUser.set(null); // Clear selected user when switching views
+    this.selectedConversations.set(new Set()); // Clear selections
+    this.showBulkActions.set(false);
+    
+    if (this.showTrash()) {
+      this.loadDeletedChats();
+    }
+  }
+
+  loadDeletedChats() {
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    const deletedKey = `deleted_chats_${user.id}`;
+    const deletedData = JSON.parse(localStorage.getItem(deletedKey) || '[]');
+    
+    const deletedMap = new Map<string, number>();
+    for (const item of deletedData) {
+      if (typeof item === 'string') {
+        deletedMap.set(item, Date.now() - 30 * 24 * 60 * 60 * 1000 + 1);
+      } else if (item && item.id && item.timestamp) {
+        deletedMap.set(item.id, item.timestamp);
+      }
+    }
+    
+    this.deletedChats.set(deletedMap);
   }
 
   toggleSelectConversation(userId: string) {
@@ -1942,7 +2053,14 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   }
 
   isAllSelected(): boolean {
-    const currentList = this.showArchive() ? this.archivedUsers() : this.activeUsers();
+    let currentList: UserContact[];
+    if (this.showTrash()) {
+      currentList = this.trashUsers();
+    } else if (this.showArchive()) {
+      currentList = this.archivedUsers();
+    } else {
+      currentList = this.activeUsers();
+    }
     return currentList.length > 0 && 
            currentList.every(u => this.selectedConversations().has(u.id));
   }
@@ -1951,7 +2069,14 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     if (this.isAllSelected()) {
       this.selectedConversations.set(new Set());
     } else {
-      const currentList = this.showArchive() ? this.archivedUsers() : this.activeUsers();
+      let currentList: UserContact[];
+      if (this.showTrash()) {
+        currentList = this.trashUsers();
+      } else if (this.showArchive()) {
+        currentList = this.archivedUsers();
+      } else {
+        currentList = this.activeUsers();
+      }
       this.selectedConversations.set(new Set(currentList.map(u => u.id)));
     }
   }
@@ -2036,6 +2161,62 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     });
   }
 
+  bulkRestore() {
+    const conversationIds = Array.from(this.selectedConversations());
+    if (conversationIds.length === 0) return;
+    
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    const restorePromises = conversationIds.map(id => 
+      new Promise((resolve, reject) => {
+        this.state.restoreConversation(user.id, id).subscribe({
+          next: resolve,
+          error: reject
+        });
+      })
+    );
+    
+    Promise.all(restorePromises).then(() => {
+      this.selectedConversations.set(new Set());
+      this.showBulkActions.set(false);
+      this.loadDeletedChats(); // Reload trash
+      this.notification.success(`${conversationIds.length} conversation(s) restored`);
+    }).catch(err => {
+      console.error('Bulk restore failed', err);
+      this.notification.error('Failed to restore some conversations');
+    });
+  }
+
+  bulkPermanentlyDelete() {
+    const conversationIds = Array.from(this.selectedConversations());
+    if (conversationIds.length === 0) return;
+    
+    if (confirm(`Permanently delete ${conversationIds.length} conversation(s)? This action cannot be undone.`)) {
+      const user = this.auth.currentUser();
+      if (!user) return;
+      
+      const deletePromises = conversationIds.map(id => 
+        new Promise((resolve, reject) => {
+          this.state.permanentlyDeleteConversation(user.id, id).subscribe({
+            next: resolve,
+            error: reject
+          });
+        })
+      );
+      
+      Promise.all(deletePromises).then(() => {
+        this.selectedConversations.set(new Set());
+        this.showBulkActions.set(false);
+        this.loadDeletedChats(); // Reload trash
+        this.notification.success(`${conversationIds.length} conversation(s) permanently deleted`);
+      }).catch(err => {
+        console.error('Bulk permanent delete failed', err);
+        this.notification.error('Failed to permanently delete some conversations');
+      });
+    }
+  }
+
   deleteConversation(userId: string) {
     this.showDeleteConfirm.set(userId);
   }
@@ -2060,6 +2241,39 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
 
   cancelDelete() {
     this.showDeleteConfirm.set(null);
+  }
+
+  restoreConversation(userId: string) {
+    const user = this.auth.currentUser();
+    if (!user) return;
+    
+    this.state.restoreConversation(user.id, userId).subscribe({
+      next: () => {
+        this.loadDeletedChats();
+      },
+      error: (err) => {
+        console.error('Error restoring conversation', err);
+        this.notification.error('Failed to restore conversation');
+      }
+    });
+  }
+
+  permanentlyDeleteConversation(userId: string) {
+    if (confirm('Permanently delete this conversation? This action cannot be undone.')) {
+      const user = this.auth.currentUser();
+      if (!user) return;
+      
+      this.state.permanentlyDeleteConversation(user.id, userId).subscribe({
+        next: () => {
+          this.loadDeletedChats();
+          this.notification.success('Conversation permanently deleted');
+        },
+        error: (err) => {
+          console.error('Error permanently deleting conversation', err);
+          this.notification.error('Failed to permanently delete conversation');
+        }
+      });
+    }
   }
 
   archiveConversation(userId: string) {

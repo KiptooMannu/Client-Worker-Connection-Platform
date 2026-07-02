@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { DisputeService } from '../../../core/services/dispute.service';
 import { AuthService } from '../../../core/services/auth.service';
@@ -33,7 +34,8 @@ import { AuthService } from '../../../core/services/auth.service';
     MatInputModule,
     MatFormFieldModule,
     MatSelectModule,
-    FormsModule
+    FormsModule,
+    MatDialogModule
   ],
   template: `
     <div class="p-6">
@@ -125,7 +127,8 @@ import { AuthService } from '../../../core/services/auth.service';
       <div class="bg-white rounded-lg shadow overflow-hidden">
         <mat-spinner *ngIf="isLoading" class="mx-auto py-8"></mat-spinner>
 
-        <table mat-table [dataSource]="disputes" *ngIf="!isLoading" class="w-full">
+        <div class="overflow-x-auto" *ngIf="!isLoading">
+          <table mat-table [dataSource]="disputes" class="w-full min-w-max">
           <!-- Dispute ID Column -->
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef>Dispute ID</th>
@@ -150,11 +153,56 @@ import { AuthService } from '../../../core/services/auth.service';
             </td>
           </ng-container>
 
+          <!-- Filed By Column -->
+          <ng-container matColumnDef="filedBy">
+            <th mat-header-cell *matHeaderCellDef>Filed By</th>
+            <td mat-cell *matCellDef="let dispute">
+              {{ dispute.filedByName }}
+            </td>
+          </ng-container>
+
           <!-- Reason Column -->
           <ng-container matColumnDef="reason">
             <th mat-header-cell *matHeaderCellDef>Reason</th>
             <td mat-cell *matCellDef="let dispute">
-              {{ formatReasonKey(dispute.disputeReasonKey) }}
+              <div>
+                <div class="font-medium">{{ formatReasonKey(dispute.disputeReasonKey) }}</div>
+                @if (dispute.disputeDescription) {
+                  <div class="text-xs text-gray-500 truncate max-w-xs">{{ dispute.disputeDescription }}</div>
+                }
+              </div>
+            </td>
+          </ng-container>
+
+          <!-- Evidence Column -->
+          <ng-container matColumnDef="evidence">
+            <th mat-header-cell *matHeaderCellDef>Evidence</th>
+            <td mat-cell *matCellDef="let dispute">
+              @if (dispute.evidence && dispute.evidence.length > 0) {
+                <div class="flex flex-col gap-1">
+                  @for (ev of dispute.evidence; track ev.id) {
+                    <a [href]="ev.fileUrl" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                      <mat-icon class="!text-sm">attach_file</mat-icon>
+                      {{ ev.fileName }}
+                    </a>
+                  }
+                </div>
+              }
+              @if (dispute.clientEvidenceAttachmentUrl) {
+                <a [href]="dispute.clientEvidenceAttachmentUrl" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                  <mat-icon class="!text-sm">attach_file</mat-icon>
+                  Client Evidence
+                </a>
+              }
+              @if (dispute.workerEvidenceAttachmentUrl) {
+                <a [href]="dispute.workerEvidenceAttachmentUrl" target="_blank" class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                  <mat-icon class="!text-sm">attach_file</mat-icon>
+                  Worker Evidence
+                </a>
+              }
+              @if (!dispute.evidence?.length && !dispute.clientEvidenceAttachmentUrl && !dispute.workerEvidenceAttachmentUrl) {
+                <span class="text-xs text-gray-400">No evidence</span>
+              }
             </td>
           </ng-container>
 
@@ -210,6 +258,7 @@ import { AuthService } from '../../../core/services/auth.service';
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
+        </div>
 
         <!-- Paginator -->
         <mat-paginator *ngIf="!isLoading" 
@@ -246,7 +295,7 @@ export class AdminDisputeDashboardComponent implements OnInit {
   currentPage = 0;
   totalDisputes = 0;
 
-  displayedColumns = ['id', 'client', 'worker', 'reason', 'priority', 'status', 'amount', 'created', 'actions'];
+  displayedColumns = ['id', 'client', 'worker', 'filedBy', 'reason', 'evidence', 'priority', 'status', 'amount', 'created', 'actions'];
 
   constructor(
     private disputeService: DisputeService,
@@ -261,15 +310,8 @@ export class AdminDisputeDashboardComponent implements OnInit {
 
   loadDisputes(): void {
     this.isLoading = true;
-    const currentUser = this.authService.currentUser();
-    if (!currentUser?.id) {
-      this.disputes = [];
-      this.totalDisputes = 0;
-      this.isLoading = false;
-      return;
-    }
-
-    this.disputeService.getAdminDisputes(currentUser.id, this.currentPage, this.pageSize)
+    // Fetch all disputes (not just assigned to current admin)
+    this.disputeService.getAllDisputes(this.currentPage, this.pageSize)
       .subscribe({
         next: (response) => {
           this.disputes = response.disputes;

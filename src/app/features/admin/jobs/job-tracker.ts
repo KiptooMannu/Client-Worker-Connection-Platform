@@ -57,7 +57,7 @@ function normalizeStatus(raw: string): string {
 
 const TERMINAL_STATUSES = new Set(['COMPLETED', 'REJECTED', 'CANCELLED', 'FORCE_COMPLETED', 'REFUNDED', 'PARTIALLY_SETTLED']);
 
-type ModalType = 'force_complete' | 'full_refund' | 'partial_refund' | 'cancel_job' | 'request_evidence' | null;
+type ModalType = 'force_complete' | 'full_refund' | 'cancel_job' | 'request_evidence' | null;
 
 @Component({
   selector: 'app-admin-job-tracker',
@@ -261,11 +261,6 @@ type ModalType = 'force_complete' | 'full_refund' | 'partial_refund' | 'cancel_j
                             matTooltip="Full Refund — refund client (requires reason)"
                             class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-700 text-[8px] font-black uppercase tracking-wider hover:bg-sky-100 transition-all disabled:opacity-50 whitespace-nowrap">
                             <mat-icon class="!text-[10px]">undo</mat-icon>Refund
-                          </button>
-                          <button (click)="openModal('partial_refund', job)" [disabled]="isUpdating(job.id)"
-                            matTooltip="Partial Settlement — split payment (requires reason)"
-                            class="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-purple-50 border border-purple-200 text-purple-700 text-[8px] font-black uppercase tracking-wider hover:bg-purple-100 transition-all disabled:opacity-50 whitespace-nowrap">
-                            <mat-icon class="!text-[10px]">call_split</mat-icon>Split
                           </button>
                         }
 
@@ -609,31 +604,6 @@ type ModalType = 'force_complete' | 'full_refund' | 'partial_refund' | 'cancel_j
               </div>
             }
 
-            <!-- Partial refund amount inputs -->
-            @if (activeModal() === 'partial_refund') {
-              <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-purple-50 border border-purple-200">
-                <div>
-                  <label class="text-[9px] font-black uppercase tracking-widest text-purple-700 block mb-1.5">Worker Gets (KES)</label>
-                  <input type="number" [(ngModel)]="workerAmount" min="0" [max]="modalJob()?.earnings || 9999"
-                    placeholder="e.g. 3000"
-                    class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-xs font-black text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-300"/>
-                </div>
-                <div>
-                  <label class="text-[9px] font-black uppercase tracking-widest text-purple-700 block mb-1.5">Client Refund (KES)</label>
-                  <input type="number" [(ngModel)]="clientRefund" min="0" [max]="modalJob()?.earnings || 9999"
-                    placeholder="e.g. 2000"
-                    class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-xs font-black text-slate-800 focus:outline-none focus:ring-2 focus:ring-purple-300"/>
-                </div>
-                <div class="col-span-2">
-                  <p class="text-[9px] font-bold"
-                     [class]="Math.abs((workerAmount + clientRefund) - (modalJob()?.earnings || 0)) < 1 ? 'text-emerald-600' : 'text-rose-600'">
-                    Total: KES {{ (workerAmount + clientRefund).toLocaleString() }}
-                    @if (modalJob()?.earnings) { / KES {{ modalJob()!.earnings.toLocaleString() }} required }
-                  </p>
-                </div>
-              </div>
-            }
-
             <!-- Reason (required) -->
             <div>
               <label class="text-[9px] font-black uppercase tracking-widest text-slate-600 block mb-1.5">
@@ -663,7 +633,7 @@ type ModalType = 'force_complete' | 'full_refund' | 'partial_refund' | 'cancel_j
               Cancel
             </button>
             <button (click)="confirmAction()"
-              [disabled]="!modalReason.trim() || submittingModal() || (activeModal() === 'partial_refund' && !partialAmountsValid())"
+              [disabled]="!modalReason.trim() || submittingModal()"
               class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-40 shadow-lg"
               [class]="modalConfirmClass()">
               @if (submittingModal()) {
@@ -714,8 +684,6 @@ export class AdminJobTrackerPage implements OnInit {
   modalJobRef       = signal<Booking | null>(null);
   modalReason       = '';
   modalEvidenceNotes = '';
-  workerAmount      = 0;
-  clientRefund      = 0;
   submittingModal   = signal(false);
 
   modalJob = computed(() => this.modalJobRef());
@@ -773,6 +741,7 @@ export class AdminJobTrackerPage implements OnInit {
             // admin
             adminDecisionReason: b.adminDecisionReason, adminEvidenceNotes: b.adminEvidenceNotes,
             workerPartialAmount: b.workerPartialAmount, clientPartialAmount: b.clientPartialAmount,
+            hasActiveDispute: b.hasActiveDispute,
           } as Booking;
         }));
 
@@ -901,8 +870,6 @@ export class AdminJobTrackerPage implements OnInit {
     this.modalJobRef.set(job);
     this.modalReason = '';
     this.modalEvidenceNotes = '';
-    this.workerAmount = type === 'partial_refund' ? Math.round((job.earnings || 0) * 0.6) : 0;
-    this.clientRefund = type === 'partial_refund' ? Math.round((job.earnings || 0) * 0.4) : 0;
   }
 
   closeModal() {
@@ -912,16 +879,10 @@ export class AdminJobTrackerPage implements OnInit {
     this.modalJobRef.set(null);
   }
 
-  partialAmountsValid(): boolean {
-    const total = this.modalJob()?.earnings ?? 0;
-    return Math.abs((this.workerAmount + this.clientRefund) - total) < 1;
-  }
-
   confirmAction() {
     const jobId = this.modalJobId();
     const type  = this.activeModal();
     if (!jobId || !type || !this.modalReason.trim()) return;
-    if (type === 'partial_refund' && !this.partialAmountsValid()) return;
 
     this.submittingModal.set(true);
     this.markUpdating(jobId, true);
@@ -929,7 +890,6 @@ export class AdminJobTrackerPage implements OnInit {
     const decisionTypeMap: Record<string, string> = {
       force_complete:    'FORCE_COMPLETE',
       full_refund:       'FULL_REFUND',
-      partial_refund:    'PARTIAL_REFUND',
       cancel_job:        'CANCEL_JOB',
       request_evidence:  'REQUEST_MORE_EVIDENCE',
     };
@@ -939,17 +899,12 @@ export class AdminJobTrackerPage implements OnInit {
       reason:        this.modalReason.trim(),
       evidenceNotes: this.modalEvidenceNotes.trim(),
     };
-    if (type === 'partial_refund') {
-      payload.workerAmount = this.workerAmount;
-      payload.clientRefund = this.clientRefund;
-    }
 
     this.state.adminResolveDispute(jobId, payload).subscribe({
       next: () => {
         const labels: Record<string, string> = {
           force_complete:   'Job force-completed. Worker payment released.',
           full_refund:      'Full refund issued to client.',
-          partial_refund:   `Partial settlement: worker KES ${this.workerAmount.toLocaleString()}, client KES ${this.clientRefund.toLocaleString()}.`,
           cancel_job:       'Job cancelled and client refunded.',
           request_evidence: 'Evidence request logged.',
         };
@@ -972,7 +927,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete':   return 'Force Complete Job';
       case 'full_refund':      return 'Issue Full Refund';
-      case 'partial_refund':   return 'Partial Settlement';
       case 'cancel_job':       return 'Force Cancel Job';
       case 'request_evidence': return 'Request More Evidence';
       default:                 return 'Admin Action';
@@ -983,7 +937,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete':   return 'This will immediately release the full escrow amount to the worker and mark the job as complete. This action cannot be undone.';
       case 'full_refund':      return 'This will refund the full job payment to the client. The worker will not receive any payment. This action cannot be undone.';
-      case 'partial_refund':   return 'Enter how much of the payment goes to the worker and how much is refunded to the client. Both amounts must add up to the total job cost.';
       case 'cancel_job':       return 'This will cancel the job and trigger a full refund to the client. The worker will be notified. This action cannot be undone.';
       case 'request_evidence': return 'The dispute will remain open. Both parties will be notified that more evidence is required before a decision can be made.';
       default:                 return '';
@@ -994,7 +947,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete':   return 'task_alt';
       case 'full_refund':      return 'undo';
-      case 'partial_refund':   return 'call_split';
       case 'cancel_job':       return 'block';
       case 'request_evidence': return 'help_outline';
       default:                 return 'admin_panel_settings';
@@ -1005,7 +957,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete':   return 'bg-emerald-100';
       case 'full_refund':      return 'bg-sky-100';
-      case 'partial_refund':   return 'bg-purple-100';
       case 'cancel_job':       return 'bg-rose-100';
       default:                 return 'bg-slate-100';
     }
@@ -1015,7 +966,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete':   return 'text-emerald-600';
       case 'full_refund':      return 'text-sky-600';
-      case 'partial_refund':   return 'text-purple-600';
       case 'cancel_job':       return 'text-rose-600';
       default:                 return 'text-slate-600';
     }
@@ -1027,7 +977,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete': return 'bg-emerald-50 border border-emerald-200';
       case 'full_refund':    return 'bg-sky-50 border border-sky-200';
-      case 'partial_refund': return 'bg-purple-50 border border-purple-200';
       case 'cancel_job':     return 'bg-rose-50 border border-rose-200';
       default:               return 'bg-amber-50 border border-amber-200';
     }
@@ -1037,7 +986,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete': return 'text-emerald-600';
       case 'full_refund':    return 'text-sky-600';
-      case 'partial_refund': return 'text-purple-600';
       case 'cancel_job':     return 'text-rose-600';
       default:               return 'text-amber-600';
     }
@@ -1047,7 +995,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete': return 'text-emerald-800';
       case 'full_refund':    return 'text-sky-800';
-      case 'partial_refund': return 'text-purple-800';
       case 'cancel_job':     return 'text-rose-800';
       default:               return 'text-amber-800';
     }
@@ -1057,7 +1004,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete':   return 'Force Complete';
       case 'full_refund':      return 'Issue Full Refund';
-      case 'partial_refund':   return 'Confirm Split';
       case 'cancel_job':       return 'Cancel Job';
       case 'request_evidence': return 'Request Evidence';
       default:                 return 'Confirm';
@@ -1068,7 +1014,6 @@ export class AdminJobTrackerPage implements OnInit {
     switch (this.activeModal()) {
       case 'force_complete':   return 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200';
       case 'full_refund':      return 'bg-sky-600 hover:bg-sky-700 shadow-sky-200';
-      case 'partial_refund':   return 'bg-purple-600 hover:bg-purple-700 shadow-purple-200';
       case 'cancel_job':       return 'bg-rose-600 hover:bg-rose-700 shadow-rose-200';
       default:                 return 'bg-slate-800 hover:bg-slate-900 shadow-slate-200';
     }

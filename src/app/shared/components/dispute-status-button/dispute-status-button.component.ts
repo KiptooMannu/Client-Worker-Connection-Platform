@@ -110,8 +110,11 @@ export class DisputeStatusButtonComponent implements OnInit {
     this.disputeBlockedReason = this.canFileDispute ? '' : 'Disputes can only be filed while the job is still active and before funds are released.';
   }
 
-  viewDisputeStatus(): void {
-    // Navigate to dispute detail page or open detail dialog
-    console.log('View dispute for job:', this.jobId);
+  async viewDisputeStatus(): Promise<void> {
+    const { DisputeDetailDialogComponent } = await import('../dispute-detail-dialog/dispute-detail-dialog.component');
+    const dialogRef = this.dialog.open(DisputeDetailDialogComponent, {
+      width: '700px',
+      data: { jobId: this.jobId, disputeId: '' }
+    });
   }
 }

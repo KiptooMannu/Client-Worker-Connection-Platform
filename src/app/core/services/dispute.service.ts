@@ -125,6 +125,15 @@ export class DisputeService {
   }
 
   /**
+   * Get all disputes (for admin dashboard)
+   */
+  getAllDisputes(page: number = 0, size: number = 20): Observable<any> {
+    return this.http.get(`${this.apiUrl}/all`, {
+      params: { page: page.toString(), size: size.toString() }
+    });
+  }
+
+  /**
    * Get unassigned disputes
    */
   getUnassignedDisputes(): Observable<any> {

@@ -33,8 +33,7 @@ import { DocumentUploadComponent } from '../../../shared/components/document-upl
     MatSelectModule,
     MatSlideToggleModule,
     MatProgressSpinnerModule,
-    FormsModule,
-    DocumentUploadComponent
+    FormsModule
   ],
   template: `
     <!-- Loading State -->

@@ -294,13 +294,6 @@ interface Booking {
                 {{ hasPendingRequest() ? 'REQUEST PENDING' : (hiring() ? 'SENDING...' : 'HIRE NOW') }}
               </button>
             </div>
-
-            <div class="mt-6 text-center">
-              <p class="text-[9px] font-black text-blue-500 uppercase tracking-widest flex items-center justify-center gap-1.5">
-                <mat-icon class="!text-xs !w-auto !h-auto">lock</mat-icon>
-                Secure Payments Enabled
-              </p>
-            </div>
           </div>
 
           <!-- Credentials -->
@@ -498,7 +491,9 @@ export class ClientWorkerProfilePage {
     if (!worker) return false;
     return this.state.bookings().some((b: Booking) => 
       b.workerId === worker.id && 
-      (b.status.toLowerCase() === 'pending' || b.status.toLowerCase() === 'accepted')
+      (b.status.toLowerCase() === 'pending' || b.status.toLowerCase() === 'accepted' || b.status.toLowerCase() === 'awaiting funding') &&
+      // Exclude cancelled, expired, or withdrawn jobs
+      !['client_cancelled', 'worker_cancelled', 'expired'].includes(b.status.toLowerCase())
     );
   });
 

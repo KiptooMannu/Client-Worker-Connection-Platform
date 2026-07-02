@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { NavbarComponent } from '../../shared/components/navbar';
 import { NotificationService } from '../../core/services/notification.service';
 import { JobOfferBanner } from '../../shared/components/job-offer-banner/job-offer-banner';
+import { MyDisputesComponent } from '../../shared/components/my-disputes/my-disputes.component';
 
 @Component({
   selector: 'app-worker-layout',
@@ -20,7 +21,8 @@ import { JobOfferBanner } from '../../shared/components/job-offer-banner/job-off
     MatIconModule,
     MatButtonModule,
     NavbarComponent,
-    JobOfferBanner
+    JobOfferBanner,
+    MyDisputesComponent
   ],
   template: `
     <div class="min-h-screen bg-surface flex flex-col font-manrope">
@@ -119,6 +121,16 @@ import { JobOfferBanner } from '../../shared/components/job-offer-banner/job-off
               @if (state.unreadMessagesCount() > 0 && canAccessMessages()) {
                 <span class="ml-auto text-[8px] bg-brand-teal text-white px-1.5 py-0.5 rounded-full font-black">{{ state.unreadMessagesCount() }}</span>
               }
+            </a>
+
+            <!-- Disputes -->
+            <a routerLink="disputes" 
+               [class.pointer-events-none]="!canAccessMessages()" 
+               [class.opacity-50]="!canAccessMessages()"
+               routerLinkActive="active-tab" 
+               class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
+              <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors flex items-center justify-center">gavel</mat-icon>
+              Disputes
             </a>
             
             <!-- Settings -->
@@ -424,7 +436,9 @@ export class WorkerLayout {
 
   pendingJobsCount = computed(() => {
     const bookings = this.state.workerBookings();
-    return bookings.filter((b: any) => b.status === 'Pending' || b.status === 'Accepted').length;
+    return bookings.filter((b: any) =>
+      b.status === 'Pending' || b.status === 'Accepted' || b.status === 'Awaiting Funding' || b.status === 'AWAITING_FUNDING'
+    ).length;
   });
 
   // BACKEND STATUSES: DRAFT, PENDING, APPROVED, REJECTED
