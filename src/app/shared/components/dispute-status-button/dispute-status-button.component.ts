@@ -18,33 +18,33 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
     MatDialogModule
   ],
   template: `
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-2">
-        <button *ngIf="!hasDispute && canFileDispute" 
-                mat-raised-button color="warn"
-                (click)="openDisputeDialog()"
-                matTooltip="File a dispute for this booking">
+    <div class="flex items-center gap-2">
+      <button *ngIf="!hasDispute && canFileDispute" 
+              mat-raised-button color="warn"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest"
+              (click)="openDisputeDialog()"
+              matTooltip="File a dispute for this booking">
           <mat-icon>gavel</mat-icon>
           File Dispute
-        </button>
+      </button>
 
-        <button *ngIf="!hasDispute && !canFileDispute && disputeBlockedReason"
-                mat-stroked-button color="warn"
-                disabled
-                [matTooltip]="disputeBlockedReason">
+      <button *ngIf="!hasDispute && !canFileDispute && disputeBlockedReason"
+              mat-stroked-button color="warn"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest"
+              disabled
+              [matTooltip]="disputeBlockedReason">
           <mat-icon>block</mat-icon>
           Dispute Unavailable
-        </button>
+      </button>
 
-        <button *ngIf="hasDispute" 
-                mat-raised-button color="accent"
-                (click)="viewDisputeStatus()"
-                matTooltip="View dispute details and status">
+      <button *ngIf="hasDispute" 
+              mat-raised-button color="accent"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest"
+              (click)="viewDisputeStatus()"
+              matTooltip="View dispute details and status">
           <mat-icon>check_circle</mat-icon>
           Dispute Submitted – View Status
-        </button>
-      </div>
-
+      </button>
     </div>
   `
 })

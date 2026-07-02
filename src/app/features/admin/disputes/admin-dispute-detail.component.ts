@@ -178,9 +178,14 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                             <p class="text-sm font-semibold text-gray-900">{{ request.requestType }}</p>
                             <p class="text-xs text-gray-600">Requested from: {{ request.requestedFromUser.fullName }}</p>
                           </div>
-                          <mat-chip [color]="getRequestStatusColor(request.requestStatus)" selected class="!text-xs">
-                            {{ formatRequestStatus(request.requestStatus) }}
-                          </mat-chip>
+                          <div class="flex items-center gap-2">
+                            <mat-chip [color]="getRequestStatusColor(request.requestStatus)" selected class="!text-xs">
+                              {{ formatRequestStatus(request.requestStatus) }}
+                            </mat-chip>
+                            <button mat-icon-button (click)="hideEvidenceRequest(request.id)" matTooltip="Hide from view" class="!text-sm">
+                              <mat-icon class="!text-sm text-gray-400 hover:text-red-500">close</mat-icon>
+                            </button>
+                          </div>
                         </div>
 
                         <!-- Progress Bar -->
@@ -472,13 +477,13 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                 <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-purple-50 border border-purple-200 mb-4">
                   <div>
                     <label class="text-xs font-bold uppercase tracking-wider text-purple-700 block mb-1.5">Worker Gets (KES)</label>
-                    <input type="number" [(ngModel)]="workerAmount" min="0" [max]="dispute?.escrowAmount || 9999"
+                    <input type="number" [(ngModel)]="workerAmount" (ngModelChange)="workerAmount.set($event)" min="0" [max]="dispute?.escrowAmount || 9999"
                       placeholder="e.g. 3000"
                       class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300"/>
                   </div>
                   <div>
                     <label class="text-xs font-bold uppercase tracking-wider text-purple-700 block mb-1.5">Client Refund (KES)</label>
-                    <input type="number" [(ngModel)]="clientRefund" min="0" [max]="dispute?.escrowAmount || 9999"
+                    <input type="number" [(ngModel)]="clientRefund" (ngModelChange)="clientRefund.set($event)" min="0" [max]="dispute?.escrowAmount || 9999"
                       placeholder="e.g. 2000"
                       class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300"/>
                   </div>
@@ -497,7 +502,7 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                 <label class="text-xs font-bold uppercase tracking-wider text-gray-600 block mb-1.5">
                   Decision Reason <span class="text-rose-500">*</span>
                 </label>
-                <textarea [(ngModel)]="resolutionReason" rows="3"
+                <textarea [(ngModel)]="resolutionReason" (ngModelChange)="resolutionReason.set($event)" rows="3"
                   placeholder="Explain the basis for this decision clearly. This will be recorded and sent to both parties…"
                   class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm font-medium text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-300 resize-none"></textarea>
               </div>
@@ -507,7 +512,7 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                 <label class="text-xs font-bold uppercase tracking-wider text-gray-600 block mb-1.5">
                   Evidence Notes <span class="text-gray-400">(optional)</span>
                 </label>
-                <textarea [(ngModel)]="evidenceNotes" rows="2"
+                <textarea [(ngModel)]="evidenceNotes" (ngModelChange)="evidenceNotes.set($event)" rows="2"
                   placeholder="Note which evidence was most relevant to your decision…"
                   class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm font-medium text-gray-700 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-200 resize-none"></textarea>
               </div>
@@ -716,6 +721,19 @@ export class AdminDisputeDetailComponent implements OnInit {
   getEvidenceByRole(role: string): any[] {
     if (!this.dispute?.evidence) return [];
     return this.dispute.evidence.filter((e: any) => e.uploadedByRole === role);
+  }
+
+  hideEvidenceRequest(requestId: string): void {
+    this.disputeService.hideEvidenceRequest(requestId).subscribe({
+      next: () => {
+        this.notification.success('Evidence request hidden from view');
+        this.loadDisputeDetails();
+      },
+      error: (error) => {
+        console.error('Error hiding evidence request:', error);
+        this.notification.error('Failed to hide evidence request');
+      }
+    });
   }
 
   openResolutionModal(type: ResolutionType): void {

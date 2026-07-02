@@ -5,7 +5,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
+import { AuthService } from '../../../core/services/auth.service';
 import { DisputeService } from '../../../core/services/dispute.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { EvidenceSubmissionDialogComponent } from '../evidence-submission-dialog/evidence-submission-dialog.component';
@@ -24,6 +26,11 @@ interface Dispute {
     requestDescription: string;
     requestStatus: string;
     dueDate: string;
+    requestedFromUser?: {
+      id: string;
+      fullName: string;
+      email?: string;
+    };
   }>;
   clientProfile: {
     id: string;
@@ -47,6 +54,7 @@ interface Dispute {
     MatCardModule,
     MatChipsModule,
     MatDialogModule,
+    MatTooltipModule,
     RouterModule
   ],
   template: `
@@ -109,18 +117,23 @@ interface Dispute {
 
                 <!-- Evidence Requests Section -->
                 @if (dispute.evidenceRequests && dispute.evidenceRequests.length > 0) {
-                  <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                    <h4 class="text-sm font-semibold text-amber-900 mb-3">
-                      <mat-icon class="text-sm align-middle mr-1">warning</mat-icon>
-                      Evidence Requests
+                  <div class="bg-amber-50 border-2 border-amber-300 rounded-lg p-4 mb-4">
+                    <h4 class="text-sm font-semibold text-amber-900 mb-3 flex items-center gap-2">
+                      <mat-icon class="text-base">warning</mat-icon>
+                      Evidence Requests ({{ dispute.evidenceRequests.length }})
                     </h4>
                     @for (request of dispute.evidenceRequests; track request.id) {
-                      <div class="bg-white rounded p-4 mb-3 last:mb-0">
+                      <div class="bg-white rounded p-4 mb-3 last:mb-0 border border-amber-100">
                         <div class="flex justify-between items-start mb-2">
                           <span class="text-sm font-medium text-gray-900">{{ request.requestType }}</span>
-                          <mat-chip [color]="getRequestStatusColor(request.requestStatus)" selected class="!text-xs">
-                            {{ formatRequestStatus(request.requestStatus) }}
-                          </mat-chip>
+                          <div class="flex items-center gap-2">
+                            <mat-chip [color]="getRequestStatusColor(request.requestStatus)" selected class="!text-xs">
+                              {{ formatRequestStatus(request.requestStatus) }}
+                            </mat-chip>
+                            <button mat-icon-button (click)="hideEvidenceRequest(request.id)" matTooltip="Hide from view" class="!text-sm">
+                              <mat-icon class="!text-sm text-gray-400 hover:text-red-500">close</mat-icon>
+                            </button>
+                          </div>
                         </div>
 
                         <!-- Progress Bar -->
@@ -145,12 +158,26 @@ interface Dispute {
                         @if (request.requestDescription) {
                           <p class="text-xs text-gray-600 mb-2">{{ request.requestDescription }}</p>
                         }
-                        <p class="text-xs text-gray-500 mb-3">Due: {{ formatDate(request.dueDate) }}</p>
-                        @if (request.requestStatus === 'PENDING') {
+                        <p class="text-xs text-gray-500 mb-3">
+                          <mat-icon class="align-text-bottom text-[10px]">schedule</mat-icon>
+                          Due: {{ formatDate(request.dueDate) }}
+                        </p>
+                        @if (request.requestStatus === 'PENDING' && isRequestAssignedToCurrentUser(request)) {
                           <button (click)="openEvidenceSubmissionDialog(dispute.id)"
-                                  class="w-full px-3 py-2 text-xs font-medium text-white bg-indigo-600 rounded hover:bg-indigo-700 transition-colors">
-                            Submit Evidence
+                                  class="w-full px-4 py-3 text-sm font-semibold text-white bg-red-600 rounded hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+                            <mat-icon class="text-base">upload_file</mat-icon>
+                            Submit Evidence Now
                           </button>
+                        } @else if (request.requestStatus === 'PENDING') {
+                          <div class="w-full px-4 py-3 text-sm font-semibold text-gray-700 bg-gray-100 rounded flex items-center justify-center gap-2">
+                            <mat-icon class="text-base">hourglass_top</mat-icon>
+                            Waiting for {{ request.requestedFromUser?.fullName || 'the requested party' }} to submit evidence
+                          </div>
+                        } @else if (request.requestStatus === 'PROVIDED') {
+                          <div class="w-full px-4 py-3 text-sm font-semibold text-green-700 bg-green-100 rounded flex items-center justify-center gap-2">
+                            <mat-icon class="text-base">check_circle</mat-icon>
+                            Evidence Submitted
+                          </div>
                         }
                       </div>
                     }
@@ -178,7 +205,12 @@ export class MyDisputesComponent implements OnInit {
   private disputeService = inject(DisputeService);
   private notification = inject(NotificationService);
   private dialog = inject(MatDialog);
+  private auth = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
+
+  private get currentUserId(): string {
+    return this.auth.currentUser()?.id || '';
+  }
 
   ngOnInit(): void {
     this.loadDisputes();
@@ -269,6 +301,23 @@ export class MyDisputesComponent implements OnInit {
       'OVERDUE': 'bg-red-500'
     };
     return colors[status] || 'bg-gray-400';
+  }
+
+  hideEvidenceRequest(requestId: string): void {
+    this.disputeService.hideEvidenceRequest(requestId).subscribe({
+      next: () => {
+        this.notification.success('Evidence request hidden from view');
+        this.loadDisputes();
+      },
+      error: (error) => {
+        console.error('Error hiding evidence request:', error);
+        this.notification.error('Failed to hide evidence request');
+      }
+    });
+  }
+
+  isRequestAssignedToCurrentUser(request: { requestedFromUser?: { id: string } }): boolean {
+    return request.requestedFromUser?.id === this.currentUserId;
   }
 
   formatReason(reasonKey: string): string {

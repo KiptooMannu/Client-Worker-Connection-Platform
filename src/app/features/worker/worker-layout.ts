@@ -8,7 +8,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { NavbarComponent } from '../../shared/components/navbar';
 import { NotificationService } from '../../core/services/notification.service';
 import { JobOfferBanner } from '../../shared/components/job-offer-banner/job-offer-banner';
-import { MyDisputesComponent } from '../../shared/components/my-disputes/my-disputes.component';
 
 @Component({
   selector: 'app-worker-layout',
@@ -21,8 +20,7 @@ import { MyDisputesComponent } from '../../shared/components/my-disputes/my-disp
     MatIconModule,
     MatButtonModule,
     NavbarComponent,
-    JobOfferBanner,
-    MyDisputesComponent
+    JobOfferBanner
   ],
   template: `
     <div class="min-h-screen bg-surface flex flex-col font-manrope">

@@ -6,7 +6,6 @@ import { MatButtonModule } from '@angular/material/button';
 import { PlatformStateService } from '../../core/services/platform-state.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NavbarComponent } from '../../shared/components/navbar';
-import { MyDisputesComponent } from '../../shared/components/my-disputes/my-disputes.component';
 
 @Component({
   selector: 'app-client-layout',
@@ -18,8 +17,7 @@ import { MyDisputesComponent } from '../../shared/components/my-disputes/my-disp
     RouterLinkActive,
     MatIconModule,
     MatButtonModule,
-    NavbarComponent,
-    MyDisputesComponent
+    NavbarComponent
   ],
   template: `
     <div class="min-h-screen bg-surface flex flex-col font-manrope">

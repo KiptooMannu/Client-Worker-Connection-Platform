@@ -6,6 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
+import { lastValueFrom } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { DisputeService } from '../../../core/services/dispute.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -86,11 +89,15 @@ export class EvidenceSubmissionDialogComponent {
   private dialogRef = inject(MatDialogRef<EvidenceSubmissionDialogComponent>);
   private disputeService = inject(DisputeService);
   private notification = inject(NotificationService);
+  private http = inject(HttpClient);
 
   disputeId: string = '';
   selectedFiles: File[] = [];
   description: string = '';
   submitting: boolean = false;
+  uploadProgress: { [key: string]: number } = {};
+
+  private readonly mediaUploadUrl = `${environment.apiUrl}/media/upload`;
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -115,27 +122,49 @@ export class EvidenceSubmissionDialogComponent {
 
     this.submitting = true;
 
-    // Upload files and submit evidence
-    const evidence = this.selectedFiles.map(file => ({
-      fileName: file.name,
-      fileUrl: '', // Will be set by backend after upload
-      fileType: this.getFileType(file),
-      fileSizeBytes: file.size,
-      mimeType: file.type,
-      description: this.description
-    }));
-
-    this.disputeService.addEvidence(this.disputeId, evidence).subscribe({
-      next: () => {
-        this.notification.success('Evidence submitted successfully');
-        this.dialogRef.close(true);
-      },
-      error: (err) => {
-        console.error('Error submitting evidence:', err);
-        this.notification.error('Failed to submit evidence');
-        this.submitting = false;
-      }
+    // Upload all files first
+    Promise.all(
+      this.selectedFiles.map(file => this.uploadEvidenceFile(file))
+    ).then(uploadedEvidence => {
+      // Submit evidence to dispute
+      this.disputeService.addEvidence(this.disputeId, uploadedEvidence).subscribe({
+        next: () => {
+          this.notification.success('Evidence submitted successfully');
+          this.dialogRef.close(true);
+        },
+        error: (err) => {
+          console.error('Error submitting evidence:', err);
+          this.notification.error('Failed to submit evidence');
+          this.submitting = false;
+        }
+      });
+    }).catch(error => {
+      console.error('File upload error:', error);
+      this.notification.error('Failed to upload files. Please try again.');
+      this.submitting = false;
     });
+  }
+
+  private async uploadEvidenceFile(file: File): Promise<any> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const uploadUrl = `${this.mediaUploadUrl}?folder=disputes/${this.disputeId}`;
+
+    try {
+      const response: any = await lastValueFrom(this.http.post(uploadUrl, formData));
+      return {
+        fileName: file.name,
+        fileUrl: response?.url || response?.secure_url,
+        fileType: this.getFileType(file),
+        fileSizeBytes: file.size,
+        mimeType: file.type,
+        description: this.description
+      };
+    } catch (error) {
+      console.error('File upload error:', error);
+      throw new Error(`Failed to upload ${file.name}`);
+    }
   }
 
   private getFileType(file: File): string {

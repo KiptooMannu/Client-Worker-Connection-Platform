@@ -43,6 +43,13 @@ export class DisputeService {
     return this.http.post(`${this.apiUrl}/${disputeId}/request-evidence`, request);
   }
 
+  /**
+   * Hide evidence request from admin view
+   */
+  hideEvidenceRequest(requestId: string): Observable<any> {
+    return this.http.put(`${this.apiUrl}/evidence-requests/${requestId}/hide`, {});
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // MESSAGING & COMMUNICATION
   // ─────────────────────────────────────────────────────────────────────────
