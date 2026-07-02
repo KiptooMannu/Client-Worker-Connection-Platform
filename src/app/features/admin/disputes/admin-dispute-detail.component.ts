@@ -81,8 +81,8 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
     FormsModule
   ],
   template: `
-    <div class="p-6">
-      <button mat-stroked-button color="primary" (click)="goBack()">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 mt-6">
+      <button mat-stroked-button color="primary" class="!rounded-2xl !px-5 !py-3 !text-sm !font-bold" (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
         Back to Disputes
       </button>
@@ -102,7 +102,7 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
               </mat-card-header>
 
               <mat-card-content>
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                   <div>
                     <p class="text-sm text-gray-500 font-semibold">Client</p>
                     <p class="text-lg font-bold">{{ dispute.clientName }}</p>
@@ -229,11 +229,15 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                   <!-- Client Evidence -->
                   @if (getEvidenceByRole('CLIENT').length > 0) {
                     <div class="mb-6">
-                      <div class="flex items-center gap-2 mb-3">
-                        <mat-icon class="text-blue-500">person</mat-icon>
-                        <h3 class="text-sm font-bold text-gray-900">Client Evidence ({{ getEvidenceByRole('CLIENT').length }})</h3>
+                      <div class="flex items-center justify-between mb-3 cursor-pointer" (click)="clientEvidenceExpanded.set(!clientEvidenceExpanded())">
+                        <div class="flex items-center gap-2">
+                          <mat-icon class="text-blue-500">person</mat-icon>
+                          <h3 class="text-sm font-bold text-gray-900">Client Evidence ({{ getEvidenceByRole('CLIENT').length }})</h3>
+                        </div>
+                        <mat-icon [class.rotate-180]="clientEvidenceExpanded()" class="transition-transform">expand_more</mat-icon>
                       </div>
-                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      @if (clientEvidenceExpanded()) {
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @for (file of getEvidenceByRole('CLIENT'); track file.id) {
                           <div class="border border-blue-200 rounded-lg p-3 hover:shadow-md transition-shadow bg-blue-50/30">
                             <!-- File Preview -->
@@ -274,8 +278,8 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                               @if (file.description) {
                                 <p class="text-gray-600 italic">{{ file.description }}</p>
                               }
-                              <button mat-stroked-button 
-                                      class="mt-2 w-full !px-2 !py-1 !text-xs" 
+                              <button mat-stroked-button
+                                      class="mt-2 w-full !px-2 !py-1 !text-xs"
                                       (click)="downloadFile(file)">
                                 <mat-icon class="!w-4 !h-4">download</mat-icon>
                                 Download
@@ -284,17 +288,22 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                           </div>
                         }
                       </div>
+                      }
                     </div>
                   }
 
                   <!-- Worker Evidence -->
                   @if (getEvidenceByRole('WORKER').length > 0) {
                     <div class="mb-6">
-                      <div class="flex items-center gap-2 mb-3">
-                        <mat-icon class="text-green-500">engineering</mat-icon>
-                        <h3 class="text-sm font-bold text-gray-900">Worker Evidence ({{ getEvidenceByRole('WORKER').length }})</h3>
+                      <div class="flex items-center justify-between mb-3 cursor-pointer" (click)="workerEvidenceExpanded.set(!workerEvidenceExpanded())">
+                        <div class="flex items-center gap-2">
+                          <mat-icon class="text-green-500">engineering</mat-icon>
+                          <h3 class="text-sm font-bold text-gray-900">Worker Evidence ({{ getEvidenceByRole('WORKER').length }})</h3>
+                        </div>
+                        <mat-icon [class.rotate-180]="workerEvidenceExpanded()" class="transition-transform">expand_more</mat-icon>
                       </div>
-                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      @if (workerEvidenceExpanded()) {
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @for (file of getEvidenceByRole('WORKER'); track file.id) {
                           <div class="border border-green-200 rounded-lg p-3 hover:shadow-md transition-shadow bg-green-50/30">
                             <!-- File Preview -->
@@ -335,8 +344,8 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                               @if (file.description) {
                                 <p class="text-gray-600 italic">{{ file.description }}</p>
                               }
-                              <button mat-stroked-button 
-                                      class="mt-2 w-full !px-2 !py-1 !text-xs" 
+                              <button mat-stroked-button
+                                      class="mt-2 w-full !px-2 !py-1 !text-xs"
                                       (click)="downloadFile(file)">
                                 <mat-icon class="!w-4 !h-4">download</mat-icon>
                                 Download
@@ -345,17 +354,22 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                           </div>
                         }
                       </div>
+                      }
                     </div>
                   }
 
                   <!-- Admin/Other Evidence -->
                   @if (getEvidenceByRole('ADMIN').length > 0 || getEvidenceByRole('OTHER').length > 0) {
                     <div>
-                      <div class="flex items-center gap-2 mb-3">
-                        <mat-icon class="text-purple-500">admin_panel_settings</mat-icon>
-                        <h3 class="text-sm font-bold text-gray-900">Other Evidence ({{ getEvidenceByRole('ADMIN').length + getEvidenceByRole('OTHER').length }})</h3>
+                      <div class="flex items-center justify-between mb-3 cursor-pointer" (click)="adminEvidenceExpanded.set(!adminEvidenceExpanded())">
+                        <div class="flex items-center gap-2">
+                          <mat-icon class="text-purple-500">admin_panel_settings</mat-icon>
+                          <h3 class="text-sm font-bold text-gray-900">Other Evidence ({{ getEvidenceByRole('ADMIN').length + getEvidenceByRole('OTHER').length }})</h3>
+                        </div>
+                        <mat-icon [class.rotate-180]="adminEvidenceExpanded()" class="transition-transform">expand_more</mat-icon>
                       </div>
-                      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      @if (adminEvidenceExpanded()) {
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         @for (file of [...getEvidenceByRole('ADMIN'), ...getEvidenceByRole('OTHER')]; track file.id) {
                           <div class="border border-purple-200 rounded-lg p-3 hover:shadow-md transition-shadow bg-purple-50/30">
                             <!-- File Preview -->
@@ -396,8 +410,8 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                               @if (file.description) {
                                 <p class="text-gray-600 italic">{{ file.description }}</p>
                               }
-                              <button mat-stroked-button 
-                                      class="mt-2 w-full !px-2 !py-1 !text-xs" 
+                              <button mat-stroked-button
+                                      class="mt-2 w-full !px-2 !py-1 !text-xs"
                                       (click)="downloadFile(file)">
                                 <mat-icon class="!w-4 !h-4">download</mat-icon>
                                 Download
@@ -406,6 +420,7 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                           </div>
                         }
                       </div>
+                      }
                     </div>
                   }
                 </mat-card-content>
@@ -440,21 +455,21 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
               </mat-card-header>
 
               <mat-card-content>
-                <div class="grid grid-cols-2 gap-3 mb-4">
-                  <button mat-stroked-button color="primary" (click)="openResolutionModal('force_complete')">
-                    <mat-icon>check_circle</mat-icon>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                  <button mat-stroked-button color="primary" class="w-full min-h-[52px] rounded-2xl text-sm font-bold uppercase tracking-[0.06em] py-4" (click)="openResolutionModal('force_complete')">
+                    <mat-icon class="!mr-2">check_circle</mat-icon>
                     Force Complete
                   </button>
-                  <button mat-stroked-button color="warn" (click)="openResolutionModal('full_refund')">
-                    <mat-icon>undo</mat-icon>
+                  <button mat-stroked-button color="warn" class="w-full min-h-[52px] rounded-2xl text-sm font-bold uppercase tracking-[0.06em] py-4" (click)="openResolutionModal('full_refund')">
+                    <mat-icon class="!mr-2">undo</mat-icon>
                     Full Refund
                   </button>
-                  <button mat-stroked-button color="accent" (click)="openResolutionModal('partial_refund')">
-                    <mat-icon>call_split</mat-icon>
+                  <button mat-stroked-button color="accent" class="w-full min-h-[52px] rounded-2xl text-sm font-bold uppercase tracking-[0.06em] py-4" (click)="openResolutionModal('partial_refund')">
+                    <mat-icon class="!mr-2">call_split</mat-icon>
                     Partial Refund
                   </button>
-                  <button mat-stroked-button (click)="openResolutionModal('request_evidence')">
-                    <mat-icon>hourglass_empty</mat-icon>
+                  <button mat-stroked-button class="w-full min-h-[52px] rounded-2xl text-sm font-bold uppercase tracking-[0.06em] py-4" (click)="openResolutionModal('request_evidence')">
+                    <mat-icon class="!mr-2">hourglass_empty</mat-icon>
                     Request Evidence
                   </button>
                 </div>
@@ -467,28 +482,28 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
       <!-- Resolution Modal -->
       @if (showResolutionModal()) {
         <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" (click)="closeResolutionModal()">
-          <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
-            <div class="p-6">
+          <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-xl max-h-[calc(100vh-4rem)] overflow-y-auto" (click)="$event.stopPropagation()">
+            <div class="p-5 sm:p-6">
               <h3 class="text-xl font-bold text-gray-900 mb-2">{{ getResolutionTitle() }}</h3>
               <p class="text-sm text-gray-600 mb-6">{{ getResolutionDescription() }}</p>
 
               <!-- Partial refund inputs -->
               @if (activeResolutionType() === 'partial_refund' && dispute?.escrowAmount) {
-                <div class="grid grid-cols-2 gap-4 p-4 rounded-xl bg-purple-50 border border-purple-200 mb-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-purple-50 border border-purple-200 mb-4 text-center">
                   <div>
                     <label class="text-xs font-bold uppercase tracking-wider text-purple-700 block mb-1.5">Worker Gets (KES)</label>
                     <input type="number" [(ngModel)]="workerAmount" (ngModelChange)="workerAmount.set($event)" min="0" [max]="dispute?.escrowAmount || 9999"
                       placeholder="e.g. 3000"
-                      class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300"/>
+                      class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 text-center"/>
                   </div>
                   <div>
                     <label class="text-xs font-bold uppercase tracking-wider text-purple-700 block mb-1.5">Client Refund (KES)</label>
                     <input type="number" [(ngModel)]="clientRefund" (ngModelChange)="clientRefund.set($event)" min="0" [max]="dispute?.escrowAmount || 9999"
                       placeholder="e.g. 2000"
-                      class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300"/>
+                      class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 text-center"/>
                   </div>
                   <div class="col-span-2">
-                    <p class="text-xs font-bold"
+                    <p class="text-xs font-bold text-center"
                        [class]="partialAmountsValid() ? 'text-emerald-600' : 'text-rose-600'">
                       Total: KES {{ (workerAmount() + clientRefund()).toLocaleString() }}
                       / KES {{ dispute?.escrowAmount?.toLocaleString() || 0 }} required
@@ -518,14 +533,14 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
               </div>
 
               <!-- Modal Footer -->
-              <div class="flex items-center justify-between gap-3">
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                 <button (click)="closeResolutionModal()"
-                  class="px-5 py-2.5 rounded-xl bg-white border border-gray-200 text-gray-600 text-xs font-bold uppercase tracking-wider hover:bg-gray-100 transition-all">
+                  class="w-full sm:w-auto min-h-[48px] rounded-2xl bg-white border border-gray-200 text-gray-600 text-sm font-bold uppercase tracking-[0.08em] hover:bg-gray-100 transition-all px-5 py-3">
                   Cancel
                 </button>
                 <button (click)="confirmResolution()"
                   [disabled]="!resolutionReason().trim() || submittingResolution() || (activeResolutionType() === 'partial_refund' && !partialAmountsValid())"
-                  class="flex items-center gap-2 px-5 py-2.5 rounded-xl text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-40 shadow-lg bg-indigo-600 hover:bg-indigo-700">
+                  class="w-full sm:w-auto min-h-[48px] rounded-2xl inline-flex items-center justify-center gap-2 px-5 py-3 text-white text-sm font-bold uppercase tracking-[0.08em] transition-all disabled:opacity-40 shadow-lg bg-indigo-600 hover:bg-indigo-700">
                   @if (submittingResolution()) {
                     <mat-icon class="!text-sm animate-spin">sync</mat-icon>
                     Processing…
@@ -555,6 +570,11 @@ export class AdminDisputeDetailComponent implements OnInit {
   resolutionReason = signal('');
   evidenceNotes = signal('');
   submittingResolution = signal(false);
+
+  // Evidence display state
+  clientEvidenceExpanded = signal(true);
+  workerEvidenceExpanded = signal(true);
+  adminEvidenceExpanded = signal(true);
   
   private route = inject(ActivatedRoute);
   private router = inject(Router);
@@ -572,7 +592,17 @@ export class AdminDisputeDetailComponent implements OnInit {
     this.loading = true;
     this.disputeService.getDisputeDetail(this.disputeId).subscribe({
       next: (data) => {
-        this.dispute = data?.dispute ?? data;
+        const disputeData = data?.dispute ?? data;
+        // Map backend DTO fields to frontend interface
+        this.dispute = {
+          ...disputeData,
+          reason: this.formatReason(disputeData.disputeReasonKey),
+          description: disputeData.disputeDescription,
+          clientName: disputeData.clientProfile?.fullName || 'Unknown',
+          workerName: disputeData.workerProfile?.fullName || 'Unknown',
+          createdAt: disputeData.filedAt,
+          escrowAmount: disputeData.escrowPaymentDetail?.amount || 0
+        };
         console.log('Loaded dispute:', this.dispute);
         this.loading = false;
       },
@@ -806,7 +836,7 @@ export class AdminDisputeDetailComponent implements OnInit {
   getResolutionDescription(): string {
     const type = this.activeResolutionType();
     if (!type) return '';
-    
+
     const descriptions: Record<string, string> = {
       'force_complete': 'This will immediately release the full escrow amount to the worker and mark the job as complete. This action cannot be undone.',
       'full_refund': 'This will refund the full job payment to the client. The worker will not receive any payment. This action cannot be undone.',
@@ -814,5 +844,21 @@ export class AdminDisputeDetailComponent implements OnInit {
       'request_evidence': 'The dispute will remain open. Both parties will be notified that more evidence is required before a decision can be made.'
     };
     return descriptions[type] || '';
+  }
+
+  formatReason(reasonKey: string): string {
+    const reasons: Record<string, string> = {
+      'WORK_NOT_COMPLETED': 'Work Not Completed',
+      'POOR_QUALITY': 'Poor Quality',
+      'INCOMPLETE_DELIVERY': 'Incomplete Delivery',
+      'MISSED_DEADLINE': 'Missed Deadline',
+      'COMMUNICATION_BREAKDOWN': 'Communication Breakdown',
+      'PAYMENT_DISPUTE': 'Payment Dispute',
+      'MATERIAL_ISSUES': 'Material/Supply Issues',
+      'SCOPE_CHANGE_DISPUTE': 'Scope Change Dispute',
+      'SERVICE_NOT_PROVIDED': 'Service Not Provided',
+      'OTHER': 'Other'
+    };
+    return reasons[reasonKey] || reasonKey;
   }
 }
