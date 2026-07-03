@@ -37,13 +37,22 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
           Dispute Unavailable
       </button>
 
-      <button *ngIf="hasDispute" 
+      <button *ngIf="hasDispute && !isResolved" 
               mat-raised-button color="accent"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest"
               (click)="viewDisputeStatus()"
               matTooltip="View dispute details and status">
           <mat-icon>check_circle</mat-icon>
-          Dispute Submitted – View Status
+          {{ disputeButtonLabel }}
+      </button>
+
+      <button *ngIf="hasDispute && isResolved"
+              mat-stroked-button color="accent"
+              class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest"
+              (click)="viewDisputeStatus()"
+              matTooltip="View dispute details">
+          <mat-icon class="!text-base">check_circle</mat-icon>
+          Dispute Resolved
       </button>
     </div>
   `
@@ -54,8 +63,11 @@ export class DisputeStatusButtonComponent implements OnInit {
   @Input() paymentStatus: string = '';
   @Input() escrowFunded: boolean = false;
   @Input() disputedAt: string | null = null;
+  @Input() resolvedAt: string | null = null;
 
   hasDispute = false;
+  isResolved = false;
+  disputeButtonLabel = 'Dispute Submitted – View Status';
   canFileDispute = false;
   disputeBlockedReason = '';
 
@@ -83,7 +95,12 @@ export class DisputeStatusButtonComponent implements OnInit {
   }
 
   checkDisputeStatus(): void {
-    this.hasDispute = !!this.disputedAt;
+    this.hasDispute = !!this.disputedAt || !!this.resolvedAt;
+    this.isResolved = !!this.resolvedAt;
+    this.disputeButtonLabel = this.isResolved
+      ? 'Dispute Resolved – View Details'
+      : 'Dispute Submitted – View Status';
+
     const normalizedPaymentStatus = (this.paymentStatus || '').toUpperCase().trim();
     const normalizedBookingStatus = (this.bookingStatus || '').trim();
 

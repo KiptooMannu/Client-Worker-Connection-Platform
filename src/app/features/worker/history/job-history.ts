@@ -315,7 +315,8 @@ type HistoryTab = 'wallet' | 'ledger';
                           [bookingStatus]="job.status"
                           [paymentStatus]="job.paymentStatus || ''"
                           [escrowFunded]="job.escrowFunded || false"
-                          [disputedAt]="job.disputedAt || null">
+                          [disputedAt]="job.disputedAt || null"
+                          [resolvedAt]="job.resolvedAt || null">
                         </app-dispute-status-button>
                       }
                     }

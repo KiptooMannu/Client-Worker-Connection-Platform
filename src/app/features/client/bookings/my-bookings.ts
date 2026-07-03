@@ -253,7 +253,8 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
                         [bookingStatus]="b.status"
                         [paymentStatus]="b.paymentStatus || ''"
                         [escrowFunded]="b.escrowFunded || false"
-                        [disputedAt]="b.disputedAt || null">
+                        [disputedAt]="b.disputedAt || null"
+                        [resolvedAt]="b.resolvedAt || null">
                       </app-dispute-status-button>
                     }
 
