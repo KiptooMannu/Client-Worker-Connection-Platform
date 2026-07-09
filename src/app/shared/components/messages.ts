@@ -264,15 +264,118 @@ interface UserContact {
             </div>
             <div class="chat-header__meta">
               <span class="chat-header__name">{{ selectedUser()!.username }}</span>
-              <span class="chat-header__sub">{{ selectedUser()!.email }}</span>
             </div>
-            <div class="chat-header__actions">
-              <button class="header-action-btn" (click)="toggleMessageSearch()" [class.active]="isSearchingMessages()">
-                <mat-icon>search</mat-icon>
-              </button>
-            </div>
+            <button class="header-action-btn" (click)="toggleMessageSearch()" [class.active]="isSearchingMessages()" title="Search messages">
+              <mat-icon>search</mat-icon>
+            </button>
+            <button class="header-action-btn" 
+                    (click)="toggleNegotiationPanel()" 
+                    [class.active]="showNegotiationPanel()" 
+                    [class.counter-offer-active]="currentJobOffer()?.clientCounterOffer"
+                    title="Job Offer">
+              <mat-icon>attach_money</mat-icon>
+            </button>
             <span class="role-pill">{{ selectedUser()!.role }}</span>
           </header>
+
+          <!-- Negotiation Panel -->
+          @if (showNegotiationPanel()) {
+            <div class="negotiation-panel animate-in slide-in-from-top-2">
+              <div class="negotiation-panel__header">
+                <h3>💰 Job Offer</h3>
+                <button (click)="showNegotiationPanel.set(false)" class="close-btn">
+                  <mat-icon>close</mat-icon>
+                </button>
+              </div>
+              @if (currentJobOffer()) {
+                <div class="negotiation-panel__content">
+                  <div class="offer-details">
+                    <div class="offer-detail">
+                      <span class="offer-label">Service</span>
+                      <span class="offer-value">{{ currentJobOffer().service }}</span>
+                    </div>
+                    <div class="offer-detail">
+                      <span class="offer-label">Current Offer</span>
+                      <span class="offer-value price">KSh {{ currentJobOffer().negotiatedPrice?.toLocaleString() || currentJobOffer().earnings?.toLocaleString() }}</span>
+                    </div>
+                    <div class="offer-detail">
+                      <span class="offer-label">Status</span>
+                      <span class="offer-value status" [class.status-pending]="currentJobOffer().status === 'Pending'">{{ currentJobOffer().status }}</span>
+                    </div>
+                  </div>
+                  <div class="negotiation-actions">
+                    @if (currentUserRole() === 'Worker' && currentJobOffer().clientCounterOffer) {
+                      <button (click)="acceptOffer()" class="action-btn action-btn--accept">
+                        <mat-icon>check_circle</mat-icon>
+                        Accept
+                      </button>
+                      <button (click)="openCounterModal()" class="action-btn action-btn--counter">
+                        <mat-icon>swap_horiz</mat-icon>
+                        Counter
+                      </button>
+                      <button (click)="rejectOffer()" class="action-btn action-btn--reject">
+                        <mat-icon>cancel</mat-icon>
+                        Decline
+                      </button>
+                    } @else if (currentUserRole() === 'Client' && currentJobOffer().negotiatedPrice) {
+                      <button (click)="acceptOffer()" class="action-btn action-btn--accept">
+                        <mat-icon>check_circle</mat-icon>
+                        Accept
+                      </button>
+                      <button (click)="openCounterModal()" class="action-btn action-btn--counter">
+                        <mat-icon>swap_horiz</mat-icon>
+                        Counter
+                      </button>
+                      <button (click)="rejectOffer()" class="action-btn action-btn--reject">
+                        <mat-icon>cancel</mat-icon>
+                        Decline
+                      </button>
+                    } @else {
+                      <p class="no-offer-text">No active offer to negotiate</p>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="negotiation-panel__empty">
+                  <mat-icon>money_off</mat-icon>
+                  <p>No active job offer with this user</p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Counter-Offer Modal -->
+          @if (counterOfferModal()) {
+            <div class="modal-overlay" (click)="closeCounterModal()">
+              <div class="counter-modal" (click)="$event.stopPropagation()">
+                <h3>💰 Submit Counter-Offer</h3>
+                <p class="counter-modal__subtitle">Current offer: KSh {{ currentJobOffer()?.negotiatedPrice?.toLocaleString() || currentJobOffer()?.earnings?.toLocaleString() }}</p>
+                <div class="counter-modal__input">
+                  <label>Your Counter Price</label>
+                  <input
+                    type="number"
+                    [(ngModel)]="counterOfferPrice"
+                    placeholder="Enter your price"
+                    class="price-input">
+                </div>
+                <div class="counter-modal__actions">
+                  <button (click)="closeCounterModal()" class="btn-secondary">Cancel</button>
+                  <button
+                    (click)="submitCounterOffer()"
+                    [disabled]="counterOfferLoading() || !counterOfferPrice() || counterOfferPrice()! <= 0"
+                    class="btn-primary">
+                    @if (counterOfferLoading()) {
+                      <mat-icon class="animate-spin">sync</mat-icon>
+                      Submitting...
+                    } @else {
+                      <mat-icon>send</mat-icon>
+                      Submit Counter
+                    }
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
 
           @if (isSearchingMessages()) {
             <div class="message-search-bar animate-in slide-in-from-top-2">
@@ -705,7 +808,8 @@ interface UserContact {
     .chat-header__meta {
       flex: 1;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      align-items: center;
     }
     .chat-header__name {
       font-size: 14px;
@@ -715,16 +819,24 @@ interface UserContact {
     .chat-header__sub {
       font-size: 11px;
       color: #94a3b8;
+      display: none;
     }
     .role-pill {
       background: #eef2ff;
       color: #4f46e5;
       font-size: 10px;
       font-weight: 700;
-      padding: 3px 10px;
+      padding: 4px 12px;
       border-radius: 99px;
       text-transform: uppercase;
       letter-spacing: .5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      margin-left: auto;
+    }
+
+    .chat-header__actions {
+      display: none;
     }
 
     /* ── Messages area ───────────────────────────────────────────── */
@@ -893,6 +1005,325 @@ interface UserContact {
       width: fit-content;
       margin-bottom: 8px;
     }
+    /* ── Negotiation Panel ───────────────────────────────────────────── */
+    .negotiation-panel {
+      background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+      border-bottom: 1px solid #e2e8f0;
+      padding: 16px 20px;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .negotiation-panel__header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .negotiation-panel__header h3 {
+      font-size: 14px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0;
+      letter-spacing: -0.3px;
+    }
+
+    .negotiation-panel .close-btn {
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .negotiation-panel .close-btn:hover {
+      background: #eef2ff;
+      color: #4f46e5;
+    }
+
+    .negotiation-panel .close-btn mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .negotiation-panel__content {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .offer-details {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid #e2e8f0;
+    }
+
+    .offer-detail {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .offer-label {
+      color: #64748b;
+      font-weight: 600;
+    }
+
+    .offer-value {
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .offer-value.price {
+      color: #4f46e5;
+      font-size: 15px;
+    }
+
+    .offer-value.status {
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .offer-value.status.status-pending {
+      background: #fef3c7;
+      color: #d97706;
+    }
+
+    .negotiation-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .negotiation-actions .action-btn {
+      flex: 1;
+      min-width: 80px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .negotiation-actions .action-btn mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .negotiation-actions .action-btn--accept {
+      background: #10b981;
+      color: white;
+    }
+
+    .negotiation-actions .action-btn--accept:hover {
+      background: #059669;
+    }
+
+    .negotiation-actions .action-btn--counter {
+      background: #4f46e5;
+      color: white;
+    }
+
+    .negotiation-actions .action-btn--counter:hover {
+      background: #4338ca;
+    }
+
+    .negotiation-actions .action-btn--reject {
+      background: #ef4444;
+      color: white;
+    }
+
+    .negotiation-actions .action-btn--reject:hover {
+      background: #dc2626;
+    }
+
+    .negotiation-panel__empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      color: #94a3b8;
+    }
+
+    .negotiation-panel__empty mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      margin-bottom: 8px;
+    }
+
+    .negotiation-panel__empty p {
+      font-size: 13px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .no-offer-text {
+      font-size: 13px;
+      color: #64748b;
+      font-weight: 600;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* ── Counter-Offer Modal ─────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+
+    .counter-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      animation: modalIn 0.2s ease-out;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .counter-modal h3 {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0f172a;
+      margin: 0 0 8px 0;
+    }
+
+    .counter-modal__subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin: 0 0 20px 0;
+    }
+
+    .counter-modal__input {
+      margin-bottom: 20px;
+    }
+
+    .counter-modal__input label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #475569;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .counter-modal__input .price-input {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .counter-modal__input .price-input:focus {
+      border-color: #4f46e5;
+    }
+
+    .counter-modal__actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .counter-modal__actions button {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .counter-modal__actions .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .counter-modal__actions .btn-secondary:hover {
+      background: #e2e8f0;
+    }
+
+    .counter-modal__actions .btn-primary {
+      background: #4f46e5;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .counter-modal__actions .btn-primary:hover {
+      background: #4338ca;
+    }
+
+    .counter-modal__actions .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .counter-modal__actions .btn-primary mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
     .typing-dot {
       width: 4px;
       height: 4px;
@@ -990,18 +1421,53 @@ interface UserContact {
       padding: 0;
     }
 
+    .chat-header__actions {
+      display: none;
+    }
+
     .header-action-btn {
       background: none;
       border: none;
       cursor: pointer;
       color: #94a3b8;
       display: flex;
-      padding: 8px;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      padding: 0;
       border-radius: 8px;
       transition: all .2s;
+      flex-shrink: 0;
     }
     .header-action-btn:hover { background: #f1f5f9; color: #4f46e5; }
     .header-action-btn.active { background: #eef2ff; color: #4f46e5; }
+
+    /* Counter offer active - red indicator */
+    .header-action-btn.counter-offer-active {
+      color: #dc2626;
+      background: #fee2e2;
+    }
+    .header-action-btn.counter-offer-active:hover {
+      background: #fecaca;
+      color: #b91c1c;
+    }
+
+    /* Make money icon more prominent */
+    .header-action-btn:nth-of-type(2) {
+      color: #4f46e5;
+      background: #eef2ff;
+    }
+    .header-action-btn:nth-of-type(2):hover {
+      background: #e0e7ff;
+      color: #4338ca;
+    }
+
+    .header-action-btn mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
 
     /* ── Attachments ─────────────────────────────────────────────── */
     .bubble__attachment {
@@ -1389,6 +1855,13 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   selectedConversations = signal<Set<string>>(new Set());
   activeMenu = signal<string | null>(null);
   deletedChats = signal<Map<string, number>>(new Map()); // userId -> deletion timestamp
+
+  // Negotiation signals
+  showNegotiationPanel = signal(false);
+  currentJobOffer = signal<any>(null);
+  counterOfferModal = signal(false);
+  counterOfferPrice = signal<number | null>(null);
+  counterOfferLoading = signal(false);
 
   // FIX BUG 1: track whether the initial user load has been started
   // to prevent the search effect from triggering a duplicate/cancelled request
@@ -2013,6 +2486,138 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     const regex = new RegExp(`(${escapedQ})`, 'gi');
     const highlighted = text.replace(regex, '<mark class="bg-amber-200 rounded px-1">$1</mark>');
     return this.sanitizer.sanitize(SecurityContext.HTML, highlighted) || '';
+  }
+
+  // Negotiation methods
+  toggleNegotiationPanel() {
+    this.showNegotiationPanel.update(v => !v);
+    if (this.showNegotiationPanel()) {
+      this.loadJobOffer();
+    }
+  }
+
+  loadJobOffer() {
+    const selected = this.selectedUser();
+    if (!selected) return;
+
+    const role = this.currentUserRole();
+    console.log('loadJobOffer - role:', role, 'selected user:', selected.id);
+    let bookings: any[] = [];
+
+    if (role === 'Worker') {
+      bookings = this.state.workerBookings();
+      console.log('Worker bookings:', bookings.length);
+    } else if (role === 'Client') {
+      bookings = this.state.clientBookings();
+      console.log('Client bookings:', bookings.length);
+    } else {
+      console.log('Unknown role:', role);
+      this.currentJobOffer.set(null);
+      return;
+    }
+
+    console.log('All bookings:', bookings);
+    console.log('Looking for bookings with user:', selected.id);
+
+    // Find active job with this user
+    const jobOffer = bookings.find(b => {
+      const matchesUser = role === 'Worker' ? b.clientId === selected.id : b.workerId === selected.id;
+      const hasOffer = b.status === 'Pending' || b.status === 'Negotiating' || b.negotiatedPrice || b.clientCounterOffer;
+      console.log('Booking check:', b.id, 'matchesUser:', matchesUser, 'hasOffer:', hasOffer, 'status:', b.status);
+      return matchesUser && hasOffer;
+    });
+
+    console.log('Found job offer:', jobOffer);
+    this.currentJobOffer.set(jobOffer || null);
+  }
+
+  acceptOffer() {
+    const job = this.currentJobOffer();
+    if (!job) return;
+
+    const role = this.currentUserRole();
+    if (role === 'Worker') {
+      this.state.acceptCounterOffer(job.id).subscribe({
+        next: () => {
+          this.notification.success('✓ You accepted the offer!');
+          this.showNegotiationPanel.set(false);
+        },
+        error: (err) => {
+          this.notification.error('❌ Failed to accept: ' + (err.error?.message || err.message));
+        }
+      });
+    } else if (role === 'Client') {
+      this.state.acceptCounterOffer(job.id).subscribe({
+        next: () => {
+          this.notification.success('✓ You accepted the counter-offer!');
+          this.showNegotiationPanel.set(false);
+        },
+        error: (err) => {
+          this.notification.error('❌ Failed to accept: ' + (err.error?.message || err.message));
+        }
+      });
+    }
+  }
+
+  rejectOffer() {
+    const job = this.currentJobOffer();
+    if (!job) return;
+
+    this.state.rejectCounterOffer(job.id).subscribe({
+      next: () => {
+        this.notification.success('✓ Offer declined');
+        this.showNegotiationPanel.set(false);
+      },
+      error: (err) => {
+        this.notification.error('❌ Failed to decline: ' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  openCounterModal() {
+    this.counterOfferModal.set(true);
+    this.counterOfferPrice.set(null);
+  }
+
+  closeCounterModal() {
+    this.counterOfferModal.set(false);
+    this.counterOfferPrice.set(null);
+  }
+
+  submitCounterOffer() {
+    const job = this.currentJobOffer();
+    if (!job || !this.counterOfferPrice()) return;
+
+    this.counterOfferLoading.set(true);
+    const role = this.currentUserRole();
+
+    if (role === 'Worker') {
+      this.state.submitCounterOffer(job.id, this.counterOfferPrice()!).subscribe({
+        next: () => {
+          this.counterOfferLoading.set(false);
+          this.closeCounterModal();
+          this.notification.success('✓ Your counter-offer has been sent!');
+          this.showNegotiationPanel.set(false);
+        },
+        error: (err) => {
+          this.counterOfferLoading.set(false);
+          this.notification.error('❌ Failed to submit: ' + (err.error?.message || err.message));
+        }
+      });
+    } else if (role === 'Client') {
+      this.state.submitClientCounterOffer(job.id, this.counterOfferPrice()!).subscribe({
+        next: () => {
+          this.counterOfferLoading.set(false);
+          this.closeCounterModal();
+          this.notification.success('✓ Your counter-offer has been sent!');
+          this.showNegotiationPanel.set(false);
+        },
+        error: (err) => {
+          this.counterOfferLoading.set(false);
+          this.notification.error('❌ Failed to submit: ' + (err.error?.message || err.message));
+        }
+      });
+    }
   }
 
   markAllAsRead() {

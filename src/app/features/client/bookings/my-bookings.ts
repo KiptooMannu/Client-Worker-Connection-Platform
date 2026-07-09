@@ -169,16 +169,26 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
 
                   <!-- Actions -->
                   <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-                    <!-- Counter-offer badge and accept button -->
+                    <!-- Counter-offer badge and accept/counter/decline buttons -->
                     @if (b.negotiatedPrice && b.status === 'Pending') {
                       <div class="flex items-center gap-2">
                         <div class="bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5">
-                          <p class="text-[9px] font-black text-amber-700">Counter: KES {{ b.negotiatedPrice.toLocaleString() }}</p>
+                          <p class="text-[9px] font-black text-amber-700">Counter: KES&nbsp;{{ b.negotiatedPrice.toLocaleString() }}</p>
                         </div>
                         <button (click)="acceptCounterOffer(b)"
-                                class="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-[9px] font-black
-                                       uppercase tracking-widest hover:bg-amber-600 transition-all active:scale-95 shadow-sm">
+                                class="px-3 py-1.5 bg-emerald-500 text-white rounded-lg text-[9px] font-black
+                                       uppercase tracking-widest hover:bg-emerald-600 transition-all active:scale-95 shadow-sm">
                           Accept
+                        </button>
+                        <button (click)="openCounterModal(b)"
+                                class="px-3 py-1.5 bg-indigo-500 text-white rounded-lg text-[9px] font-black
+                                       uppercase tracking-widest hover:bg-indigo-600 transition-all active:scale-95 shadow-sm">
+                          Counter
+                        </button>
+                        <button (click)="rejectCounterOffer(b)"
+                                class="px-3 py-1.5 bg-rose-500 text-white rounded-lg text-[9px] font-black
+                                       uppercase tracking-widest hover:bg-rose-600 transition-all active:scale-95 shadow-sm">
+                          Decline
                         </button>
                       </div>
                     }
@@ -659,6 +669,26 @@ export class ClientBookingsPage implements OnDestroy {
       },
       error: (err: any) => {
         const message = err.error?.message || err.error || 'Failed to accept counter-offer.';
+        this.uiMessage.set({ text: message, type: 'error' });
+        this.notif.error(message);
+      }
+    });
+  }
+
+  openCounterModal(booking: any) {
+    this.negotiateJob.set(booking);
+    this.negotiatePrice.set(booking.negotiatedPrice || booking.earnings);
+  }
+
+  rejectCounterOffer(booking: any) {
+    this.state.rejectCounterOffer(booking.id).subscribe({
+      next: () => {
+        this.uiMessage.set({ text: 'Counter-offer declined.', type: 'success' });
+        this.notif.success('Counter-offer declined.');
+        this.refreshBookings();
+      },
+      error: (err: any) => {
+        const message = err.error?.message || err.error || 'Failed to decline counter-offer.';
         this.uiMessage.set({ text: message, type: 'error' });
         this.notif.error(message);
       }

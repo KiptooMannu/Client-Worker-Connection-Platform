@@ -214,7 +214,7 @@ import { FormsModule } from '@angular/forms';
                     <div class="flex items-center gap-6 shrink-0">
                       <div class="text-right hidden md:block">
                         <p class="text-[10px] uppercase tracking-widest text-blue-600 font-bold leading-none mb-1">Your Offer</p>
-                        <p class="font-black text-sm text-blue-700">KSh {{ job.negotiatedPrice }}</p>
+                        <p class="font-black text-sm text-blue-700">KSh&nbsp;{{ job.negotiatedPrice }}</p>
                       </div>
                       <div class="flex gap-2">
                         <button (click)="navigateToMessages(job.clientId)"

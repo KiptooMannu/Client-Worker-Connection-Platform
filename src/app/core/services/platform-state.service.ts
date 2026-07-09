@@ -1114,6 +1114,7 @@ private getInitialWorkerState(): WorkerProfile {
     return this.chats().reduce((acc, chat) => acc + (chat.unread || 0), 0);
   });
   workerBookings = computed(() => this.bookings().filter(b => b.workerId === this.currentWorker().id));
+  clientBookings = computed(() => this.bookings().filter(b => b.clientId === this.currentClient()?.id));
 
   currentWorkerCompletion = computed(() => {
     const w = this.currentWorker();
