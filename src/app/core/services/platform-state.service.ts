@@ -158,6 +158,7 @@ export interface Booking {
   resolvedAt?: string;
   deadline?: string;
   negotiatedPrice?: number;
+  clientCounterOffer?: number;
   escrowFunded?: boolean;
   hasActiveDispute?: boolean;
   // Dispute details

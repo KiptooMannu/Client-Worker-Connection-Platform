@@ -229,16 +229,12 @@ mat-icon {
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'liga';
   
-  /* Hard fix for text leak: if the font fails, squash the text */
-  overflow: hidden !important;
-  line-height: 1 !important;
-  letter-spacing: -1em; 
-  text-indent: 0;
-  
   flex-shrink: 0;
   width: 24px;
   height: 24px;
   font-size: 24px;
+  line-height: 1;
+  overflow: hidden;
 }
 
 /* Material Symbols specifically */

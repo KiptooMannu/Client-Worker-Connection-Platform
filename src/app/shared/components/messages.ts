@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { ActivatedRoute } from '@angular/router';
 import { Subscription, timeout } from 'rxjs';
 import { PlatformStateService, ChatMessage } from '../../core/services/platform-state.service';
 import { NotificationService } from '../../core/services/notification.service';
@@ -1360,6 +1361,7 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
   private sanitizer = inject(DomSanitizer);
   private apiUrl = environment.apiUrl;
   private platformId = inject(PLATFORM_ID);
+  private route = inject(ActivatedRoute);
 
   // ── UI state ────────────────────────────────────────────────────
   searchQuery = signal('');
@@ -1578,6 +1580,32 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
         this.usersLoadStarted = true;
         // Defer user loading to after hydration completes
         setTimeout(() => this.loadUsers(), 200);
+      }
+    });
+
+    // Handle clientId from query params for direct navigation to conversation
+    effect(() => {
+      if (!isPlatformBrowser(this.platformId)) return;
+      const clientId = this.route.snapshot.queryParamMap.get('clientId');
+      console.log('Messages component - clientId from query:', clientId);
+      if (clientId) {
+        // Find the user in the contact list
+        const user = this.allUsers().find(u => u.id === clientId);
+        console.log('Found user in allUsers:', user);
+        if (user) {
+          this.selectUser(user);
+        } else {
+          // If not in recent users, try to load them
+          this.loadUsers();
+          // Wait a bit and try again
+          setTimeout(() => {
+            const found = this.allUsers().find(u => u.id === clientId);
+            console.log('Found user after reload:', found);
+            if (found) {
+              this.selectUser(found);
+            }
+          }, 500);
+        }
       }
     });
 

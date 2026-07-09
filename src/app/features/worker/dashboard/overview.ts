@@ -6,8 +6,9 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { NotificationService } from '../../../core/services/notification.service';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-worker-dashboard-overview',
@@ -19,7 +20,8 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
     MatIconModule,
     MatDividerModule,
     MatProgressBarModule,
-    RouterLink
+    RouterLink,
+    FormsModule
   ],
   template: `
     @if (worker().status === 'loading' || !worker().id) {
@@ -141,16 +143,16 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
             </div>
           </section>
 
-          <!-- Counter-Offers Submitted Section -->
-          @if (counterOffersSubmitted().length > 0) {
+          <!-- Counter-Offers Received Section -->
+          @if (counterOffersReceived().length > 0) {
             <section>
               <div class="flex items-center gap-3 mb-6 px-4">
                 <div class="w-1.5 h-6 bg-amber-500 rounded-full"></div>
-                <h2 class="text-xl font-black tracking-tight text-amber-600 uppercase">Your Counter-Offers</h2>
+                <h2 class="text-xl font-black tracking-tight text-amber-600 uppercase">Client Offers</h2>
               </div>
               
               <div class="space-y-1">
-                @for (job of counterOffersSubmitted(); track job.id) {
+                @for (job of counterOffersReceived(); track job.id) {
                   <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-amber-50 hover:bg-amber-100 transition-all border-b border-amber-200 group">
                     <div class="flex items-center gap-4 mb-4 sm:mb-0 min-w-0">
                       <div class="w-12 h-12 rounded-full bg-amber-200 flex items-center justify-center text-amber-700 font-black text-sm shrink-0">
@@ -164,13 +166,60 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                     
                     <div class="flex items-center gap-6 shrink-0">
                       <div class="text-right hidden md:block">
-                        <p class="text-[10px] uppercase tracking-widest text-amber-600 font-bold leading-none mb-1">Your Offer</p>
+                        <p class="text-[10px] uppercase tracking-widest text-amber-600 font-bold leading-none mb-1">Client Offer</p>
                         <p class="font-black text-sm text-amber-700">KSh {{ job.negotiatedPrice }}</p>
                       </div>
                       <div class="flex gap-2">
-                        <button routerLink="../messages" 
+                        <button (click)="acceptClientOffer(job.id)"
+                                class="px-3 py-2 bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">
+                          Accept
+                        </button>
+                        <button (click)="openCounterOfferModal(job)"
+                                class="px-3 py-2 bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">
+                          Counter
+                        </button>
+                        <button (click)="rejectClientOffer(job.id)"
+                                class="px-3 py-2 border border-rose-200 text-rose-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-rose-50 transition-all">
+                          Decline
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- Counter-Offers Submitted Section -->
+          @if (counterOffersSubmitted().length > 0) {
+            <section>
+              <div class="flex items-center gap-3 mb-6 px-4">
+                <div class="w-1.5 h-6 bg-blue-500 rounded-full"></div>
+                <h2 class="text-xl font-black tracking-tight text-blue-600 uppercase">Your Counter-Offers</h2>
+              </div>
+              
+              <div class="space-y-1">
+                @for (job of counterOffersSubmitted(); track job.id) {
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between p-4 bg-blue-50 hover:bg-blue-100 transition-all border-b border-blue-200 group">
+                    <div class="flex items-center gap-4 mb-4 sm:mb-0 min-w-0">
+                      <div class="w-12 h-12 rounded-full bg-blue-200 flex items-center justify-center text-blue-700 font-black text-sm shrink-0">
+                        {{ job.clientName[0] }}
+                      </div>
+                      <div class="min-w-0">
+                        <h3 class="font-bold text-sm text-blue-700 truncate">{{ job.service }}</h3>
+                        <p class="text-[10px] text-blue-600 font-bold uppercase tracking-wider truncate">{{ job.clientName }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-6 shrink-0">
+                      <div class="text-right hidden md:block">
+                        <p class="text-[10px] uppercase tracking-widest text-blue-600 font-bold leading-none mb-1">Your Offer</p>
+                        <p class="font-black text-sm text-blue-700">KSh {{ job.negotiatedPrice }}</p>
+                      </div>
+                      <div class="flex gap-2">
+                        <button (click)="navigateToMessages(job.clientId)"
                                 title="Discuss with client"
-                                class="px-3 py-2 bg-amber-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">
+                                class="px-3 py-2 bg-blue-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">
                           Discuss
                         </button>
                       </div>
@@ -179,6 +228,57 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
                 }
               </div>
             </section>
+          }
+
+          <!-- Counter-Offer Modal -->
+          @if (counterOfferModal()) {
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+              <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-in zoom-in-95 duration-200">
+                <div class="p-6 border-b border-slate-100">
+                  <div class="flex items-center justify-between">
+                    <h3 class="text-lg font-black text-slate-900">💰 Counter Client's Offer</h3>
+                    <button (click)="closeCounterOfferModal()" class="text-slate-400 hover:text-slate-600">
+                      <mat-icon class="!text-xl !w-auto !h-auto">close</mat-icon>
+                    </button>
+                  </div>
+                  <p class="text-sm text-slate-500 mt-2">
+                    Client's offer: KES {{ counterOfferModal()?.earnings?.toLocaleString() }}
+                  </p>
+                </div>
+                <div class="p-6">
+                  <label class="block text-[10px] font-black text-slate-700 uppercase tracking-wider mb-2">
+                    Your Counter Price
+                  </label>
+                  <input
+                    type="number"
+                    [(ngModel)]="counterOfferPrice"
+                    placeholder="Enter your price"
+                    class="w-full h-12 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-bold text-slate-900 outline-none focus:border-indigo-600 focus:bg-white transition-all"
+                  >
+                  <p class="text-[10px] text-slate-400 mt-2">
+                    Enter the price you'd like to counter with.
+                  </p>
+                </div>
+                <div class="p-6 border-t border-slate-100 flex gap-3">
+                  <button
+                    (click)="closeCounterOfferModal()"
+                    class="flex-1 py-3 border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    (click)="submitCounterOffer()"
+                    [disabled]="counterOfferLoading() || !counterOfferPrice() || counterOfferPrice()! <= 0"
+                    class="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                  >
+                    <mat-icon class="!text-sm !w-auto !h-auto" [class.animate-spin]="counterOfferLoading()">
+                      {{ counterOfferLoading() ? 'sync' : 'send' }}
+                    </mat-icon>
+                    {{ counterOfferLoading() ? 'Submitting...' : 'Submit Counter' }}
+                  </button>
+                </div>
+              </div>
+            </div>
           }
 
           <!-- System Controls Ledger -->
@@ -338,6 +438,7 @@ import { PlatformStateService } from '../../../core/services/platform-state.serv
 export class WorkerDashboardOverviewPage {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
+  private router = inject(Router);
 
   worker = this.state.currentWorker;
 
@@ -463,6 +564,18 @@ export class WorkerDashboardOverviewPage {
     );
   });
 
+  // Counter-offers received from clients (jobs where client has countered the worker's offer)
+  counterOffersReceived = computed(() => {
+    return this.state.workerBookings().filter(b => 
+      b.negotiatedPrice && b.negotiatedPrice > 0 && b.status === 'Pending' && b.clientCounterOffer
+    );
+  });
+
+  // Counter-offer modal state
+  counterOfferModal = signal<any>(null);
+  counterOfferPrice = signal<number | null>(null);
+  counterOfferLoading = signal(false);
+
   completionPercentage = computed(() => {
     let score = 0;
     if (this.isProfileStepComplete()) score += 33;
@@ -476,7 +589,7 @@ export class WorkerDashboardOverviewPage {
       this.notification.error('❌ Please complete your profile first (name, category, bio, skills).');
       return;
     }
-    
+
     if (!this.isDocumentsStepComplete()) {
       this.notification.error('❌ Please upload both sides of your ID and your certificates.');
       return;
@@ -490,5 +603,67 @@ export class WorkerDashboardOverviewPage {
 
     this.state.submitForVerification();
     this.notification.success('✓ Application submitted for review! You will hear back within 24-48 hours.');
+  }
+
+  // Accept client's counter-offer
+  acceptClientOffer(jobId: string) {
+    this.state.acceptCounterOffer(jobId).subscribe({
+      next: () => {
+        this.notification.success('✓ You accepted the client\'s offer!');
+      },
+      error: (err) => {
+        this.notification.error('❌ Failed to accept offer: ' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  // Reject client's counter-offer
+  rejectClientOffer(jobId: string) {
+    this.state.rejectCounterOffer(jobId).subscribe({
+      next: () => {
+        this.notification.success('✓ You declined the client\'s offer.');
+      },
+      error: (err) => {
+        this.notification.error('❌ Failed to decline offer: ' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  // Open counter-offer modal
+  openCounterOfferModal(job: any) {
+    this.counterOfferModal.set(job);
+    this.counterOfferPrice.set(null);
+  }
+
+  // Close counter-offer modal
+  closeCounterOfferModal() {
+    this.counterOfferModal.set(null);
+    this.counterOfferPrice.set(null);
+  }
+
+  // Submit counter-offer to client
+  submitCounterOffer() {
+    const job = this.counterOfferModal();
+    if (!job || !this.counterOfferPrice()) return;
+
+    this.counterOfferLoading.set(true);
+    this.state.submitCounterOffer(job.id, this.counterOfferPrice()!).subscribe({
+      next: () => {
+        this.counterOfferLoading.set(false);
+        this.closeCounterOfferModal();
+        this.notification.success('✓ Your counter-offer has been sent to the client!');
+      },
+      error: (err) => {
+        this.counterOfferLoading.set(false);
+        this.notification.error('❌ Failed to submit counter-offer: ' + (err.error?.message || err.message));
+      }
+    });
+  }
+
+  // Navigate to messages with specific client
+  navigateToMessages(clientId: string) {
+    this.router.navigate(['/worker/messages'], { 
+      queryParams: { clientId: clientId }
+    });
   }
 }

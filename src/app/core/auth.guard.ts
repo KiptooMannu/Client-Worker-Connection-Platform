@@ -8,8 +8,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
 
-  // If we're on the server, we might not have the user state yet (localStorage is browser-only).
-  // We return true to allow the page to render, and the client-side will handle the real check.
+
   if (!isPlatformBrowser(platformId)) {
     return true;
   }
