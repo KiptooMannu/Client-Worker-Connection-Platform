@@ -1,6 +1,9 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/auth.guard';
 import { guestGuard } from './core/guest.guard';
+import { NotFoundComponent } from './shared/components/error-pages/not-found/not-found.component';
+import { ServerErrorComponent } from './shared/components/error-pages/server-error/server-error.component';
+import { UnauthorizedComponent } from './shared/components/error-pages/unauthorized/unauthorized.component';
 
 export const routes: Routes = [
   {
@@ -154,6 +157,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/admin/fees/fee-tracking').then(m => m.AdminFeeTrackingPage)
       },
       {
+        path: 'platform-fees',
+        loadComponent: () => import('./features/admin/platform-fees/platform-fees.component').then(m => m.PlatformFeesComponent)
+      },
+      {
         path: 'activity',
         loadComponent: () => import('./features/admin/activity/platform-activity').then(m => m.AdminActivityPage)
       },
@@ -167,10 +174,23 @@ export const routes: Routes = [
       }
     ]
   },
+  // ERROR PAGES
+  {
+    path: '404',
+    component: NotFoundComponent
+  },
+  {
+    path: '500',
+    component: ServerErrorComponent
+  },
+  {
+    path: '403',
+    component: UnauthorizedComponent
+  },
   // FALLBACK ROUTE
   {
     path: '**',
-    redirectTo: '',
+    component: NotFoundComponent
   },
 ];
 

@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,6 +8,9 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { NotificationService } from '../../../core/services/notification.service';
 import { RouterLink, Router } from '@angular/router';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { AnalyticsService, WorkerEarningsData } from '../../../shared/services/analytics.service';
+import { LineChartComponent, BarChartComponent } from '../../../shared/components/charts';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -21,7 +24,9 @@ import { FormsModule } from '@angular/forms';
     MatDividerModule,
     MatProgressBarModule,
     RouterLink,
-    FormsModule
+    FormsModule,
+    LineChartComponent,
+    BarChartComponent
   ],
   template: `
     @if (worker().status === 'loading' || !worker().id) {
@@ -281,6 +286,52 @@ import { FormsModule } from '@angular/forms';
             </div>
           }
 
+          <!-- Earnings Analytics -->
+          <section>
+            <div class="flex items-center gap-3 mb-6 px-4">
+              <div class="w-1.5 h-6 bg-brand-teal rounded-full"></div>
+              <h2 class="text-xl font-black tracking-tight text-brand-teal uppercase">Earnings Analytics</h2>
+            </div>
+
+            <div class="space-y-4">
+              <mat-card class="!rounded-2xl !border !border-slate-100 !p-5 bg-white shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                  <mat-icon class="!text-sm text-brand-teal">account_balance_wallet</mat-icon>
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Earnings Trends</span>
+                </div>
+                @if (loading()) {
+                  <div class="h-[200px] flex items-center justify-center">
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
+                  </div>
+                } @else if (earningsData().length > 0) {
+                  <app-line-chart [data]="earningsData()" [view]="[400, 200]" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="true" [legendTitle]="'Metrics'"></app-line-chart>
+                } @else {
+                  <div class="h-[200px] flex items-center justify-center">
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No earnings data</p>
+                  </div>
+                }
+              </mat-card>
+
+              <mat-card class="!rounded-2xl !border !border-slate-100 !p-5 bg-white shadow-sm">
+                <div class="flex items-center gap-2 mb-4">
+                  <mat-icon class="!text-sm text-brand-teal">bar_chart</mat-icon>
+                  <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Earnings by Period</span>
+                </div>
+                @if (loading()) {
+                  <div class="h-[200px] flex items-center justify-center">
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
+                  </div>
+                } @else if (earningsByPeriod().length > 0) {
+                  <app-bar-chart [data]="earningsByPeriod()" [view]="[400, 200]" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-bar-chart>
+                } @else {
+                  <div class="h-[200px] flex items-center justify-center">
+                    <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No period data</p>
+                  </div>
+                }
+              </mat-card>
+            </div>
+          </section>
+
           <!-- System Controls Ledger -->
           <section>
              <div class="flex items-center gap-3 mb-6 px-4">
@@ -435,10 +486,16 @@ import { FormsModule } from '@angular/forms';
     }
   `]
 })
-export class WorkerDashboardOverviewPage {
+export class WorkerDashboardOverviewPage implements OnInit {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
   private router = inject(Router);
+  private auth = inject(AuthService);
+  private analyticsService = inject(AnalyticsService);
+
+  // Analytics data
+  earningsData = signal<WorkerEarningsData[]>([]);
+  loading = signal(true);
 
   worker = this.state.currentWorker;
 
@@ -662,8 +719,66 @@ export class WorkerDashboardOverviewPage {
 
   // Navigate to messages with specific client
   navigateToMessages(clientId: string) {
-    this.router.navigate(['/worker/messages'], { 
+    this.router.navigate(['/worker/messages'], {
       queryParams: { clientId: clientId }
     });
+  }
+
+  ngOnInit() {
+    this.loadWorkerEarningsData();
+  }
+
+  private loadWorkerEarningsData() {
+    const user = this.auth.currentUser();
+    const workerId = user?.id;
+    if (!workerId) {
+      this.loading.set(false);
+      return;
+    }
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 6);
+
+    this.analyticsService.getWorkerEarningsData(
+      workerId,
+      startDate.toISOString(),
+      endDate.toISOString()
+    ).subscribe({
+      next: (data: WorkerEarningsData[]) => {
+        this.earningsData.set(this.transformEarningsData(data));
+        this.loading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error loading earnings data:', error);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private transformEarningsData(data: WorkerEarningsData[]): any[] {
+    return [
+      {
+        name: 'Earnings',
+        series: data.map(d => ({
+          name: d.period,
+          value: d.earnings
+        }))
+      },
+      {
+        name: 'Jobs Completed',
+        series: data.map(d => ({
+          name: d.period,
+          value: d.jobsCompleted
+        }))
+      }
+    ];
+  }
+
+  get earningsByPeriod() {
+    return this.earningsData().map(d => ({
+      name: d.period,
+      value: d.earnings
+    }));
   }
 }

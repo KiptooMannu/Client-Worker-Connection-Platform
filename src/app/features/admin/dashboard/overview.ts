@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,6 +17,8 @@ import {
   PAYMENT_STATUS_OPTIONS,
   PaymentStatusFilter
 } from '../../../core/utils/payment-status.util';
+import { AnalyticsService, DashboardOverview, RevenueData, JobStatisticsData, PlatformFeeData } from '../../../shared/services/analytics.service';
+import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../../shared/components/charts';
 
 @Component({
   selector: 'app-admin-dashboard-overview',
@@ -30,7 +32,10 @@ import {
     MatListModule,
     MatProgressBarModule,
     RouterLink,
-    FormsModule
+    FormsModule,
+    LineChartComponent,
+    BarChartComponent,
+    PieChartComponent
   ],
   template: `
     <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-1000 p-4 md:p-0">
@@ -130,6 +135,23 @@ import {
               </div>
             </mat-card>
           </div>
+
+          <!-- Revenue Chart -->
+          <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-8 h-8 rounded-xl bg-brand-teal-soft text-brand-teal flex items-center justify-center">
+                <mat-icon class="!text-sm">payments</mat-icon>
+              </div>
+              <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenue Trends</span>
+            </div>
+            @if (loading()) {
+              <div class="h-[300px] flex items-center justify-center">
+                <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading analytics...</p>
+              </div>
+            } @else {
+              <app-line-chart [data]="revenueData()" [view]="[700, 300]" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="true" [legendTitle]="'Financial Metrics'"></app-line-chart>
+            }
+          </mat-card>
         </div>
 
         <!-- Insights (Right) -->
@@ -167,7 +189,7 @@ import {
                 </div>
                 <button (click)="exportReport()" class="text-[9px] font-black uppercase text-brand-teal hover:underline">Export</button>
               </div>
- 
+
               <div class="space-y-3 overflow-y-auto pr-1 custom-scrollbar flex-grow">
                  @for (alert of alerts; track alert.id) {
                     <div class="p-4 rounded-2xl bg-slate-50/50 border border-slate-100 hover:border-indigo-100 hover:bg-white transition-all group relative overflow-hidden">
@@ -188,13 +210,59 @@ import {
                    </div>
                  }
               </div>
- 
+
               <button routerLink="../activity" class="w-full mt-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest text-brand-teal border border-slate-100 hover:bg-slate-50 transition-all">
                 Audit All Activities
               </button>
            </mat-card>
+
+           <!-- Platform Fee Chart -->
+           <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-8 h-8 rounded-xl bg-brand-teal-soft text-brand-teal flex items-center justify-center">
+                  <mat-icon class="!text-sm">account_balance_wallet</mat-icon>
+                </div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Platform Fees</span>
+              </div>
+              @if (loading()) {
+                <div class="h-[250px] flex items-center justify-center">
+                  <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
+                </div>
+              } @else {
+                <app-pie-chart [data]="platformFeeChartData()" [view]="[400, 250]" [legend]="true" [legendTitle]="'Fee Distribution'"></app-pie-chart>
+              }
+              @if (dashboardOverview()) {
+                <div class="mt-4 p-4 bg-slate-50 rounded-xl">
+                  <div class="flex justify-between items-center">
+                    <span class="text-[9px] font-black text-slate-500 uppercase">Available for Withdrawal</span>
+                    <span class="text-sm font-black text-brand-teal">KES {{ dashboardOverview()!.availableForWithdrawal.toLocaleString() }}</span>
+                  </div>
+                </div>
+              }
+           </mat-card>
         </div>
       </div>
+
+      <!-- Job Statistics Chart -->
+      <mat-card class="!rounded-[24px] !border !border-slate-100 !shadow-sm !p-6 bg-white">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-xl bg-brand-teal-soft text-brand-teal flex items-center justify-center">
+            <mat-icon class="!text-sm">work</mat-icon>
+          </div>
+          <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Statistics by Category</span>
+        </div>
+        @if (loading()) {
+          <div class="h-[300px] flex items-center justify-center">
+            <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
+          </div>
+        } @else if (jobCategoryData().length > 0) {
+          <app-bar-chart [data]="jobCategoryData()" [view]="[700, 300]" [xAxisLabel]="'Category'" [yAxisLabel]="'Number of Jobs'" [legend]="true" [legendTitle]="'Job Categories'"></app-bar-chart>
+        } @else {
+          <div class="h-[300px] flex items-center justify-center">
+            <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No job data available</p>
+          </div>
+        }
+      </mat-card>
 
       <!-- System Oversight (Hires Ledger) -->
       <mat-card class="!rounded-[24px] !border !border-slate-100 !shadow-sm !overflow-hidden">
@@ -301,9 +369,17 @@ import {
     :host { display: block; }
   `]
 })
-export class AdminOverviewPage {
+export class AdminOverviewPage implements OnInit {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
+  private analyticsService = inject(AnalyticsService);
+
+  // Analytics data
+  dashboardOverview = signal<DashboardOverview | null>(null);
+  revenueData = signal<RevenueData[]>([]);
+  jobStatistics = signal<JobStatisticsData | null>(null);
+  platformFeeData = signal<PlatformFeeData | null>(null);
+  loading = signal(true);
 
   currentPage = signal(1);
   itemsPerPage = signal(10);
@@ -409,5 +485,113 @@ export class AdminOverviewPage {
 
   reviewGuidelines() {
     window.open('https://owasp.org/www-project-top-ten/', '_blank');
+  }
+
+  ngOnInit() {
+    this.loadAnalyticsData();
+  }
+
+  private loadAnalyticsData() {
+    this.loading.set(true);
+    
+    // Load dashboard overview
+    this.analyticsService.getDashboardOverview().subscribe({
+      next: (data) => {
+        this.dashboardOverview.set(data);
+        this.loading.set(false);
+      },
+      error: (error) => {
+        console.error('Error loading dashboard overview:', error);
+        this.loading.set(false);
+      }
+    });
+
+    // Load revenue data for last 6 months
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 6);
+    
+    this.analyticsService.getRevenueData(
+      startDate.toISOString(),
+      endDate.toISOString()
+    ).subscribe({
+      next: (data) => {
+        this.revenueData.set(this.transformRevenueData(data));
+      },
+      error: (error) => {
+        console.error('Error loading revenue data:', error);
+      }
+    });
+
+    // Load job statistics
+    this.analyticsService.getJobStatistics(
+      startDate.toISOString(),
+      endDate.toISOString()
+    ).subscribe({
+      next: (data) => {
+        this.jobStatistics.set(data);
+      },
+      error: (error) => {
+        console.error('Error loading job statistics:', error);
+      }
+    });
+
+    // Load platform fee data
+    this.analyticsService.getPlatformFeeData(
+      startDate.toISOString(),
+      endDate.toISOString()
+    ).subscribe({
+      next: (data) => {
+        this.platformFeeData.set(data);
+      },
+      error: (error) => {
+        console.error('Error loading platform fee data:', error);
+      }
+    });
+  }
+
+  private transformRevenueData(data: RevenueData[]): any[] {
+    return [
+      {
+        name: 'Revenue',
+        series: data.map(d => ({
+          name: d.period,
+          value: d.revenue
+        }))
+      },
+      {
+        name: 'Platform Fees',
+        series: data.map(d => ({
+          name: d.period,
+          value: d.platformFees
+        }))
+      },
+      {
+        name: 'Worker Payouts',
+        series: data.map(d => ({
+          name: d.period,
+          value: d.workerPayouts
+        }))
+      }
+    ];
+  }
+
+  get jobCategoryData() {
+    if (!this.jobStatistics()) return [];
+    const stats = this.jobStatistics()!;
+    return Object.entries(stats.jobsByCategory || {}).map(([name, value]) => ({
+      name,
+      value
+    }));
+  }
+
+  get platformFeeChartData() {
+    if (!this.platformFeeData()) return [];
+    const data = this.platformFeeData()!;
+    return [
+      { name: 'Available', value: data.availableForWithdrawal },
+      { name: 'Withdrawn', value: data.withdrawn },
+      { name: 'Pending', value: data.pending }
+    ];
   }
 }

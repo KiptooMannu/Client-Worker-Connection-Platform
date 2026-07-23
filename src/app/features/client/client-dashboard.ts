@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, afterNextRender, PLATFORM_ID } from '@angular/core';
+import { Component, inject, signal, computed, afterNextRender, PLATFORM_ID, OnInit } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
@@ -12,6 +12,9 @@ import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../core/services/notification.service';
 import { RouterLink } from '@angular/router';
 import { PlatformStateService } from '../../core/services/platform-state.service';
+import { AuthService } from '../../core/services/auth.service';
+import { AnalyticsService, ClientSpendingData } from '../../shared/services/analytics.service';
+import { LineChartComponent, BarChartComponent } from '../../shared/components/charts';
 
 const FILTER_KEY = 'kazi_marketplace_filters';
 
@@ -29,6 +32,8 @@ const FILTER_KEY = 'kazi_marketplace_filters';
     MatSelectModule,
     FormsModule,
     RouterLink,
+    LineChartComponent,
+    BarChartComponent
   ],
   template: `
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 animate-in fade-in duration-700 pb-24 lg:pb-12 font-manrope">
@@ -63,6 +68,45 @@ const FILTER_KEY = 'kazi_marketplace_filters';
           <mat-icon class="!text-sm text-brand-teal">trending_up</mat-icon>
           <span class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Avg KSh {{ averageRate() }}/hr</span>
         </div>
+      </div>
+
+      <!-- Spending Analytics -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <mat-card class="!rounded-2xl !border !border-slate-100 !p-5 bg-white shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <mat-icon class="!text-sm text-brand-teal">account_balance_wallet</mat-icon>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Spending Trends</span>
+          </div>
+          @if (loading()) {
+            <div class="h-[200px] flex items-center justify-center">
+              <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
+            </div>
+          } @else if (spendingData().length > 0) {
+            <app-line-chart [data]="spendingData()" [view]="[400, 200]" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-line-chart>
+          } @else {
+            <div class="h-[200px] flex items-center justify-center">
+              <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No spending data</p>
+            </div>
+          }
+        </mat-card>
+
+        <mat-card class="!rounded-2xl !border !border-slate-100 !p-5 bg-white shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <mat-icon class="!text-sm text-brand-teal">pie_chart</mat-icon>
+            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Spending by Category</span>
+          </div>
+          @if (loading()) {
+            <div class="h-[200px] flex items-center justify-center">
+              <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
+            </div>
+          } @else if (spendingByCategory().length > 0) {
+            <app-bar-chart [data]="spendingByCategory()" [view]="[400, 200]" [xAxisLabel]="'Category'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-bar-chart>
+          } @else {
+            <div class="h-[200px] flex items-center justify-center">
+              <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No category data</p>
+            </div>
+          }
+        </mat-card>
       </div>
 
       <!-- Filter bar -->
@@ -247,10 +291,16 @@ const FILTER_KEY = 'kazi_marketplace_filters';
     .scrollbar-none::-webkit-scrollbar { display: none; }
   `]
 })
-export class ClientDashboardPage {
+export class ClientDashboardPage implements OnInit {
   state = inject(PlatformStateService);
   private notification = inject(NotificationService);
   private platformId = inject(PLATFORM_ID);
+  private analyticsService = inject(AnalyticsService);
+  private auth = inject(AuthService);
+
+  // Analytics data
+  spendingData = signal<ClientSpendingData[]>([]);
+  loading = signal(true);
 
   nameQuery = signal('');
   selectedCategory = signal<string | null>(null);
@@ -403,5 +453,57 @@ export class ClientDashboardPage {
     this.nameQuery.set(value);
     this.currentPage.set(1);
     this.persistFilters();
+  }
+
+  ngOnInit() {
+    this.loadClientSpendingData();
+  }
+
+  private loadClientSpendingData() {
+    // Get client ID from auth service
+    const user = this.auth.currentUser();
+    const clientId = user?.id;
+    if (!clientId) {
+      this.loading.set(false);
+      return;
+    }
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - 6);
+
+    this.analyticsService.getClientSpendingData(
+      clientId,
+      startDate.toISOString(),
+      endDate.toISOString()
+    ).subscribe({
+      next: (data: ClientSpendingData[]) => {
+        this.spendingData.set(this.transformSpendingData(data));
+        this.loading.set(false);
+      },
+      error: (error: any) => {
+        console.error('Error loading spending data:', error);
+        this.loading.set(false);
+      }
+    });
+  }
+
+  private transformSpendingData(data: ClientSpendingData[]): any[] {
+    return [
+      {
+        name: 'Spending',
+        series: data.map(d => ({
+          name: d.period,
+          value: d.amount
+        }))
+      }
+    ];
+  }
+
+  get spendingByCategory() {
+    return this.spendingData().map(d => ({
+      name: d.category || 'Other',
+      value: d.amount
+    }));
   }
 }
