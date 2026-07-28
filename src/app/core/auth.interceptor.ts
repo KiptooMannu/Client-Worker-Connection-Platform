@@ -9,10 +9,25 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
   const platformId = inject(PLATFORM_ID);
   
+  // Endpoints that are readable without a session. A 401 from one of these says
+  // nothing about the visitor's own credentials, so it must never be treated as
+  // an expired session — the landing page's /api/public/* calls were signing
+  // people out on every visit when the server rejected them.
+  const publicEndpoints = [
+    '/auth/register',
+    '/auth/login',
+    '/auth/verify-email',
+    '/auth/password-reset',
+    '/api/public/'
+  ];
+  const isPublicEndpoint = publicEndpoints.some(endpoint => req.url.includes(endpoint));
+
   const handleAuthError = (error: HttpErrorResponse) => {
-    if (error.status === 401 && !req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
+    if (error.status === 401 && !isPublicEndpoint) {
       console.warn('[AuthInterceptor] 401 Unauthorized, logging out');
       authService.logout();
+    } else if (error.status === 401) {
+      console.warn('[AuthInterceptor] 401 on public endpoint, session left intact:', req.url);
     } else if (error.status === 404 && req.url.includes('/profile/')) {
       console.warn('[AuthInterceptor] 404 Profile not found, logging out to clear invalid session');
       authService.logout();
@@ -27,10 +42,8 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return throwError(() => error);
   };
 
-  // Skip adding token to public auth endpoints
-  const publicEndpoints = ['/auth/register', '/auth/login', '/auth/verify-email', '/auth/password-reset'];
-  const isPublicEndpoint = publicEndpoints.some(endpoint => req.url.includes(endpoint));
-  
+  // Public endpoints go out unauthenticated. Attaching a stale token would only
+  // give the server a reason to reject a request that needs no credentials.
   if (isPublicEndpoint) {
     return next(req).pipe(catchError(handleAuthError));
   }

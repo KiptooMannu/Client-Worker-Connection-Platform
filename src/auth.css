@@ -353,6 +353,75 @@
   color: var(--brand-teal);
 }
 
+/* ── Step indicator ──────────────────────────────────────────────────────────
+   Used by the multi-step reset flow so it is always clear how many stages are
+   left. Completed steps stay filled rather than reverting, which reads as
+   progress instead of a moving highlight. */
+.auth-steps {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1.6rem;
+}
+
+.auth-step {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+}
+
+.auth-step-dot {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: #eef2f7;
+  color: #94a3b8;
+  font-size: 0.7rem;
+  font-weight: 800;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.auth-step.is-done .auth-step-dot,
+.auth-step.is-current .auth-step-dot {
+  background: var(--brand-teal);
+  color: #fff;
+}
+
+.auth-step-name {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #94a3b8;
+}
+
+.auth-step.is-current .auth-step-name {
+  color: var(--brand-text);
+}
+
+.auth-step-bar {
+  flex: 1;
+  height: 2px;
+  min-width: 0.75rem;
+  border-radius: 999px;
+  background: #eef2f7;
+}
+
+.auth-step-bar.is-done {
+  background: var(--brand-teal);
+}
+
+/* The middle step's label is noise on narrow screens; the dots still convey
+   position. */
+@media (max-width: 419px) {
+  .auth-step-name {
+    display: none;
+  }
+}
+
 /* ── Form primitives ─────────────────────────────────────────────────────── */
 
 .auth-form {

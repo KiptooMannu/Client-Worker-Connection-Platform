@@ -1,417 +1,258 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { NavbarComponent } from '../../../shared/components/navbar';
+import { AuthService } from '../../../core/services/auth.service';
+import { AuthShellComponent } from '../auth-shell/auth-shell';
 
+/**
+ * Password recovery, presented in the same shell as sign-in and sign-up so the
+ * whole authentication flow reads as one product.
+ *
+ * Three stages — request a code, set a new password, confirm — surfaced through
+ * a step indicator rather than the previous design's unlabelled swap between
+ * two forms.
+ */
 @Component({
   selector: 'app-password-reset',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterLink,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    NavbarComponent
-  ],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AuthShellComponent],
   template: `
-    <div class="bg-white text-on-surface font-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-white">
-      <app-navbar [showMessages]="false"></app-navbar>
+    <app-auth-shell
+      mode="reset"
+      [showTabs]="false"
+      [heading]="headingFor()"
+      [subheading]="subheadingFor()"
+    >
+      <!-- Progress is meaningful only while the reset is still in flight. -->
+      @if (!resetSuccess()) {
+        <ol class="auth-steps">
+          <li class="auth-step" [class.is-current]="!requestSubmitted()" [class.is-done]="requestSubmitted()">
+            <span class="auth-step-dot">1</span>
+            <span class="auth-step-name">Your email</span>
+          </li>
+          <li class="auth-step-bar" [class.is-done]="requestSubmitted()" aria-hidden="true"></li>
+          <li class="auth-step" [class.is-current]="requestSubmitted()">
+            <span class="auth-step-dot">2</span>
+            <span class="auth-step-name">New password</span>
+          </li>
+        </ol>
+      }
 
-      <main class="flex-grow flex items-center justify-center px-4 pt-24 pb-8">
-        <div class="w-full max-w-[420px]">
-          <div class="bg-white border border-slate-200 rounded-2xl p-6 md:p-10 shadow-[0_20px_60px_rgba(46,49,146,0.05)] text-center">
-            <div class="mb-8 flex flex-col items-center">
-              <div class="w-14 h-14 bg-primary-container rounded-full flex items-center justify-center mb-4 shadow-lg shadow-brand-teal/20">
-                <svg class="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3"></circle><circle cx="6" cy="6" r="2"></circle><circle cx="18" cy="6" r="2"></circle><circle cx="18" cy="18" r="2"></circle><circle cx="6" cy="18" r="2"></circle><line x1="8" y1="8" x2="10" y2="10"></line><line x1="16" y1="8" x2="14" y2="10"></line><line x1="16" y1="16" x2="14" y2="14"></line><line x1="8" y1="16" x2="10" y2="14"></line></svg>
-              </div>
-              <h1 class="font-headline-md text-xl md:text-2xl text-on-surface mb-1 leading-tight">Reset Password</h1>
-              <p class="font-body-md text-sm text-secondary">Enter your email address to receive a verification code</p>
+      <!-- ── Stage 1: request a code ──────────────────────────────────────── -->
+      @if (!requestSubmitted()) {
+        <form class="auth-form" [formGroup]="requestForm" (ngSubmit)="onRequestSubmit()" novalidate>
+          @if (requestError()) {
+            <div class="auth-alert auth-alert--error" role="alert">
+              <span class="material-symbols-outlined" aria-hidden="true">error</span>
+              <span>{{ requestError() }}</span>
             </div>
+          }
 
-            <div *ngIf="!requestSubmitted">
-              <form [formGroup]="requestForm" (ngSubmit)="onRequestSubmit()" class="space-y-4 text-left">
-                <div class="space-y-1.5">
-                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="email">Email Address</label>
-                  <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002-2.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                    </div>
-                    <input id="email" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all"
-                           type="email"
-                           formControlName="email"
-                           placeholder="name@company.com"
-                      />
-                  </div>
-                  <p *ngIf="requestForm.get('email')?.invalid && requestForm.get('email')?.touched" class="text-sm text-rose-600">Please enter a valid email address.</p>
-                </div>
-
-                <div class="space-y-1.5">
-                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="verification">Security Verification</label>
-                  <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                    </div>
-                    <input id="verification" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all"
-                           type="text"
-                           formControlName="verification"
-                           placeholder="What is 1 + 1?"
-                      />
-                  </div>
-                  <p *ngIf="requestForm.get('verification')?.invalid && requestForm.get('verification')?.touched" class="text-sm text-rose-600">Please answer the security question correctly.</p>
-                </div>
-
-                <div class="error-message" *ngIf="requestError">
-                  {{ requestError }}
-                </div>
-
-                <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98] disabled:opacity-50"
-                        type="submit"
-                        [disabled]="requestForm.invalid || requestLoading"
-                >
-                  <span *ngIf="requestLoading" class="spinner-wrapper flex items-center justify-center gap-2">
-                    <mat-spinner diameter="20"></mat-spinner>
-                    Sending...
-                  </span>
-                  <span *ngIf="!requestLoading">Send Reset Code</span>
-                </button>
-              </form>
-
-              <div class="mt-8 text-center">
-                <p class="font-body-md text-sm text-secondary">
-                  Remember your password?
-                  <a routerLink="/login" class="text-brand-teal font-bold hover:underline cursor-pointer">Sign In</a>
-                </p>
-              </div>
+          <div class="auth-field">
+            <label class="auth-label" for="resetEmail">Email address</label>
+            <div class="auth-input-wrap">
+              <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">mail</span>
+              <input
+                class="auth-input"
+                [class.is-invalid]="showError(requestForm.get('email'))"
+                id="resetEmail"
+                type="email"
+                autocomplete="email"
+                formControlName="email"
+                placeholder="name@company.com"
+              />
             </div>
+            @if (showError(requestForm.get('email'))) {
+              <p class="auth-error">Please enter a valid email address.</p>
+            }
+          </div>
 
-            <div *ngIf="requestSubmitted && !resetSuccess" class="space-y-4 text-left">
-              <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 text-emerald-900 mb-6">
-                <strong>✅ Verification code sent</strong>
-                <p class="mt-2 text-sm">A 6-digit verification code has been sent to <strong>{{ requestForm.get('email')?.value }}</strong>.</p>
-              </div>
+          <!--
+            A simple arithmetic challenge, carried over from the previous
+            implementation: it keeps casual bots from hammering the reset
+            endpoint. The question is stated in the label rather than hidden in a
+            placeholder so it survives autofill and is read out by screen
+            readers.
+          -->
+          <div class="auth-field">
+            <label class="auth-label" for="verification">Quick check — what is 1 + 1?</label>
+            <div class="auth-input-wrap">
+              <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">shield_person</span>
+              <input
+                class="auth-input"
+                [class.is-invalid]="showError(requestForm.get('verification'))"
+                id="verification"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                formControlName="verification"
+                placeholder="Type the answer"
+              />
+            </div>
+            @if (showError(requestForm.get('verification'))) {
+              <p class="auth-error">Please answer the question to continue.</p>
+            }
+          </div>
 
-              <form [formGroup]="confirmForm" (ngSubmit)="onConfirmSubmit()" class="space-y-4 text-left">
-                <div class="space-y-1.5">
-                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="otpCode">6-Digit Reset Code</label>
-                  <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                      </svg>
-                    </div>
-                    <input id="otpCode" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface text-center font-bold tracking-[0.5em] focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all outline-none"
-                           type="text"
-                           maxlength="6"
-                           formControlName="token"
-                           placeholder="000000"
-                      />
-                  </div>
-                  <p *ngIf="confirmForm.get('token')?.invalid && confirmForm.get('token')?.touched" class="text-sm text-rose-600">Please enter the 6-digit code.</p>
-                </div>
+          <button class="auth-submit" type="submit" [disabled]="requestForm.invalid || requestLoading()">
+            @if (requestLoading()) {
+              <span class="auth-submit-spinner" aria-hidden="true"></span>
+              Sending code…
+            } @else {
+              Send reset code
+            }
+          </button>
+        </form>
 
-                <div class="space-y-1.5">
-                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="newPassword">New Password</label>
-                  <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                    </div>
-                    <input id="newPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all"
-                           type="password"
-                           formControlName="newPassword"
-                           placeholder="Enter new password (min 8 characters)"
-                      />
-                  </div>
-                  <p *ngIf="confirmForm.get('newPassword')?.invalid && confirmForm.get('newPassword')?.touched" class="text-sm text-rose-600">Password must be at least 8 characters.</p>
-                </div>
+        <p class="auth-swap">
+          Remember your password?
+          <a routerLink="/login">Sign in</a>
+        </p>
+      }
 
-                <div class="space-y-1.5">
-                  <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider ml-1" for="confirmPassword">Confirm Password</label>
-                  <div class="relative group">
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                      <svg class="w-5 h-5 text-slate-400 group-focus-within:text-[#041627] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                    </div>
-                    <input id="confirmPassword" class="block w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-full font-body-md text-sm text-on-surface focus:outline-none focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all"
-                           type="password"
-                           formControlName="confirmPassword"
-                           placeholder="Confirm your password"
-                      />
-                  </div>
-                  <p *ngIf="confirmForm.hasError('passwordMismatch') && confirmForm.get('confirmPassword')?.touched" class="text-sm text-rose-600">Passwords do not match.</p>
-                </div>
+      <!-- ── Stage 2: choose a new password ───────────────────────────────── -->
+      @if (requestSubmitted() && !resetSuccess()) {
+        <div class="auth-alert auth-alert--success" role="status">
+          <span class="material-symbols-outlined" aria-hidden="true">mark_email_read</span>
+          <span>
+            <strong>Code sent</strong>
+            We emailed a 6-digit code to {{ requestForm.get('email')?.value || 'your address' }}.
+          </span>
+        </div>
 
-                <div class="error-message" *ngIf="confirmError">
-                  {{ confirmError }}
-                </div>
+        <form class="auth-form" [formGroup]="confirmForm" (ngSubmit)="onConfirmSubmit()" novalidate>
+          @if (confirmError()) {
+            <div class="auth-alert auth-alert--error" role="alert">
+              <span class="material-symbols-outlined" aria-hidden="true">error</span>
+              <span>{{ confirmError() }}</span>
+            </div>
+          }
 
-                <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98]"
-                        type="submit"
-                        [disabled]="confirmForm.invalid || confirmLoading"
-                >
-                  <span *ngIf="confirmLoading" class="spinner-wrapper flex items-center justify-center gap-2">
-                    <mat-spinner diameter="20"></mat-spinner>
-                    Resetting...
-                  </span>
-                  <span *ngIf="!confirmLoading">Reset Password</span>
-                </button>
-              </form>
+          <div class="auth-field">
+            <label class="auth-label auth-center" for="token">6-digit reset code</label>
+            <input
+              class="auth-otp"
+              id="token"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+              formControlName="token"
+              placeholder="000000"
+            />
+            @if (showError(confirmForm.get('token'))) {
+              <p class="auth-error auth-center">Enter the 6-digit code from your email.</p>
+            }
+          </div>
 
-              <button class="w-full py-4 bg-slate-100 text-on-surface rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg hover:bg-slate-200 transition-all active:scale-[0.98] mt-4"
-                      type="button"
-                      (click)="onBackToRequest()"
+          <div class="auth-field">
+            <label class="auth-label" for="newPassword">New password</label>
+            <div class="auth-input-wrap">
+              <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">lock</span>
+              <input
+                class="auth-input auth-input--revealable"
+                [class.is-invalid]="showError(confirmForm.get('newPassword'))"
+                id="newPassword"
+                [type]="showPassword() ? 'text' : 'password'"
+                autocomplete="new-password"
+                formControlName="newPassword"
+                placeholder="At least 8 characters"
+              />
+              <button
+                class="auth-reveal"
+                type="button"
+                (click)="showPassword.set(!showPassword())"
+                [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                [attr.aria-pressed]="showPassword()"
               >
-                Try Different Email
+                <span class="material-symbols-outlined" aria-hidden="true">{{
+                  showPassword() ? 'visibility_off' : 'visibility'
+                }}</span>
               </button>
             </div>
+            @if (showError(confirmForm.get('newPassword'))) {
+              <p class="auth-error">Password must be at least 8 characters.</p>
+            }
+          </div>
 
-            <div *ngIf="resetSuccess" class="space-y-6 text-left">
-              <div class="bg-emerald-50 border border-emerald-100 rounded-2xl p-5 text-emerald-900">
-                <strong>✅ Password Reset Successfully!</strong>
-                <p class="mt-2 text-sm">Your password has been changed. You can now sign in with your new password.</p>
-              </div>
-              <button class="w-full py-4 bg-on-background text-white rounded-full font-label-caps text-[11px] font-black tracking-[0.2em] shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98]"
-                      type="button"
-                      (click)="onRedirectToLogin()"
-              >
-                Go to Login
-              </button>
+          <div class="auth-field">
+            <label class="auth-label" for="confirmPassword">Confirm new password</label>
+            <div class="auth-input-wrap">
+              <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">shield</span>
+              <input
+                class="auth-input"
+                [class.is-invalid]="mismatch()"
+                id="confirmPassword"
+                [type]="showPassword() ? 'text' : 'password'"
+                autocomplete="new-password"
+                formControlName="confirmPassword"
+                placeholder="Re-enter your new password"
+              />
             </div>
+            @if (mismatch()) {
+              <p class="auth-error">Passwords do not match.</p>
+            }
+          </div>
+
+          <button class="auth-submit" type="submit" [disabled]="confirmForm.invalid || confirmLoading()">
+            @if (confirmLoading()) {
+              <span class="auth-submit-spinner" aria-hidden="true"></span>
+              Resetting…
+            } @else {
+              Reset password
+            }
+          </button>
+        </form>
+
+        <hr class="auth-divider-rule" />
+
+        <p class="auth-center">
+          <button class="auth-text-button auth-text-button--muted" type="button" (click)="onBackToRequest()">
+            Use a different email
+          </button>
+        </p>
+      }
+
+      <!-- ── Stage 3: done ───────────────────────────────────────────────── -->
+      @if (resetSuccess()) {
+        <div class="auth-center">
+          <div class="auth-step-icon">
+            <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
           </div>
         </div>
-      </main>
-    </div>
-  `,
-  styles: [`
-    .password-reset-layout {
-      min-height: 100vh;
-      background: #f8fafc;
-      color: #0f172a;
-    }
 
-    .auth-nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: #ffffff;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-      z-index: 20;
-    }
+        <div class="auth-alert auth-alert--success" role="status">
+          <span class="material-symbols-outlined" aria-hidden="true">verified</span>
+          <span>
+            <strong>Password changed</strong>
+            You can now sign in with your new password.
+          </span>
+        </div>
 
-    .nav-inner {
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 0 24px;
-      height: 64px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .brand-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      color: #0f172a;
-      font-weight: 800;
-      font-size: 1rem;
-    }
-
-    .brand-mark {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 36px;
-      height: 36px;
-      border-radius: 12px;
-      background: #4338ca;
-      color: #ffffff;
-      font-size: 0.95rem;
-      font-weight: 900;
-    }
-
-    .auth-main {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 24px 20px 40px;
-    }
-
-    .auth-card-wrapper {
-      width: 100%;
-      max-width: 420px;
-      margin-top: 64px;
-    }
-
-    .reset-card {
-      width: 100%;
-      box-shadow: 0 20px 60px rgba(46, 49, 146, 0.05);
-      border-radius: 24px;
-      border: 1px solid rgba(148, 163, 184, 0.18);
-      background: #ffffff;
-    }
-
-    .reset-phase {
-      padding: 20px;
-    }
-
-    mat-card-header {
-      margin-bottom: 30px;
-      text-align: center;
-    }
-
-    mat-card-title {
-      font-size: 24px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    mat-card-subtitle {
-      color: #666;
-      font-size: 14px;
-    }
-
-    .full-width {
-      width: 100%;
-    }
-
-    mat-form-field {
-      margin-bottom: 20px;
-    }
-
-    .error-message {
-      background-color: #ffebee;
-      border-left: 4px solid #f44336;
-      padding: 12px;
-      margin: 16px 0;
-      border-radius: 4px;
-      color: #c62828;
-      font-size: 14px;
-    }
-
-    .success-message {
-      background-color: #e8f5e9;
-      border-left: 4px solid #4caf50;
-      padding: 16px;
-      margin: 16px 0;
-      border-radius: 4px;
-      color: #2e7d32;
-      font-size: 14px;
-      line-height: 1.6;
-    }
-
-    .info-text {
-      color: #666;
-      font-size: 14px;
-      margin: 16px 0;
-      line-height: 1.6;
-    }
-
-    button {
-      margin-top: 16px;
-      height: 44px;
-      font-size: 15px;
-      text-transform: none;
-      font-weight: 500;
-    }
-
-    .footer-link {
-      margin-top: 18px;
-      text-align: center;
-      font-size: 14px;
-    }
-
-    .nav-link {
-      color: #4338ca;
-      font-weight: 700;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .nav-link:hover {
-      text-decoration: underline;
-    }
-
-    .footer-link a {
-      color: #3b82f6;
-      font-weight: 600;
-      text-decoration: none;
-    }
-
-    .footer-link a:hover {
-      text-decoration: underline;
-    }
-
-    .spinner-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    @media (max-width: 768px) {
-      .nav-inner {
-        padding: 0 16px;
+        <button class="auth-submit" type="button" (click)="onRedirectToLogin()">Go to sign in</button>
       }
-
-      .brand-link {
-        gap: 8px;
-      }
-
-      .brand-text {
-        display: none;
-      }
-
-      .auth-main {
-        padding: 16px 12px 32px;
-      }
-
-      .auth-card-wrapper {
-        margin-top: 56px;
-      }
-
-      .reset-card {
-        border-radius: 20px;
-      }
-
-      .reset-phase {
-        padding: 16px;
-      }
-    }
-
-    mat-spinner {
-      display: inline-block;
-    }
-  `]
+    </app-auth-shell>
+  `
 })
 export class PasswordResetComponent implements OnInit {
+  private formBuilder = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private route = inject(ActivatedRoute);
+  private router = inject(Router);
+
   requestForm: FormGroup;
   confirmForm: FormGroup;
-  resetToken: string | null = null;
-  requestLoading = false;
-  confirmLoading = false;
-  requestError: string | null = null;
-  confirmError: string | null = null;
-  requestSubmitted = false;
-  resetSuccess = false;
 
-  constructor(
-    private formBuilder: FormBuilder,
-    private authService: AuthService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) {
+  requestLoading = signal(false);
+  confirmLoading = signal(false);
+  requestError = signal<string | null>(null);
+  confirmError = signal<string | null>(null);
+  requestSubmitted = signal(false);
+  resetSuccess = signal(false);
+  showPassword = signal(false);
+
+  constructor() {
     this.requestForm = this.formBuilder.group({
       email: ['', [Validators.required, Validators.email]],
       verification: ['', [Validators.required, Validators.pattern(/^2$/)]]
@@ -423,83 +264,108 @@ export class PasswordResetComponent implements OnInit {
         newPassword: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', Validators.required]
       },
-      { validators: this.passwordMatchValidator }
+      { validators: passwordMatchValidator }
     );
   }
 
-  ngOnInit() {
-    // Check if token is in URL query params
+  ngOnInit(): void {
+    // A token in the URL means the visitor followed the emailed link, so skip
+    // straight to choosing a new password.
     this.route.queryParams.subscribe(params => {
       const urlToken = params['token'] || null;
       if (urlToken) {
-        this.resetToken = urlToken;
         this.confirmForm.patchValue({ token: urlToken });
-        this.requestSubmitted = true;
+        this.requestSubmitted.set(true);
       }
     });
   }
 
-  // Validator: check if passwords match
-  passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
-    const password = group.get('newPassword')?.value;
-    const confirm = group.get('confirmPassword')?.value;
-    return password === confirm ? null : { passwordMismatch: true };
+  headingFor(): string {
+    if (this.resetSuccess()) return 'All set';
+    return this.requestSubmitted() ? 'Choose a new password' : 'Reset your password';
   }
 
-  onRequestSubmit() {
+  subheadingFor(): string {
+    if (this.resetSuccess()) return '';
+    return this.requestSubmitted()
+      ? 'Enter the code we emailed you, then pick a new password.'
+      : 'Enter your email address and we will send you a verification code.';
+  }
+
+  /** Errors are held back until the field has been interacted with. */
+  showError(control: AbstractControl | null): boolean {
+    return !!control && control.invalid && (control.touched || control.dirty);
+  }
+
+  mismatch(): boolean {
+    const confirm = this.confirmForm.get('confirmPassword');
+    return this.confirmForm.hasError('passwordMismatch') && !!confirm && (confirm.touched || confirm.dirty);
+  }
+
+  onRequestSubmit(): void {
     if (this.requestForm.invalid) {
+      this.requestForm.markAllAsTouched();
       return;
     }
 
-    this.requestLoading = true;
-    this.requestError = null;
-    const email = this.requestForm.get('email')?.value;
+    this.requestLoading.set(true);
+    this.requestError.set(null);
 
-    this.authService.requestPasswordReset(email).subscribe({
+    this.authService.requestPasswordReset(this.requestForm.get('email')?.value).subscribe({
       next: () => {
-        this.requestLoading = false;
-        this.requestSubmitted = true;
+        this.requestLoading.set(false);
+        this.requestSubmitted.set(true);
       },
-      error: (error) => {
-        this.requestLoading = false;
-        this.requestError = typeof error.error === 'string'
-          ? error.error
-          : error.error?.message || 'Failed to send reset code. Please try again.';
+      error: error => {
+        this.requestLoading.set(false);
+        this.requestError.set(
+          typeof error?.error === 'string'
+            ? error.error
+            : error?.error?.message || 'Failed to send the reset code. Please try again.'
+        );
       }
     });
   }
 
-  onBackToRequest() {
-    this.requestSubmitted = false;
+  onBackToRequest(): void {
+    this.requestSubmitted.set(false);
     this.requestForm.reset();
     this.confirmForm.reset();
-    this.requestError = null;
-    this.confirmError = null;
+    this.requestError.set(null);
+    this.confirmError.set(null);
   }
 
-  onConfirmSubmit() {
+  onConfirmSubmit(): void {
     if (this.confirmForm.invalid) {
+      this.confirmForm.markAllAsTouched();
       return;
     }
 
-    this.confirmLoading = true;
-    this.confirmError = null;
+    this.confirmLoading.set(true);
+    this.confirmError.set(null);
+
     const token = this.confirmForm.get('token')?.value;
     const newPassword = this.confirmForm.get('newPassword')?.value;
 
     this.authService.confirmPasswordReset(token, newPassword).subscribe({
       next: () => {
-        this.confirmLoading = false;
-        this.resetSuccess = true;
+        this.confirmLoading.set(false);
+        this.resetSuccess.set(true);
       },
-      error: (error) => {
-        this.confirmLoading = false;
-        this.confirmError = error.error?.message || 'Failed to reset password. Please try again.';
+      error: error => {
+        this.confirmLoading.set(false);
+        this.confirmError.set(error?.error?.message || 'Failed to reset the password. Please try again.');
       }
     });
   }
 
-  onRedirectToLogin() {
+  onRedirectToLogin(): void {
     this.router.navigate(['/login']);
   }
+}
+
+function passwordMatchValidator(group: AbstractControl): { [key: string]: boolean } | null {
+  const password = group.get('newPassword')?.value;
+  const confirm = group.get('confirmPassword')?.value;
+  return password === confirm ? null : { passwordMismatch: true };
 }

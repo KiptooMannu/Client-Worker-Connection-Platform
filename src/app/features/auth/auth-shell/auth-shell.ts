@@ -2,7 +2,7 @@ import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
-type AuthMode = 'login' | 'register';
+type AuthMode = 'login' | 'register' | 'reset';
 
 interface ShowcaseCopy {
   eyebrow: string;
@@ -167,6 +167,20 @@ export class AuthShellComponent {
       ],
       footnote: 'Verification is manual and usually completes within one business day.',
       image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&w=1200&q=70'
+    },
+    reset: {
+      eyebrow: 'Account recovery',
+      title: 'Let’s get you back in.',
+      lede:
+        'We will email you a six-digit code to confirm it is really you, then you ' +
+        'can choose a new password.',
+      points: [
+        'The code expires shortly after it is sent',
+        'Your existing sessions stay signed out until you reset',
+        'Nobody on our team can see your password'
+      ],
+      footnote: 'Didn’t request this? You can safely ignore the email — nothing changes until the code is used.',
+      image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1200&q=70'
     }
   };
 

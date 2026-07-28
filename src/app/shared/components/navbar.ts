@@ -201,9 +201,22 @@ import { WebSocketService } from '../../core/services/websocket.service';
             </div>
           }
 
-          <!-- Mobile Menu Toggle -->
-          <button (click)="toggleMobileMenu()" class="lg:hidden p-2 text-slate-600 hover:text-brand-teal transition-colors rounded-lg hover:bg-slate-50">
-            <mat-icon>{{ isMobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
+          <!-- Mobile Menu Toggle: three bars that fold into a cross, so the
+               control itself shows whether the menu is open. -->
+          <button
+            type="button"
+            class="nav-burger lg:hidden"
+            [class.is-open]="isMobileMenuOpen()"
+            (click)="toggleMobileMenu()"
+            [attr.aria-label]="isMobileMenuOpen() ? 'Close menu' : 'Open menu'"
+            [attr.aria-expanded]="isMobileMenuOpen()"
+            aria-controls="mobile-menu"
+          >
+            <span class="nav-burger-box" aria-hidden="true">
+              <span class="nav-burger-bar"></span>
+              <span class="nav-burger-bar"></span>
+              <span class="nav-burger-bar"></span>
+            </span>
           </button>
         </div>
       </div>
@@ -245,92 +258,157 @@ import { WebSocketService } from '../../core/services/websocket.service';
       <div class="lg:hidden h-16"></div>
     }
 
-    <!-- Mobile Menu Overlay -->
-    @if (isMobileMenuOpen()) {
-      <div class="fixed inset-0 top-16 md:top-20 z-50 lg:hidden animate-in slide-in-from-top duration-300">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" (click)="toggleMobileMenu()"></div>
-        <nav class="relative bg-brand-teal flex flex-col p-6 gap-4 shadow-2xl max-h-[calc(100vh-64px)] overflow-y-auto">
-          <div class="flex items-center justify-between mb-2">
-            <div>
-              <p class="text-[10px] uppercase tracking-[0.3em] text-white/70 font-black mb-1">Menu</p>
-              <h2 class="text-xl font-black text-white">KaziKonnect</h2>
-            </div>
-            <button (click)="toggleMobileMenu()" class="text-white/80 hover:text-white transition-colors p-2">
-              <mat-icon>close</mat-icon>
-            </button>
+    <!--
+      Mobile menu: a right-anchored drawer rather than the previous full-width
+      teal sheet. Rows carry icons and sit in labelled groups so the menu can be
+      scanned instead of read, the current route is highlighted, and the sign-in
+      actions are pinned to the bottom where a thumb reaches.
+
+      It stays mounted and is driven by a class so it animates both open and
+      closed; the inert attribute keeps the hidden state out of the tab order
+      and the accessibility tree.
+    -->
+    <div
+      class="nav-scrim lg:hidden"
+      [class.is-open]="isMobileMenuOpen()"
+      (click)="closeMobileMenu()"
+      aria-hidden="true"
+    ></div>
+
+    <aside
+      id="mobile-menu"
+      class="nav-drawer lg:hidden"
+      [class.is-open]="isMobileMenuOpen()"
+      [attr.inert]="isMobileMenuOpen() ? null : ''"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Main menu"
+    >
+      <div class="nav-drawer-head">
+        @if (auth.isAuthenticated()) {
+          <div class="nav-user">
+            <span class="nav-avatar" aria-hidden="true">{{ userInitials() }}</span>
+            <span class="nav-user-text">
+              <span class="nav-user-name">{{ auth.currentUser()?.name || 'Your account' }}</span>
+              <span class="nav-user-role">{{ auth.userRole() }}</span>
+            </span>
           </div>
-
-          <div class="flex flex-col gap-2">
-            @if (!auth.isAuthenticated()) {
-              <a [routerLink]="['/']" fragment="about" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 transition-all">
-                About Us
-              </a>
-              <a [routerLink]="['/']" fragment="faq" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 transition-all">
-                FAQ
-              </a>
-              <a [routerLink]="['/']" fragment="contact" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl bg-white/10 border border-white/15 hover:bg-white/20 transition-all">
-                Contact
-              </a>
-              <div class="h-px bg-white/20 my-2"></div>
-            }
-
-            @if (!auth.isAuthenticated() || auth.userRole() === 'Worker') {
-              <a routerLink="/worker/dashboard" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
-                Find Jobs
-              </a>
-            }
-            @if (!auth.isAuthenticated() || auth.userRole() === 'Client') {
-              <!-- FIX: was /employer/marketplace -->
-              <a routerLink="/client/marketplace" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
-                Hire Workers
-              </a>
-            }
-
-            @if (!auth.isAuthenticated()) {
-              <a routerLink="/enterprise" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
-                For Business
-              </a>
-              <a routerLink="/solutions" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
-                How it Works
-              </a>
-              <div class="h-px bg-white/20 my-2"></div>
-              <a routerLink="/login" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl bg-white/20 border border-white/30">
-                Log In
-              </a>
-              <a routerLink="/register" (click)="toggleMobileMenu()" class="text-brand-teal font-bold py-3 px-4 rounded-xl bg-white">
-                Sign Up
-              </a>
-            }
-
-            @if (auth.userRole() === 'Client') {
-              <!-- FIX: was /client/bookings (this one was already correct in mobile menu) -->
-              <a routerLink="/client/bookings" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
-                My Bookings
-              </a>
-              <!-- FIX: added missing messages link for mobile menu -->
-              <a routerLink="/client/messages" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
-                Messages
-              </a>
-            }
-            @if (auth.userRole() === 'Worker') {
-              <a routerLink="/worker/history" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
-                My Jobs
-              </a>
-              <a routerLink="/worker/messages" (click)="toggleMobileMenu()" class="text-white font-bold py-3 px-4 rounded-xl hover:bg-white/10 transition-all">
-                Messages
-              </a>
-            }
-
-            @if (auth.isAuthenticated()) {
-              <div class="h-px bg-white/20 my-2"></div>
-              <button (click)="logoutAndCloseMenu()" class="text-rose-300 font-bold py-3 px-4 rounded-xl text-left hover:bg-rose-500/20 transition-all">
-                Log Out
-              </button>
-            }
+        } @else {
+          <div class="nav-user-text">
+            <span class="nav-drawer-eyebrow">Menu</span>
+            <span class="nav-user-name">KaziKonnect</span>
           </div>
-        </nav>
+        }
+        <button type="button" class="nav-drawer-close" (click)="closeMobileMenu()" aria-label="Close menu">
+          <mat-icon>close</mat-icon>
+        </button>
       </div>
-    }
+
+      <nav class="nav-drawer-body">
+        @if (!auth.isAuthenticated()) {
+          <p class="nav-section" id="grp-explore">Explore</p>
+          <a class="nav-row" routerLink="/worker/dashboard" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">work</mat-icon>
+            <span class="nav-row-label">Find Jobs</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+          <a class="nav-row" routerLink="/client/marketplace" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">groups</mat-icon>
+            <span class="nav-row-label">Hire Workers</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+          <a class="nav-row" routerLink="/enterprise" routerLinkActive="is-active" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">corporate_fare</mat-icon>
+            <span class="nav-row-label">For Business</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+          <a class="nav-row" routerLink="/solutions" routerLinkActive="is-active" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">route</mat-icon>
+            <span class="nav-row-label">How it Works</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+
+          <p class="nav-section">Company</p>
+          <a class="nav-row" [routerLink]="['/']" fragment="about" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">info</mat-icon>
+            <span class="nav-row-label">About Us</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+          <a class="nav-row" [routerLink]="['/']" fragment="faq" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">help</mat-icon>
+            <span class="nav-row-label">FAQ</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+          <a class="nav-row" [routerLink]="['/']" fragment="contact" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">mail</mat-icon>
+            <span class="nav-row-label">Contact</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+        } @else {
+          <p class="nav-section">Your workspace</p>
+          <a class="nav-row" [routerLink]="getDashboardPath()" routerLinkActive="is-active" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">home</mat-icon>
+            <span class="nav-row-label">Dashboard</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+
+          @if (auth.userRole() === 'Worker') {
+            <a class="nav-row" routerLink="/worker/dashboard" routerLinkActive="is-active" (click)="closeMobileMenu()">
+              <mat-icon class="nav-row-icon">work</mat-icon>
+              <span class="nav-row-label">Find Jobs</span>
+              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+            </a>
+            <a class="nav-row" routerLink="/worker/history" routerLinkActive="is-active" (click)="closeMobileMenu()">
+              <mat-icon class="nav-row-icon">history</mat-icon>
+              <span class="nav-row-label">My Jobs</span>
+              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+            </a>
+          }
+
+          @if (auth.userRole() === 'Client') {
+            <a class="nav-row" routerLink="/client/marketplace" routerLinkActive="is-active" (click)="closeMobileMenu()">
+              <mat-icon class="nav-row-icon">groups</mat-icon>
+              <span class="nav-row-label">Hire Workers</span>
+              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+            </a>
+            <a class="nav-row" routerLink="/client/bookings" routerLinkActive="is-active" (click)="closeMobileMenu()">
+              <mat-icon class="nav-row-icon">event_note</mat-icon>
+              <span class="nav-row-label">My Bookings</span>
+              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+            </a>
+          }
+
+          <a class="nav-row" [routerLink]="getMessagesPath()" routerLinkActive="is-active" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">chat_bubble</mat-icon>
+            <span class="nav-row-label">Messages</span>
+            @if (state.unreadMessagesCount() > 0) {
+              <span class="nav-row-badge">{{ state.unreadMessagesCount() > 9 ? '9+' : state.unreadMessagesCount() }}</span>
+            } @else {
+              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+            }
+          </a>
+
+          <p class="nav-section">Account</p>
+          <a class="nav-row" [routerLink]="getSettingsPath()" routerLinkActive="is-active" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">settings</mat-icon>
+            <span class="nav-row-label">Account Settings</span>
+            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+          </a>
+        }
+      </nav>
+
+      <div class="nav-drawer-foot">
+        @if (auth.isAuthenticated()) {
+          <button type="button" class="nav-cta nav-cta--danger" (click)="logoutAndCloseMenu()">
+            <mat-icon class="nav-row-icon">logout</mat-icon>
+            Log Out
+          </button>
+        } @else {
+          <a class="nav-cta nav-cta--primary" routerLink="/register" (click)="closeMobileMenu()">Sign Up</a>
+          <a class="nav-cta nav-cta--ghost" routerLink="/login" (click)="closeMobileMenu()">Log In</a>
+        }
+      </div>
+    </aside>
   `,
   styles: [`
     .active-link {
@@ -367,6 +445,245 @@ import { WebSocketService } from '../../core/services/websocket.service';
     .safe-bottom {
       padding-bottom: env(safe-area-inset-bottom, 0.5rem);
     }
+
+    /* ── Hamburger ─────────────────────────────────────────────────────────
+       Three bars that rotate into a cross. The outer bars translate to the
+       centre line and rotate; the middle one fades and contracts, so the
+       transition reads as a fold rather than a swap. */
+    .nav-burger {
+      display: grid;
+      place-items: center;
+      width: 2.6rem;
+      height: 2.6rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.8rem;
+      background: #fff;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease;
+    }
+    .nav-burger:hover { background: #f8fafc; border-color: #cbd5e1; }
+    .nav-burger:focus-visible { outline: 2px solid var(--brand-teal, #29b2c7); outline-offset: 2px; }
+
+    .nav-burger-box { position: relative; width: 1.15rem; height: 0.8rem; }
+    .nav-burger-bar {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      border-radius: 999px;
+      background: #334155;
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease, top 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-burger-bar:nth-child(1) { top: 0; }
+    .nav-burger-bar:nth-child(2) { top: calc(50% - 1px); }
+    .nav-burger-bar:nth-child(3) { top: calc(100% - 2px); }
+
+    .nav-burger.is-open .nav-burger-bar { background: var(--brand-teal, #29b2c7); }
+    .nav-burger.is-open .nav-burger-bar:nth-child(1) { top: calc(50% - 1px); transform: rotate(45deg); }
+    .nav-burger.is-open .nav-burger-bar:nth-child(2) { opacity: 0; transform: scaleX(0.2); }
+    .nav-burger.is-open .nav-burger-bar:nth-child(3) { top: calc(50% - 1px); transform: rotate(-45deg); }
+
+    /* ── Drawer ────────────────────────────────────────────────────────── */
+    .nav-scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 100000;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(2px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.28s ease, visibility 0.28s ease;
+    }
+    .nav-scrim.is-open { opacity: 1; visibility: visible; }
+
+    .nav-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 100001;
+      display: flex;
+      flex-direction: column;
+      width: 87%;
+      max-width: 21rem;
+      background: #fff;
+      border-radius: 1.25rem 0 0 1.25rem;
+      box-shadow: -20px 0 60px -20px rgba(15, 23, 42, 0.4);
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .nav-drawer.is-open { transform: translateX(0); }
+
+    .nav-drawer-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      padding: 1.1rem 1.15rem;
+      border-bottom: 1px solid #eef2f7;
+    }
+
+    .nav-user { display: flex; align-items: center; gap: 0.7rem; min-width: 0; }
+    .nav-avatar {
+      display: grid;
+      place-items: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      flex: none;
+      border-radius: 50%;
+      background: var(--brand-teal, #29b2c7);
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 900;
+    }
+    .nav-user-text { display: flex; flex-direction: column; min-width: 0; }
+    .nav-drawer-eyebrow {
+      font-size: 0.6rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.22em;
+      color: #94a3b8;
+    }
+    .nav-user-name {
+      font-size: 0.95rem;
+      font-weight: 800;
+      color: #0f172a;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .nav-user-role {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--brand-teal, #29b2c7);
+    }
+
+    .nav-drawer-close {
+      display: grid;
+      place-items: center;
+      width: 2.3rem;
+      height: 2.3rem;
+      flex: none;
+      border: 0;
+      border-radius: 0.7rem;
+      background: #f1f5f9;
+      color: #475569;
+      cursor: pointer;
+      transition: background 0.18s ease, color 0.18s ease;
+    }
+    .nav-drawer-close:hover { background: #e2e8f0; color: #0f172a; }
+    .nav-drawer-close mat-icon { font-size: 1.25rem !important; width: auto !important; height: auto !important; }
+
+    .nav-drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 0.75rem 0.7rem 1rem;
+    }
+
+    .nav-section {
+      margin: 0.9rem 0 0.4rem;
+      padding: 0 0.55rem;
+      font-size: 0.6rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #a8b4c4;
+    }
+    .nav-section:first-child { margin-top: 0.2rem; }
+
+    .nav-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 0.55rem;
+      border-radius: 0.8rem;
+      text-decoration: none;
+      color: #0f172a;
+      font-size: 0.9rem;
+      font-weight: 700;
+      transition: background 0.16s ease, color 0.16s ease;
+    }
+    .nav-row:hover { background: #f6f8fa; }
+    .nav-row:active { background: #eef2f7; }
+
+    /* Current route: teal wash plus a leading rule, so position is obvious at a
+       glance without relying on colour alone. */
+    .nav-row.is-active {
+      background: var(--brand-teal-soft, #eaf7f9);
+      color: var(--brand-teal-dark, #1f8999);
+      box-shadow: inset 3px 0 0 var(--brand-teal, #29b2c7);
+    }
+    .nav-row.is-active .nav-row-icon { color: var(--brand-teal, #29b2c7); }
+
+    .nav-row-label { flex: 1; min-width: 0; }
+
+    .nav-row-icon {
+      flex: none;
+      color: #94a3b8;
+      font-size: 1.3rem !important;
+      width: auto !important;
+      height: auto !important;
+    }
+    .nav-row-chevron {
+      flex: none;
+      color: #cbd5e1;
+      font-size: 1.15rem !important;
+      width: auto !important;
+      height: auto !important;
+    }
+
+    .nav-row-badge {
+      flex: none;
+      min-width: 1.3rem;
+      padding: 0.1rem 0.4rem;
+      border-radius: 999px;
+      background: var(--brand-teal, #29b2c7);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 900;
+      text-align: center;
+    }
+
+    .nav-drawer-foot {
+      display: grid;
+      gap: 0.55rem;
+      padding: 0.9rem 1.15rem;
+      padding-bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid #eef2f7;
+      background: #fff;
+    }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      height: 2.9rem;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+    }
+    .nav-cta--primary { background: var(--brand-teal, #29b2c7); color: #fff; }
+    .nav-cta--primary:hover { background: var(--brand-teal-dark, #1f8999); }
+    .nav-cta--ghost { background: #fff; color: var(--brand-teal, #29b2c7); border-color: var(--brand-teal, #29b2c7); }
+    .nav-cta--ghost:hover { background: var(--brand-teal-soft, #eaf7f9); }
+    .nav-cta--danger { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+    .nav-cta--danger:hover { background: #ffe4e6; }
+    .nav-cta--danger .nav-row-icon { color: #be123c; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .nav-drawer, .nav-scrim, .nav-burger-bar { transition-duration: 0.01ms; }
+    }
   `]
 })
 export class NavbarComponent implements OnInit, OnDestroy {
@@ -389,15 +706,13 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (typeof window !== 'undefined') {
-      window.addEventListener('scroll', this.handleScroll.bind(this));
-
+      // Scroll is observed through the @HostListener below rather than a manual
+      // addEventListener: the previous pairing passed a fresh `.bind(this)` to
+      // both add and remove, so the listener was registered twice over and
+      // never actually detached on destroy.
       this.routerSubscription = this.router.events.pipe(
         filter(event => event instanceof NavigationEnd)
-      ).subscribe(() => {
-        if (this.isMobileMenuOpen()) {
-          this.isMobileMenuOpen.set(false);
-        }
-      });
+      ).subscribe(() => this.closeMobileMenu());
     }
 
     // Update notification count for workers (pending job requests)
@@ -407,10 +722,9 @@ export class NavbarComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('scroll', this.handleScroll.bind(this));
-    }
     this.routerSubscription?.unsubscribe();
+    // Never leave the page unscrollable if the drawer was open at teardown.
+    this.setScrollLock(false);
   }
 
   @HostListener('window:scroll')
@@ -418,20 +732,40 @@ export class NavbarComponent implements OnInit, OnDestroy {
     this.isScrolled.set(window.scrollY > 10);
   }
 
+  /** Escape closes the drawer, as expected of anything modal. */
+  @HostListener('document:keydown.escape')
+  onEscapeKey() {
+    this.closeMobileMenu();
+  }
+
   toggleMobileMenu() {
     this.isMobileMenuOpen.update(v => !v);
-    if (this.isMobileMenuOpen()) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
+    this.setScrollLock(this.isMobileMenuOpen());
+  }
+
+  closeMobileMenu() {
+    if (!this.isMobileMenuOpen()) return;
+    this.isMobileMenuOpen.set(false);
+    this.setScrollLock(false);
+  }
+
+  private setScrollLock(locked: boolean) {
+    if (typeof document === 'undefined') return;
+    document.body.style.overflow = locked ? 'hidden' : '';
+  }
+
+  /** Up to two letters for the drawer avatar: first and last name where given. */
+  userInitials(): string {
+    const name = this.auth.currentUser()?.name?.trim();
+    if (!name) return '?';
+    const parts = name.split(/\s+/).filter(Boolean);
+    const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : parts[0].slice(0, 2);
+    return letters.toUpperCase();
   }
 
   logout() {
     this.auth.logout();
-    if (this.isMobileMenuOpen()) {
-      this.isMobileMenuOpen.set(false);
-    }
+    this.closeMobileMenu();
   }
 
   logoutAndCloseMenu() {
