@@ -189,12 +189,19 @@ export class AuthService {
   }
 
   private redirectByRole(role: UserRole) {
-    switch (role) {
-      case 'Admin': this.router.navigate(['/admin']); break;
-      case 'Worker': this.router.navigate(['/worker']); break;
-      case 'Client': this.router.navigate(['/client']); break;
-      default: this.router.navigate(['/']);
-    }
+    const target =
+      role === 'Admin' ? '/admin' :
+      role === 'Worker' ? '/worker' :
+      role === 'Client' ? '/client' :
+      '/';
+
+    // This navigation loads a lazy chunk and can genuinely fail — most often when
+    // a new version has been deployed and this browser is still running the
+    // previous main bundle, so the chunk names it asks for no longer exist. The
+    // rejection is caught here to keep it out of the console as an unhandled
+    // promise; recovery belongs to AppComponent, which listens for NavigationError
+    // and reloads once into the target route.
+    this.router.navigate([target]).catch(() => { /* handled via NavigationError */ });
   }
 
   /**
