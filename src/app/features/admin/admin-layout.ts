@@ -129,9 +129,11 @@ export class AdminLayout {
 
   menuItems = [
     { path: 'dashboard',    label: 'Overview',     icon: 'grid_view' },
+    { path: 'analytics',    label: 'Analytics',    icon: 'insert_chart' },
     { path: 'jobs',         label: 'Job Tracker',  icon: 'track_changes' },
     { path: 'disputes',     label: 'Disputes',     icon: 'gavel' },
     { path: 'fees',         label: 'Platform Fees', icon: 'payments' },
+    { path: 'platform-revenue', label: 'Revenue Wallet', icon: 'account_balance_wallet' },
     { path: 'verification', label: 'Verify Users', icon: 'fact_check' },
     { path: 'users',        label: 'Users',        icon: 'people_alt' },
     { path: 'activity',     label: 'Activity',     icon: 'insights' },

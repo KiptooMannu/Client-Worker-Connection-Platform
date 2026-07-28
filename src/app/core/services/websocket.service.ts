@@ -19,14 +19,14 @@ export class WebSocketService {
     // Automatically connect when user logs in
     this.auth.user$.subscribe((user: User | null) => {
       if (user) {
-        this.connect(user.id);
+        this.connect();
       } else {
         this.disconnect();
       }
     });
   }
 
-  private connect(userId: string) {
+  private connect() {
     if (this.stompClient && this.stompClient.active) return;
 
     // Use SockJS for compatibility
@@ -46,23 +46,22 @@ export class WebSocketService {
       console.log(`[WebSocket] ✅ Connected to ${environment.apiUrl.replace('/api', '')}/ws`);
       this.isConnected.set(true);
 
-      // Subscribe to personal message queue
-      this.stompClient?.subscribe(`/user/${userId}/queue/messages`, (message: IMessage) => {
-        const data = JSON.parse(message.body);
-        console.log('[WebSocket] New message received:', data);
-        this.handleIncomingMessage(data);
+      // Destinations are deliberately "/user/queue/..." with no id segment. Spring
+      // resolves "/user/**" subscriptions against the authenticated session, so adding
+      // an explicit id produces a destination the server never publishes to.
+      this.stompClient?.subscribe('/user/queue/messages', (message: IMessage) => {
+        this.handleIncomingMessage(JSON.parse(message.body));
       });
 
-      // Subscribe to typing indicators
-      this.stompClient?.subscribe(`/user/${userId}/queue/typing`, (message: IMessage) => {
+      this.stompClient?.subscribe('/user/queue/typing', (message: IMessage) => {
         const data = JSON.parse(message.body);
         this.state.setRemoteTyping(data.senderId, data.typing);
       });
 
-      // Subscribe to global notifications
-      this.stompClient?.subscribe('/topic/notifications', (message: IMessage) => {
-        const data = JSON.parse(message.body);
-        this.state.notifications.update(n => [data, ...n]);
+      // Per-user queue, not a global topic: /topic/notifications would have fanned
+      // every user's notifications out to every connected client.
+      this.stompClient?.subscribe('/user/queue/notifications', (message: IMessage) => {
+        this.state.addRealTimeNotification(JSON.parse(message.body));
       });
     };
 

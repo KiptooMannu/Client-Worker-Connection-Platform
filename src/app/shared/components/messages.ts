@@ -2060,11 +2060,9 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     effect(() => {
       if (!isPlatformBrowser(this.platformId)) return;
       const clientId = this.route.snapshot.queryParamMap.get('clientId');
-      console.log('Messages component - clientId from query:', clientId);
       if (clientId) {
         // Find the user in the contact list
         const user = this.allUsers().find(u => u.id === clientId);
-        console.log('Found user in allUsers:', user);
         if (user) {
           this.selectUser(user);
         } else {
@@ -2073,7 +2071,6 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
           // Wait a bit and try again
           setTimeout(() => {
             const found = this.allUsers().find(u => u.id === clientId);
-            console.log('Found user after reload:', found);
             if (found) {
               this.selectUser(found);
             }
@@ -2233,7 +2230,6 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     if (user.role === 'Admin') {
       // Use cached users if available to prevent redundant heavy requests
       if (this.state.allUsers().length > 0) {
-        console.log('[Messages] Using cached admin users:', this.state.allUsers().length);
         this.isSearching.set(false);
         return;
       }
@@ -2322,7 +2318,6 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     }
 
     const startTime = Date.now();
-    console.log(`[Search] Started at ${new Date(startTime).toLocaleTimeString()}`);
 
     const localResults = this.allUsers().filter(u =>
       u.username.toLowerCase().includes(query.toLowerCase()) ||
@@ -2330,7 +2325,6 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     );
 
     if (localResults.length > 0) {
-      console.log(`[Search] Local results found: ${localResults.length} users`);
       this.searchResults.set(localResults);
       this.isSearching.set(false);
 
@@ -2339,8 +2333,6 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
         { timeout: 20000 }
       ).subscribe({
         next: (res: any) => {
-          const duration = Date.now() - startTime;
-          console.log(`[Search] Server search completed in ${duration}ms`);
           const list: any[] = res.content ?? res;
           const serverResults = list
             .filter(u => u.id !== this.currentUserId())
@@ -2370,8 +2362,6 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
       `${this.apiUrl}/messages/contacts/search?q=${encodeURIComponent(query)}&page=0&size=20`
     ).pipe(timeout(20000)).subscribe({
       next: (res: any) => {
-        const duration = Date.now() - startTime;
-        console.log(`[Search] Server search completed in ${duration}ms`);
         const list: any[] = res.content ?? res;
         this.searchResults.set(
           list
@@ -2501,33 +2491,25 @@ export class SharedMessagesComponent implements OnDestroy, AfterViewInit {
     if (!selected) return;
 
     const role = this.currentUserRole();
-    console.log('loadJobOffer - role:', role, 'selected user:', selected.id);
     let bookings: any[] = [];
 
     if (role === 'Worker') {
       bookings = this.state.workerBookings();
-      console.log('Worker bookings:', bookings.length);
     } else if (role === 'Client') {
       bookings = this.state.clientBookings();
-      console.log('Client bookings:', bookings.length);
     } else {
-      console.log('Unknown role:', role);
       this.currentJobOffer.set(null);
       return;
     }
 
-    console.log('All bookings:', bookings);
-    console.log('Looking for bookings with user:', selected.id);
 
     // Find active job with this user
     const jobOffer = bookings.find(b => {
       const matchesUser = role === 'Worker' ? b.clientId === selected.id : b.workerId === selected.id;
       const hasOffer = b.status === 'Pending' || b.status === 'Negotiating' || b.negotiatedPrice || b.clientCounterOffer;
-      console.log('Booking check:', b.id, 'matchesUser:', matchesUser, 'hasOffer:', hasOffer, 'status:', b.status);
       return matchesUser && hasOffer;
     });
 
-    console.log('Found job offer:', jobOffer);
     this.currentJobOffer.set(jobOffer || null);
   }
 

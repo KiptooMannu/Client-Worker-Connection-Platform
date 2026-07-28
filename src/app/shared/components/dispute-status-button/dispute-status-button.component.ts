@@ -28,14 +28,7 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
           File Dispute
       </button>
 
-      <button *ngIf="!hasDispute && !canFileDispute && disputeBlockedReason"
-              mat-stroked-button color="warn"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest"
-              disabled
-              [matTooltip]="disputeBlockedReason">
-          <mat-icon>block</mat-icon>
-          Dispute Unavailable
-      </button>
+
 
       <button *ngIf="hasDispute && !isResolved" 
               mat-raised-button color="accent"

@@ -41,6 +41,15 @@ export interface StkPushResponse {
   message: string;
 }
 
+/** Mirrors PaymentService.PaymentWalletResponse on the backend. */
+export interface WalletPaymentResponse {
+  status: 'SUCCESS' | 'PENDING_MPESA';
+  paidViaWallet: number;
+  paidViaMpesa: number;
+  checkoutRequestId: string | null;
+  message: string;
+}
+
 export const PAYMENT_FAILURE_MESSAGES: Record<string, string> = {
   'WRONG_PIN':          'Incorrect M-Pesa PIN. Please try again.',
   'INSUFFICIENT_FUNDS': 'Insufficient funds in your M-Pesa account.',
@@ -161,6 +170,19 @@ export class PaymentService {
 
   getWalletBalance(): Observable<any> {
     return this.http.get(`${environment.apiUrl}/wallet/balance`);
+  }
+
+  /**
+   * Funds a job using the client's settlement wallet balance. When the balance
+   * does not cover the full amount the backend debits what is available and
+   * raises an STK push for the shortfall, reported via `paidViaMpesa`.
+   */
+  payWithWallet(jobId: string, useWallet: boolean, phoneNumber?: string): Observable<WalletPaymentResponse> {
+    return this.http.post<WalletPaymentResponse>(`${this.BASE}/wallet/pay`, {
+      jobId,
+      useWallet,
+      phoneNumber: phoneNumber || null
+    });
   }
 
   getPaymentReceipt(jobId: string): Observable<any> {

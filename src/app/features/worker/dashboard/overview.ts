@@ -30,11 +30,78 @@ import { FormsModule } from '@angular/forms';
   ],
   template: `
     @if (worker().status === 'loading' || !worker().id) {
-      <!-- Loading State -->
-      <div class="flex items-center justify-center min-h-[60vh]">
-        <div class="text-center space-y-4">
-          <mat-icon class="!text-6xl text-brand-teal animate-spin">sync</mat-icon>
-          <p class="text-sm font-bold text-brand-teal uppercase tracking-widest">Loading Dashboard...</p>
+      <!-- Skeleton mirrors the real layout below so the dashboard never flashes an
+           empty shell or a bare centred spinner while the profile resolves. -->
+      <div class="space-y-8 font-manrope" aria-busy="true" aria-live="polite">
+        <span class="sr-only">Loading your dashboard</span>
+
+        <!-- Hero placeholder -->
+        <section>
+          <div class="rounded-[1.5rem] bg-brand-teal/10 p-6 md:p-8 min-h-[260px] flex flex-col justify-between animate-pulse">
+            <div class="space-y-4">
+              <div class="h-6 w-32 rounded-full bg-brand-teal/20"></div>
+              <div class="h-10 w-3/4 max-w-lg rounded-xl bg-brand-teal/20"></div>
+              <div class="h-4 w-1/2 max-w-md rounded-lg bg-brand-teal/15"></div>
+            </div>
+            <div class="flex flex-wrap gap-12 mt-8">
+              @for (stat of skeletonRows(2); track $index) {
+                <div class="space-y-2">
+                  <div class="h-3 w-24 rounded bg-brand-teal/15"></div>
+                  <div class="h-8 w-16 rounded-lg bg-brand-teal/20"></div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <div class="flex flex-col lg:flex-row gap-10 items-start">
+          <!-- Job request rows placeholder -->
+          <div class="flex-1 w-full space-y-10 min-w-0">
+            <section>
+              <div class="flex justify-between items-center mb-6 px-4 animate-pulse">
+                <div class="h-6 w-52 rounded-lg bg-brand-teal/20"></div>
+                <div class="h-6 w-20 rounded-full bg-brand-teal/15"></div>
+              </div>
+              <div class="space-y-1">
+                @for (row of skeletonRows(4); track $index) {
+                  <div class="flex items-center justify-between p-4 bg-surface border-b border-outline-variant/30 animate-pulse">
+                    <div class="flex items-center gap-4 min-w-0">
+                      <div class="w-12 h-12 rounded-full bg-brand-teal/15 shrink-0"></div>
+                      <div class="space-y-2 min-w-0">
+                        <div class="h-4 w-40 rounded bg-brand-teal/20"></div>
+                        <div class="h-3 w-24 rounded bg-brand-teal/10"></div>
+                      </div>
+                    </div>
+                    <div class="hidden sm:flex items-center gap-3 shrink-0">
+                      <div class="h-8 w-20 rounded-lg bg-brand-teal/15"></div>
+                      <div class="h-8 w-20 rounded-lg bg-brand-teal/10"></div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </section>
+
+            <!-- Chart placeholders -->
+            <section class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              @for (chart of skeletonRows(2); track $index) {
+                <div class="rounded-2xl border border-outline-variant/30 p-5 space-y-4 animate-pulse">
+                  <div class="h-4 w-36 rounded bg-brand-teal/20"></div>
+                  <div class="h-[200px] rounded-xl bg-brand-teal/10"></div>
+                </div>
+              }
+            </section>
+          </div>
+
+          <!-- Side column placeholder -->
+          <aside class="w-full lg:w-80 shrink-0 space-y-6">
+            @for (card of skeletonRows(3); track $index) {
+              <div class="rounded-2xl border border-outline-variant/30 p-5 space-y-3 animate-pulse">
+                <div class="h-3 w-28 rounded bg-brand-teal/15"></div>
+                <div class="h-8 w-24 rounded-lg bg-brand-teal/20"></div>
+                <div class="h-3 w-full rounded bg-brand-teal/10"></div>
+              </div>
+            }
+          </aside>
         </div>
       </div>
     } @else {
@@ -304,7 +371,7 @@ import { FormsModule } from '@angular/forms';
                     <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
                   </div>
                 } @else if (earningsData().length > 0) {
-                  <app-line-chart [data]="earningsData()" [view]="[400, 200]" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="true" [legendTitle]="'Metrics'"></app-line-chart>
+                  <app-line-chart [data]="earningsData()" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="true" [legendTitle]="'Metrics'"></app-line-chart>
                 } @else {
                   <div class="h-[200px] flex items-center justify-center">
                     <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No earnings data</p>
@@ -312,7 +379,7 @@ import { FormsModule } from '@angular/forms';
                 }
               </mat-card>
 
-              <mat-card class="!rounded-2xl !border !border-slate-100 !p-5 bg-white shadow-sm">
+              <mat-card class="!rounded-2xl !border !border-slate-100 !p-5 bg-white shadow-sm overflow-hidden">
                 <div class="flex items-center gap-2 mb-4">
                   <mat-icon class="!text-sm text-brand-teal">bar_chart</mat-icon>
                   <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Earnings by Period</span>
@@ -321,8 +388,8 @@ import { FormsModule } from '@angular/forms';
                   <div class="h-[200px] flex items-center justify-center">
                     <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
                   </div>
-                } @else if (earningsByPeriod().length > 0) {
-                  <app-bar-chart [data]="earningsByPeriod()" [view]="[400, 200]" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-bar-chart>
+                } @else if (earningsByPeriod.length > 0) {
+                  <app-bar-chart [data]="earningsByPeriod" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-bar-chart>
                 } @else {
                   <div class="h-[200px] flex items-center justify-center">
                     <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No period data</p>
@@ -488,6 +555,20 @@ import { FormsModule } from '@angular/forms';
 })
 export class WorkerDashboardOverviewPage implements OnInit {
   state = inject(PlatformStateService);
+
+  /** Fixed-length placeholder list for the loading skeleton's @for blocks. */
+  private readonly skeletonCache = new Map<number, number[]>();
+  skeletonRows(count: number): number[] {
+    // Cached so the array identity is stable across change detection and the
+    // skeleton rows are not torn down and rebuilt on every tick.
+    let rows = this.skeletonCache.get(count);
+    if (!rows) {
+      rows = Array.from({ length: count }, (_, i) => i);
+      this.skeletonCache.set(count, rows);
+    }
+    return rows;
+  }
+
   private notification = inject(NotificationService);
   private router = inject(Router);
   private auth = inject(AuthService);

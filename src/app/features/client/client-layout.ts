@@ -40,6 +40,10 @@ import { NavbarComponent } from '../../shared/components/navbar';
               <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">event_note</mat-icon>
               My Bookings
             </a>
+            <a routerLink="wallet" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
+              <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">account_balance_wallet</mat-icon>
+              My Wallet
+            </a>
             <a routerLink="disputes" routerLinkActive="active-tab" class="flex items-center gap-4 px-5 py-4 rounded-xl text-on-surface-variant font-black text-xs uppercase tracking-widest hover:bg-surface-container-low transition-all group">
               <mat-icon class="group-[.active-tab]:text-brand-teal transition-colors">gavel</mat-icon>
               Disputes
@@ -80,6 +84,10 @@ import { NavbarComponent } from '../../shared/components/navbar';
           <a routerLink="bookings" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
             <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">event_note</mat-icon>
             <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Bookings</span>
+          </a>
+          <a routerLink="wallet" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
+            <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">account_balance_wallet</mat-icon>
+            <span class="text-[10px] font-black uppercase tracking-tighter group-[.active-mobile-tab]:text-brand-teal">Wallet</span>
           </a>
           <a routerLink="disputes" routerLinkActive="active-mobile-tab" class="flex flex-col items-center gap-1 text-slate-400 group">
             <mat-icon class="group-[.active-mobile-tab]:text-brand-teal transition-colors">gavel</mat-icon>

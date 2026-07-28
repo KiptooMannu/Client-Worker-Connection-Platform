@@ -82,7 +82,7 @@ const FILTER_KEY = 'kazi_marketplace_filters';
               <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
             </div>
           } @else if (spendingData().length > 0) {
-            <app-line-chart [data]="spendingData()" [view]="[400, 200]" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-line-chart>
+            <app-line-chart [data]="spendingData()" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-line-chart>
           } @else {
             <div class="h-[200px] flex items-center justify-center">
               <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No spending data</p>
@@ -90,7 +90,7 @@ const FILTER_KEY = 'kazi_marketplace_filters';
           }
         </mat-card>
 
-        <mat-card class="!rounded-2xl !border !border-slate-100 !p-5 bg-white shadow-sm">
+        <mat-card class="!rounded-2xl !border !border-slate-100 !p-5 bg-white shadow-sm overflow-hidden">
           <div class="flex items-center gap-2 mb-4">
             <mat-icon class="!text-sm text-brand-teal">pie_chart</mat-icon>
             <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Spending by Category</span>
@@ -99,8 +99,8 @@ const FILTER_KEY = 'kazi_marketplace_filters';
             <div class="h-[200px] flex items-center justify-center">
               <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
             </div>
-          } @else if (spendingByCategory().length > 0) {
-            <app-bar-chart [data]="spendingByCategory()" [view]="[400, 200]" [xAxisLabel]="'Category'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-bar-chart>
+          } @else if (spendingByCategory.length > 0) {
+            <app-bar-chart [data]="spendingByCategory" [xAxisLabel]="'Category'" [yAxisLabel]="'Amount (KES)'" [legend]="false"></app-bar-chart>
           } @else {
             <div class="h-[200px] flex items-center justify-center">
               <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No category data</p>

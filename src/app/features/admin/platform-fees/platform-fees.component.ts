@@ -62,7 +62,7 @@ export interface Withdrawal {
             </div>
             <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total Collected</span>
           </div>
-          <p class="text-xl font-black text-slate-900">KES {{ balance()?.totalFeesCollected.toLocaleString() || 0 }}</p>
+          <p class="text-xl font-black text-slate-900">KES {{ (balance()?.totalFeesCollected ?? 0).toLocaleString() }}</p>
         </mat-card>
 
         <mat-card class="!rounded-[16px] !border !border-slate-100 !p-6 bg-white shadow-sm">
@@ -72,7 +72,7 @@ export interface Withdrawal {
             </div>
             <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Available</span>
           </div>
-          <p class="text-xl font-black text-emerald-600">KES {{ balance()?.availableBalance.toLocaleString() || 0 }}</p>
+          <p class="text-xl font-black text-emerald-600">KES {{ (balance()?.availableBalance ?? 0).toLocaleString() }}</p>
         </mat-card>
 
         <mat-card class="!rounded-[16px] !border !border-slate-100 !p-6 bg-white shadow-sm">
@@ -82,7 +82,7 @@ export interface Withdrawal {
             </div>
             <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Pending</span>
           </div>
-          <p class="text-xl font-black text-amber-600">KES {{ balance()?.pendingWithdrawals.toLocaleString() || 0 }}</p>
+          <p class="text-xl font-black text-amber-600">KES {{ (balance()?.pendingWithdrawals ?? 0).toLocaleString() }}</p>
         </mat-card>
 
         <mat-card class="!rounded-[16px] !border !border-slate-100 !p-6 bg-white shadow-sm">
@@ -92,7 +92,7 @@ export interface Withdrawal {
             </div>
             <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Withdrawn</span>
           </div>
-          <p class="text-xl font-black text-blue-600">KES {{ balance()?.withdrawnAmount.toLocaleString() || 0 }}</p>
+          <p class="text-xl font-black text-blue-600">KES {{ (balance()?.withdrawnAmount ?? 0).toLocaleString() }}</p>
         </mat-card>
       </div>
 
@@ -192,7 +192,7 @@ export interface Withdrawal {
                 @for (withdrawal of withdrawals(); track withdrawal.id) {
                   <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors">
                     <td class="px-5 py-2.5 text-[11px] font-bold text-slate-600">
-                      {{ new Date(withdrawal.requestedAt).toLocaleDateString() }}
+                      {{ formatDate(withdrawal.requestedAt) }}
                     </td>
                     <td class="px-5 py-2.5 text-sm font-black text-slate-900">
                       KES {{ withdrawal.amount.toLocaleString() }}
@@ -250,6 +250,10 @@ export class PlatformFeesComponent implements OnInit {
   });
 
   private apiUrl = 'http://localhost:8080/api/platform-fees';
+
+  formatDate(dateStr: string): string {
+    return dateStr ? new Date(dateStr).toLocaleDateString() : '';
+  }
 
   ngOnInit() {
     this.loadBalance();

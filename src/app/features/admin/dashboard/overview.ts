@@ -137,7 +137,7 @@ import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../
           </div>
 
           <!-- Revenue Chart -->
-          <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm">
+          <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm overflow-hidden">
             <div class="flex items-center gap-3 mb-4">
               <div class="w-8 h-8 rounded-xl bg-brand-teal-soft text-brand-teal flex items-center justify-center">
                 <mat-icon class="!text-sm">payments</mat-icon>
@@ -149,7 +149,7 @@ import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../
                 <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading analytics...</p>
               </div>
             } @else {
-              <app-line-chart [data]="revenueData()" [view]="[700, 300]" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="true" [legendTitle]="'Financial Metrics'"></app-line-chart>
+              <app-line-chart [data]="revenueData()" [xAxisLabel]="'Period'" [yAxisLabel]="'Amount (KES)'" [legend]="true" [legendTitle]="'Financial Metrics'"></app-line-chart>
             }
           </mat-card>
         </div>
@@ -217,7 +217,7 @@ import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../
            </mat-card>
 
            <!-- Platform Fee Chart -->
-           <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm">
+           <mat-card class="!rounded-[24px] !border !border-slate-100 !p-6 bg-white shadow-sm overflow-hidden">
               <div class="flex items-center gap-3 mb-4">
                 <div class="w-8 h-8 rounded-xl bg-brand-teal-soft text-brand-teal flex items-center justify-center">
                   <mat-icon class="!text-sm">account_balance_wallet</mat-icon>
@@ -229,13 +229,13 @@ import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../
                   <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
                 </div>
               } @else {
-                <app-pie-chart [data]="platformFeeChartData()" [view]="[400, 250]" [legend]="true" [legendTitle]="'Fee Distribution'"></app-pie-chart>
+                <app-pie-chart [data]="platformFeeChartData" [legend]="true" [legendTitle]="'Fee Distribution'"></app-pie-chart>
               }
               @if (dashboardOverview()) {
                 <div class="mt-4 p-4 bg-slate-50 rounded-xl">
                   <div class="flex justify-between items-center">
                     <span class="text-[9px] font-black text-slate-500 uppercase">Available for Withdrawal</span>
-                    <span class="text-sm font-black text-brand-teal">KES {{ dashboardOverview()!.availableForWithdrawal.toLocaleString() }}</span>
+                    <span class="text-sm font-black text-brand-teal">KES {{ (dashboardOverview()?.availableForWithdrawal ?? 0).toLocaleString() }}</span>
                   </div>
                 </div>
               }
@@ -244,7 +244,7 @@ import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../
       </div>
 
       <!-- Job Statistics Chart -->
-      <mat-card class="!rounded-[24px] !border !border-slate-100 !shadow-sm !p-6 bg-white">
+      <mat-card class="!rounded-[24px] !border !border-slate-100 !shadow-sm !p-6 bg-white overflow-hidden">
         <div class="flex items-center gap-3 mb-4">
           <div class="w-8 h-8 rounded-xl bg-brand-teal-soft text-brand-teal flex items-center justify-center">
             <mat-icon class="!text-sm">work</mat-icon>
@@ -255,8 +255,8 @@ import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../
           <div class="h-[300px] flex items-center justify-center">
             <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">Loading...</p>
           </div>
-        } @else if (jobCategoryData().length > 0) {
-          <app-bar-chart [data]="jobCategoryData()" [view]="[700, 300]" [xAxisLabel]="'Category'" [yAxisLabel]="'Number of Jobs'" [legend]="true" [legendTitle]="'Job Categories'"></app-bar-chart>
+        } @else if (jobCategoryData.length > 0) {
+          <app-bar-chart [data]="jobCategoryData" [xAxisLabel]="'Category'" [yAxisLabel]="'Number of Jobs'" [legend]="true" [legendTitle]="'Job Categories'"></app-bar-chart>
         } @else {
           <div class="h-[300px] flex items-center justify-center">
             <p class="text-[10px] text-slate-400 font-black uppercase tracking-widest">No job data available</p>
@@ -551,26 +551,28 @@ export class AdminOverviewPage implements OnInit {
   }
 
   private transformRevenueData(data: RevenueData[]): any[] {
+    const safeData = Array.isArray(data) ? data : [];
+
     return [
       {
         name: 'Revenue',
-        series: data.map(d => ({
-          name: d.period,
-          value: d.revenue
+        series: safeData.map(d => ({
+          name: d?.period ?? 'Unknown',
+          value: this.toSafeNumber(d?.revenue)
         }))
       },
       {
         name: 'Platform Fees',
-        series: data.map(d => ({
-          name: d.period,
-          value: d.platformFees
+        series: safeData.map(d => ({
+          name: d?.period ?? 'Unknown',
+          value: this.toSafeNumber(d?.platformFees)
         }))
       },
       {
         name: 'Worker Payouts',
-        series: data.map(d => ({
-          name: d.period,
-          value: d.workerPayouts
+        series: safeData.map(d => ({
+          name: d?.period ?? 'Unknown',
+          value: this.toSafeNumber(d?.workerPayouts)
         }))
       }
     ];
@@ -580,8 +582,8 @@ export class AdminOverviewPage implements OnInit {
     if (!this.jobStatistics()) return [];
     const stats = this.jobStatistics()!;
     return Object.entries(stats.jobsByCategory || {}).map(([name, value]) => ({
-      name,
-      value
+      name: name || 'Unknown',
+      value: this.toSafeNumber(value)
     }));
   }
 
@@ -589,9 +591,18 @@ export class AdminOverviewPage implements OnInit {
     if (!this.platformFeeData()) return [];
     const data = this.platformFeeData()!;
     return [
-      { name: 'Available', value: data.availableForWithdrawal },
-      { name: 'Withdrawn', value: data.withdrawn },
-      { name: 'Pending', value: data.pending }
+      { name: 'Available', value: this.toSafeNumber(data.availableForWithdrawal) },
+      { name: 'Withdrawn', value: this.toSafeNumber(data.withdrawn) },
+      { name: 'Pending', value: this.toSafeNumber(data.pending) }
     ];
+  }
+
+  private toSafeNumber(value: unknown): number {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+
+    const parsed = typeof value === 'string' ? Number(value) : Number(value);
+    return Number.isFinite(parsed) ? parsed : 0;
   }
 }

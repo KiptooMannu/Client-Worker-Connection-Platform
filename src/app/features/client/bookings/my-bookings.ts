@@ -18,6 +18,7 @@ import { PlatformStateService, Booking } from '../../../core/services/platform-s
 import { NotificationService } from '../../../core/services/notification.service';
 import { PaymentService } from '../../../core/services/payment.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { SettlementWalletService } from '../../../shared/services/settlement-wallet.service';
 import {
   getPaymentStatusLabel,
   JOB_STATUS_OPTIONS,
@@ -335,25 +336,98 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
           <div class="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl p-10 animate-in zoom-in-95 duration-300">
 
             <h3 class="text-2xl font-black text-slate-900 mb-1">
-              {{ payModal.retrying ? 'Retry Payment' : 'Pay via M-Pesa' }}
+              {{ payModal.retrying ? 'Retry Payment' : 'Fund This Job' }}
             </h3>
-            <p class="text-slate-400 text-sm mb-8">
-              KES <span class="font-black text-slate-800">{{ (payModal.booking.negotiatedPrice || payModal.booking.earnings) | number }}</span>
-              will be charged via M-Pesa. If the transaction fails you'll see clear messages such as "Insufficient funds" or "Wrong PIN".
+            <p class="text-slate-400 text-sm mb-6">
+              Total due:
+              <span class="font-black text-slate-800">KES {{ payTotal() | number }}</span>
             </p>
 
-            <div class="space-y-4 mb-8">
-              <div>
-                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">
-                  M-Pesa Number
-                </label>
-                <input type="tel"
-                       [(ngModel)]="payModal.phone"
-                       placeholder="0712 345 678"
-                       class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-medium
-                              focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+            <!-- Wallet source selector -->
+            @if (payModal.walletLoading) {
+              <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 text-[11px] font-bold text-slate-400">
+                Checking wallet balance...
               </div>
-            </div>
+            } @else if (payModal.walletFrozen) {
+              <div class="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-2">
+                <mat-icon class="!text-sm !w-auto !h-auto text-amber-600 shrink-0 mt-0.5">lock</mat-icon>
+                <p class="text-[11px] font-bold text-amber-700">
+                  Your wallet is frozen, so this job must be paid entirely via M-Pesa.
+                </p>
+              </div>
+            } @else if (payModal.walletBalance > 0) {
+              <button type="button" (click)="toggleUseWallet()"
+                      class="w-full mb-4 p-4 rounded-2xl border text-left transition-all"
+                      [ngClass]="payModal.useWallet ? 'border-brand-teal bg-brand-teal/5' : 'border-slate-200 hover:border-slate-300'">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                       [ngClass]="payModal.useWallet ? 'bg-brand-teal/10' : 'bg-slate-100'">
+                    <mat-icon class="!text-base !w-auto !h-auto"
+                              [ngClass]="payModal.useWallet ? 'text-brand-teal' : 'text-slate-400'">
+                      account_balance_wallet
+                    </mat-icon>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-[11px] font-black uppercase tracking-widest text-slate-700">Use wallet balance</p>
+                    <p class="text-[10px] font-bold text-slate-400">
+                      Available: KES {{ payModal.walletBalance | number }}
+                    </p>
+                  </div>
+                  <mat-icon class="!text-lg !w-auto !h-auto shrink-0"
+                            [ngClass]="payModal.useWallet ? 'text-brand-teal' : 'text-slate-300'">
+                    {{ payModal.useWallet ? 'check_circle' : 'radio_button_unchecked' }}
+                  </mat-icon>
+                </div>
+              </button>
+
+              <!-- Split breakdown: this is the shortfall prompt -->
+              @if (payModal.useWallet) {
+                <div class="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 space-y-2">
+                  <div class="flex justify-between text-[11px] font-bold">
+                    <span class="text-slate-500">From wallet</span>
+                    <span class="text-brand-teal font-black">- KES {{ walletPortion() | number }}</span>
+                  </div>
+                  @if (mpesaShortfall() > 0) {
+                    <div class="flex justify-between text-[11px] font-bold">
+                      <span class="text-slate-500">Remaining via M-Pesa</span>
+                      <span class="text-indigo-600 font-black">KES {{ mpesaShortfall() | number }}</span>
+                    </div>
+                    <div class="pt-2 border-t border-slate-200 flex items-start gap-2">
+                      <mat-icon class="!text-sm !w-auto !h-auto text-indigo-500 shrink-0 mt-0.5">info</mat-icon>
+                      <p class="text-[10px] font-bold text-slate-500 leading-relaxed">
+                        Your wallet doesn't fully cover this job. We'll deduct
+                        <span class="text-slate-800">KES {{ walletPortion() | number }}</span>
+                        from your wallet and send an STK push for the remaining
+                        <span class="text-slate-800">KES {{ mpesaShortfall() | number }}</span>.
+                      </p>
+                    </div>
+                  } @else {
+                    <div class="pt-2 border-t border-slate-200 flex items-start gap-2">
+                      <mat-icon class="!text-sm !w-auto !h-auto text-emerald-500 shrink-0 mt-0.5">check_circle</mat-icon>
+                      <p class="text-[10px] font-bold text-emerald-600 leading-relaxed">
+                        Your wallet covers the full amount — no M-Pesa payment needed.
+                      </p>
+                    </div>
+                  }
+                </div>
+              }
+            }
+
+            <!-- Phone only needed when M-Pesa is actually involved -->
+            @if (needsPhone()) {
+              <div class="space-y-4 mb-8">
+                <div>
+                  <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 block">
+                    M-Pesa Number
+                  </label>
+                  <input type="tel"
+                         [(ngModel)]="payModal.phone"
+                         placeholder="0712 345 678"
+                         class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm font-medium
+                                focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </div>
+              </div>
+            }
 
             @if (payModal.error) {
               <div class="mb-4 p-3 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 text-xs font-medium">
@@ -368,11 +442,11 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
                 Cancel
               </button>
               <button (click)="submitPayment()"
-                      [disabled]="payModal.loading || !payModal.phone"
+                      [disabled]="payModal.loading || payModal.walletLoading || (needsPhone() && !payModal.phone)"
                       class="flex-[2] bg-indigo-600 text-white py-4 rounded-2xl font-black text-xs
                              uppercase tracking-widest hover:bg-indigo-700 disabled:opacity-40
                              disabled:cursor-wait transition-all active:scale-95">
-                {{ payModal.loading ? 'Sending...' : 'Send STK Push' }}
+                {{ payModal.loading ? 'Processing...' : payButtonLabel() }}
               </button>
             </div>
           </div>
@@ -542,6 +616,7 @@ export class ClientBookingsPage implements OnDestroy {
   private auth = inject(AuthService);
   private notif = inject(NotificationService);
   private payment = inject(PaymentService);
+  private walletService = inject(SettlementWalletService);
   private http = inject(HttpClient);
   private dialog = inject(MatDialog);
 
@@ -613,7 +688,17 @@ export class ClientBookingsPage implements OnDestroy {
   private pollSub?: Subscription;
 
   // Modals
-  payModal: { booking: any; phone: string; loading: boolean; error: string; retrying: boolean } | null = null;
+  payModal: {
+    booking: any;
+    phone: string;
+    loading: boolean;
+    error: string;
+    retrying: boolean;
+    walletBalance: number;
+    walletFrozen: boolean;
+    walletLoading: boolean;
+    useWallet: boolean;
+  } | null = null;
   releaseConfirm: any = null;
   reviewBooking: any = null;
   reviewRating = 0;
@@ -746,33 +831,126 @@ export class ClientBookingsPage implements OnDestroy {
     this.refreshBookings();
     const updatedBooking = this.state.bookings().find((b: any) => b.id === booking.id);
     const bookingToUse = updatedBooking || booking;
-    this.payModal = { booking: bookingToUse, phone: '', loading: false, error: errorMessage, retrying };
+    this.payModal = {
+      booking: bookingToUse,
+      phone: '',
+      loading: false,
+      error: errorMessage,
+      retrying,
+      walletBalance: 0,
+      walletFrozen: false,
+      walletLoading: true,
+      useWallet: false
+    };
+
+    this.walletService.getWalletSummary().subscribe({
+      next: (summary) => {
+        if (!this.payModal) return;
+        const balance = summary?.availableBalance || 0;
+        this.payModal.walletBalance = balance;
+        this.payModal.walletFrozen = !!summary?.isFrozen;
+        // Default to spending the wallet first whenever there is usable balance.
+        this.payModal.useWallet = balance > 0 && !summary?.isFrozen;
+        this.payModal.walletLoading = false;
+      },
+      error: () => {
+        if (!this.payModal) return;
+        // Wallet lookup failed — fall back to plain M-Pesa rather than blocking payment.
+        this.payModal.walletLoading = false;
+        this.payModal.walletBalance = 0;
+        this.payModal.useWallet = false;
+      }
+    });
   }
 
   closePayModal() { this.payModal = null; }
 
+  /** Total due on the job being funded. */
+  payTotal(): number {
+    if (!this.payModal) return 0;
+    const b = this.payModal.booking;
+    return b.negotiatedPrice || b.earnings || 0;
+  }
+
+  /** Amount that will actually be drawn from the wallet (capped at the total). */
+  walletPortion(): number {
+    if (!this.payModal || !this.payModal.useWallet) return 0;
+    return Math.min(this.payModal.walletBalance, this.payTotal());
+  }
+
+  /** Amount still owed after the wallet is applied — the shortfall to STK push. */
+  mpesaShortfall(): number {
+    return Math.max(0, this.payTotal() - this.walletPortion());
+  }
+
+  /** A phone number is only required when M-Pesa has to cover something. */
+  needsPhone(): boolean {
+    if (!this.payModal) return false;
+    if (this.payModal.walletLoading) return false;
+    return this.mpesaShortfall() > 0;
+  }
+
+  payButtonLabel(): string {
+    if (!this.payModal) return 'Pay';
+    if (this.mpesaShortfall() <= 0 && this.payModal.useWallet) return 'Pay From Wallet';
+    if (this.walletPortion() > 0) return 'Pay Wallet + STK';
+    return 'Send STK Push';
+  }
+
+  toggleUseWallet() {
+    if (!this.payModal) return;
+    this.payModal.useWallet = !this.payModal.useWallet;
+    this.payModal.error = '';
+  }
+
   submitPayment() {
-    if (!this.payModal || !this.payModal.phone) return;
-    const { booking, phone } = this.payModal;
+    if (!this.payModal) return;
+    if (this.needsPhone() && !this.payModal.phone) return;
+
+    const { booking, phone, useWallet } = this.payModal;
+    const usingWallet = useWallet && this.walletPortion() > 0;
 
     this.payModal.loading = true;
     this.payModal.error = '';
 
-    this.payment.initiateStkPush(booking.id, phone).subscribe({
+    // Plain M-Pesa when the wallet isn't contributing — keeps the existing path intact.
+    if (!usingWallet) {
+      this.payment.initiateStkPush(booking.id, phone).subscribe({
+        next: () => {
+          this.closePayModal();
+          this.notif.success('STK push sent — check your phone for the PIN prompt');
+          this.startPolling(booking.id);
+        },
+        error: (err) => this.handlePayError(err, 'Failed to send STK push. Please try again.')
+      });
+      return;
+    }
+
+    this.payment.payWithWallet(booking.id, true, phone || undefined).subscribe({
       next: (resp) => {
         this.closePayModal();
-        this.notif.success('STK push sent — check your phone for the PIN prompt');
-        this.startPolling(booking.id);
+        if (resp.status === 'SUCCESS') {
+          this.notif.success(resp.message || 'Job funded from your wallet balance.');
+          this.refreshBookings();
+        } else {
+          this.notif.success(
+            `KES ${Math.round(resp.paidViaWallet).toLocaleString()} taken from your wallet. ` +
+            `Check your phone to approve the remaining KES ${Math.round(resp.paidViaMpesa).toLocaleString()}.`
+          );
+          this.startPolling(booking.id);
+        }
       },
-      error: (err) => {
-        this.payModal!.loading = false;
-        const body = err?.error;
-        const msg = typeof body === 'string'
-          ? body
-          : body?.message || body?.error || 'Failed to send STK push. Please try again.';
-        this.payModal!.error = msg;
-      }
+      error: (err) => this.handlePayError(err, 'Wallet payment failed. Please try again.')
     });
+  }
+
+  private handlePayError(err: any, fallback: string) {
+    if (!this.payModal) return;
+    this.payModal.loading = false;
+    const body = err?.error;
+    this.payModal.error = typeof body === 'string'
+      ? body
+      : body?.message || body?.error || fallback;
   }
 
   // ── Payment Polling ─────────────────────────────────────────────────────

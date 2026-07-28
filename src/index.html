@@ -3,10 +3,47 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>Kazi Konnect</title>
+  <title>Kazi Konnect — Hire Verified Local Professionals in Kenya</title>
   <base href="/" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" type="image/x-icon" href="favicon.ico" />
+
+  <!--
+    Base SEO tags live here rather than only in the landing component because
+    this build is a client-rendered SPA (no SSR/prerender is wired up), and
+    social crawlers do not execute JavaScript. The landing component refines
+    these at runtime; these static values are the crawler-visible fallback.
+  -->
+  <meta name="description"
+    content="Kazi Konnect connects you with vetted local professionals. Funds are held in escrow and released only when work is approved, with M-Pesa settlement." />
+  <meta name="robots" content="index, follow" />
+  <meta name="theme-color" content="#29b2c7" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Kazi Konnect" />
+  <meta property="og:title" content="Kazi Konnect — Hire Verified Local Professionals in Kenya" />
+  <meta property="og:description"
+    content="Vetted local professionals, escrow-protected payments, and M-Pesa settlement." />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Kazi Konnect — Hire Verified Local Professionals in Kenya" />
+  <meta name="twitter:description"
+    content="Vetted local professionals, escrow-protected payments, and M-Pesa settlement." />
+
+  <!-- Site-wide organisation identity. Page-specific schema (e.g. the landing
+       page's FAQPage) is injected by its component. -->
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Kazi Konnect",
+      "description": "A marketplace for verified local professionals with escrow-protected payments.",
+      "areaServed": "KE"
+    }
+  </script>
+
+  <!-- Warm up the image CDN used by the hero so the LCP image starts sooner. -->
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet" />

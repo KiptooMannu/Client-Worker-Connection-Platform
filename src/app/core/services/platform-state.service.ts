@@ -924,23 +924,23 @@ private getInitialWorkerState(): WorkerProfile {
 
 
 
-  fetchNotifications(userId: string) {
-    console.log('[PlatformState] Fetching notifications for userId:', userId);
+  private mapNotification(n: any): Notification {
+    return {
+      id: n.id,
+      userId: n.userId,
+      title: n.title,
+      message: n.message,
+      time: this.formatNotificationTime(n.createdAt),
+      isRead: n.isRead,
+      type: (n.type || 'info').toLowerCase() as any
+    };
+  }
 
+  fetchNotifications(userId: string) {
     this.http.get<any>(`${this.apiUrl}/notifications/user/${userId}`).pipe(timeout(30000)).subscribe({
       next: (res) => {
         const data = res.content || res || [];
-        console.log('[PlatformState] Received notifications:', data.length);
-        const mapped = data.map((n: any) => ({
-          id: n.id,
-          userId: n.userId,
-          title: n.title,
-          message: n.message,
-          time: this.formatNotificationTime(n.createdAt),
-          isRead: n.isRead,
-          type: (n.type || 'info').toLowerCase() as any
-        }));
-        this.notifications.set(mapped);
+        this.notifications.set(data.map((n: any) => this.mapNotification(n)));
       },
       error: (err: HttpErrorResponse) => {
         console.error('[PlatformState] Error fetching notifications', {
@@ -955,8 +955,20 @@ private getInitialWorkerState(): WorkerProfile {
     });
   }
 
+  /**
+   * Applies a notification pushed over STOMP. Guards against duplicates because a
+   * push can race the initial fetch, which would otherwise double the unread badge.
+   */
+  addRealTimeNotification(dto: any) {
+    if (!dto?.id) return;
+    const incoming = this.mapNotification(dto);
+    this.notifications.update(existing =>
+      existing.some(n => n.id === incoming.id) ? existing : [incoming, ...existing]
+    );
+  }
+
   markNotificationAsRead(notificationId: string) {
-    this.http.put(`${this.apiUrl}/notifications/${notificationId}/read`, {}, { responseType: 'text' }).subscribe({
+    this.http.put(`${this.apiUrl}/notifications/${notificationId}/read`, {}).subscribe({
       next: () => {
         this.notifications.update(prev => prev.map(n =>
           n.id === notificationId ? { ...n, isRead: true } : n
@@ -970,7 +982,7 @@ private getInitialWorkerState(): WorkerProfile {
     const user = this.auth.currentUser();
     if (!user) return;
 
-    this.http.put(`${this.apiUrl}/notifications/user/${user.id}/read-all`, {}, { responseType: 'text' }).subscribe({
+    this.http.put(`${this.apiUrl}/notifications/user/${user.id}/read-all`, {}).subscribe({
       next: () => {
         this.notifications.update(prev => prev.map(n => ({ ...n, isRead: true })));
       },

@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
+import { SERIES_SCHEME } from './chart-palette';
 
 @Component({
   selector: 'app-area-chart',
@@ -8,7 +9,7 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
   template: `
     <div class="chart-container">
       <ngx-charts-area-chart
-        [view]="view"
+        [view]="$any(view)"
         [scheme]="scheme"
         [results]="data"
         [gradient]="gradient"
@@ -28,14 +29,27 @@ import { NgxChartsModule } from '@swimlane/ngx-charts';
   styles: [`
     .chart-container {
       width: 100%;
-      height: 400px;
+      height: 300px;
+      position: relative;
+      overflow: hidden;
+    }
+    :host ::ng-deep .chart-legend {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    :host ::ng-deep .legend-labels {
+      font-size: 12px;
+      font-weight: 500;
     }
   `]
 })
 export class AreaChartComponent {
   @Input() data: any[] = [];
-  @Input() view: [number, number] = [700, 400];
-  @Input() scheme: any = 'cool';
+  /** Left undefined so ngx-charts measures the container — a fixed view overflows on mobile. */
+  @Input() view?: [number, number];
+  @Input() scheme: any = SERIES_SCHEME;
   @Input() gradient: boolean = true;
   @Input() xAxis: boolean = true;
   @Input() yAxis: boolean = true;

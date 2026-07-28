@@ -90,7 +90,7 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
       <div class="mt-6">
         @if (loading) {
           <div class="flex justify-center items-center py-12">
-            <mat-spinner></mat-spinner>
+            <mat-spinner diameter="40"></mat-spinner>
           </div>
         } @else if (dispute) {
           <div class="space-y-6">
@@ -487,18 +487,17 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
               <h3 class="text-xl font-bold text-gray-900 mb-2">{{ getResolutionTitle() }}</h3>
               <p class="text-sm text-gray-600 mb-6">{{ getResolutionDescription() }}</p>
 
-              <!-- Partial refund inputs -->
-              @if (activeResolutionType() === 'partial_refund' && dispute?.escrowAmount) {
+              @if (activeResolutionType() === 'partial_refund' && dispute) {
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-purple-50 border border-purple-200 mb-4 text-center">
                   <div>
                     <label class="text-xs font-bold uppercase tracking-wider text-purple-700 block mb-1.5">Worker Gets (KES)</label>
-                    <input type="number" [(ngModel)]="workerAmount" (ngModelChange)="workerAmount.set($event)" min="0" [max]="dispute?.escrowAmount || 9999"
+                    <input type="number" [(ngModel)]="workerAmount" (ngModelChange)="workerAmount.set($event)" min="0" [max]="dispute.escrowAmount || 9999"
                       placeholder="e.g. 3000"
                       class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 text-center"/>
                   </div>
                   <div>
                     <label class="text-xs font-bold uppercase tracking-wider text-purple-700 block mb-1.5">Client Refund (KES)</label>
-                    <input type="number" [(ngModel)]="clientRefund" (ngModelChange)="clientRefund.set($event)" min="0" [max]="dispute?.escrowAmount || 9999"
+                    <input type="number" [(ngModel)]="clientRefund" (ngModelChange)="clientRefund.set($event)" min="0" [max]="dispute.escrowAmount || 9999"
                       placeholder="e.g. 2000"
                       class="w-full px-3 py-2 rounded-lg border border-purple-300 bg-white text-sm font-bold text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 text-center"/>
                   </div>
@@ -506,7 +505,7 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
                     <p class="text-xs font-bold text-center"
                        [class]="partialAmountsValid() ? 'text-emerald-600' : 'text-rose-600'">
                       Total: KES {{ (workerAmount() + clientRefund()).toLocaleString() }}
-                      / KES {{ dispute?.escrowAmount?.toLocaleString() || 0 }} required
+                      / KES {{ (dispute.escrowAmount || 0).toLocaleString() }} required
                     </p>
                   </div>
                 </div>

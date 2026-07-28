@@ -267,48 +267,65 @@ type HistoryTab = 'wallet' | 'ledger';
                       {{ job.status }}
                     </span>
 
+                    <!-- All action buttons with loading states -->
                     @if (state.updatingJobIds().has(job.id)) {
-                      <mat-icon class="animate-spin text-brand-teal !w-4 !h-4">sync</mat-icon>
+                      <div class="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-lg border border-slate-100">
+                        <mat-icon class="animate-spin text-brand-teal !text-sm !w-auto !h-auto">sync</mat-icon>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Updating...</span>
+                      </div>
                     } @else {
                       @if (job.status === 'Pending') {
-                        <div class="flex gap-2">
-                          <button (click)="state.updateJobStatus(job.id, 'ACCEPTED')"
-                                  class="px-3.5 py-2 bg-brand-teal text-white font-black text-[9px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm active:scale-95">
-                            Accept
+                        <div class="flex items-center gap-2">
+                          <button (click)="openAcceptConfirmModal(job)"
+                                  [disabled]="acceptingJobId() === job.id"
+                                  class="px-3.5 py-2 bg-brand-teal text-white font-black text-[9px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center gap-1.5 disabled:opacity-50">
+                            @if (acceptingJobId() === job.id) {
+                              <mat-icon class="animate-spin !text-xs !w-auto !h-auto">sync</mat-icon>
+                            } @else {
+                              <mat-icon class="!text-xs !w-auto !h-auto">check_circle</mat-icon>
+                            }
+                            {{ acceptingJobId() === job.id ? 'Accepting...' : 'Accept' }}
                           </button>
-                          <button (click)="state.updateJobStatus(job.id, 'REJECTED')"
-                                  class="px-3.5 py-2 border border-outline-variant text-on-surface-variant font-black text-[9px] uppercase tracking-widest rounded-lg hover:bg-error/10 hover:text-error hover:border-error/20 transition-all active:scale-95">
-                            Cancel
+                          <button (click)="rejectJob(job)"
+                                  [disabled]="rejectingJobId() === job.id"
+                                  class="px-3.5 py-2 border border-outline-variant text-on-surface-variant font-black text-[9px] uppercase tracking-widest rounded-lg hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 transition-all active:scale-95 flex items-center gap-1.5 disabled:opacity-50">
+                            @if (rejectingJobId() === job.id) {
+                              <mat-icon class="animate-spin !text-xs !w-auto !h-auto">sync</mat-icon>
+                            } @else {
+                              <mat-icon class="!text-xs !w-auto !h-auto">cancel</mat-icon>
+                            }
+                            {{ rejectingJobId() === job.id ? 'Declining...' : 'Decline' }}
                           </button>
                         </div>
                       }
                       @if (job.status === 'Accepted' || job.status === 'ACCEPTED' || job.status === 'Awaiting Funding' || job.status === 'AWAITING_FUNDING' || job.status === 'Revision Requested' || job.status === 'In Progress') {
                         @if (job.escrowFunded) {
-                          <button (click)="state.updateJobStatus(job.id, 'SUBMITTED')"
-                                  class="px-3 py-1.5 bg-brand-teal text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-1">
-                            <mat-icon class="!text-sm !w-auto !h-auto">send</mat-icon> Deliver
+                          <button (click)="deliverJob(job)"
+                                  [disabled]="deliveringJobId() === job.id"
+                                  class="px-3 py-1.5 bg-brand-teal text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-1.5 disabled:opacity-50">
+                            @if (deliveringJobId() === job.id) {
+                              <mat-icon class="animate-spin !text-sm !w-auto !h-auto">sync</mat-icon>
+                            } @else {
+                              <mat-icon class="!text-sm !w-auto !h-auto">send</mat-icon>
+                            }
+                            {{ deliveringJobId() === job.id ? 'Delivering...' : 'Deliver' }}
                           </button>
                         } @else {
-                          <div class="flex flex-col gap-2">
+                          <div class="flex items-center gap-2">
                             <div class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200">
                               <mat-icon class="!text-sm !w-auto !h-auto text-slate-400">hourglass_empty</mat-icon>
                               <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Waiting for Payment</span>
                             </div>
-                            <div class="flex items-center gap-2">
-                              <button (click)="openWithdrawAcceptanceDialog(job)"
-                                      class="px-2.5 py-1.5 border border-amber-200 text-amber-600 rounded-lg text-[9px]
-                                             font-black uppercase tracking-widest hover:bg-amber-50 transition-all bg-white active:scale-95">
-                                Withdraw
-                              </button>
-                              <span class="text-[8px] text-slate-400 font-medium">
-                                {{ getTimeRemaining(job) }}
-                              </span>
-                            </div>
+                            <button (click)="openWithdrawAcceptanceDialog(job)"
+                                    class="px-2.5 py-1.5 border border-amber-200 text-amber-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-amber-50 transition-all bg-white active:scale-95 flex items-center gap-1">
+                              <mat-icon class="!text-xs !w-auto !h-auto">undo</mat-icon>
+                              Withdraw
+                            </button>
+                            <span class="text-[8px] text-slate-400 font-medium">{{ getTimeRemaining(job) }}</span>
                           </div>
                         }
                       }
-
-                      <!-- DISPUTE button (shows horizontally with other actions) -->
+                      <!-- DISPUTE button -->
                       @if ((job.status === 'Submitted' || job.status === 'In Progress' || job.status === 'Revision Requested' || (job.status === 'Completed' && job.hasReview) || (job.status === 'Approved' && job.escrowFunded)) && (job.escrowFunded || false)) {
                         <app-dispute-status-button 
                           [jobId]="job.id"
@@ -364,6 +381,62 @@ type HistoryTab = 'wallet' | 'ledger';
         }
       }
     </div>
+
+    <!-- ══ Escrow Reminder Modal (shown after worker accepts a job) ══ -->
+    @if (escrowReminderJob()) {
+      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full animate-in zoom-in-95 duration-200 overflow-hidden">
+          <!-- Teal header band -->
+          <div class="bg-brand-teal px-6 pt-6 pb-5 text-white">
+            <div class="flex items-center gap-3 mb-2">
+              <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <mat-icon class="!text-xl !w-auto !h-auto text-white">schedule</mat-icon>
+              </div>
+              <h3 class="text-base font-black tracking-tight">Request Accepted!</h3>
+            </div>
+            <p class="text-[11px] text-white/80 font-bold leading-relaxed">
+              {{ escrowReminderJob()?.client }} · {{ escrowReminderJob()?.service }}
+            </p>
+          </div>
+
+          <!-- Body -->
+          <div class="px-6 py-5 space-y-4">
+            <div class="flex items-start gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100">
+              <mat-icon class="!text-lg !w-auto !h-auto text-amber-500 mt-0.5 shrink-0">account_balance</mat-icon>
+              <p class="text-xs font-bold text-amber-800 leading-relaxed">
+                Work will start as soon as possible — <span class="font-black">once the client funds the escrow.</span>
+                You'll be notified immediately when payment is secured.
+              </p>
+            </div>
+            <div class="flex items-start gap-3 p-3 bg-slate-50 rounded-xl border border-slate-100">
+              <mat-icon class="!text-lg !w-auto !h-auto text-slate-400 mt-0.5 shrink-0">info</mat-icon>
+              <p class="text-[10px] text-slate-500 leading-relaxed">
+                If escrow is not funded within 48 hours, you may withdraw your acceptance from your Job Ledger.
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="px-6 pb-6">
+            <button (click)="confirmAcceptJob()"
+                    [disabled]="acceptingJobId() === escrowReminderJob()?.id"
+                    class="w-full py-3 bg-brand-teal text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+              @if (acceptingJobId() === escrowReminderJob()?.id) {
+                <mat-icon class="animate-spin !text-sm !w-auto !h-auto">sync</mat-icon>
+                Confirming...
+              } @else {
+                <mat-icon class="!text-sm !w-auto !h-auto">check_circle</mat-icon>
+                Got it — Confirm Acceptance
+              }
+            </button>
+            <button (click)="escrowReminderJob.set(null)"
+                    class="w-full mt-2 py-2.5 border border-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    }
 
     <!-- Counter-Offer Modal -->
     @if (counterOfferJob()) {
@@ -445,6 +518,12 @@ export class WorkerHistoryPage {
   withdrawAmount: number | null = null;
   withdrawPhone = '';
   uiMessage = signal<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
+  // Escrow-reminder accept modal
+  escrowReminderJob = signal<any>(null);
+  acceptingJobId = signal<string | null>(null);
+  rejectingJobId = signal<string | null>(null);
+  deliveringJobId = signal<string | null>(null);
 
   // Counter-offer modal
   counterOfferJob = signal<any>(null);
@@ -595,6 +674,36 @@ export class WorkerHistoryPage {
         this.withdrawing.set(false);
       }
     });
+  }
+
+  // ── Accept / Reject / Deliver with loading ───────────────────────────────
+
+  openAcceptConfirmModal(job: any) {
+    this.escrowReminderJob.set(job);
+  }
+
+  confirmAcceptJob() {
+    const job = this.escrowReminderJob();
+    if (!job) return;
+    this.acceptingJobId.set(job.id);
+    this.state.updateJobStatus(job.id, 'ACCEPTED');
+    // Close modal after a short delay to show the loading state
+    setTimeout(() => {
+      this.escrowReminderJob.set(null);
+      this.acceptingJobId.set(null);
+    }, 1200);
+  }
+
+  rejectJob(job: any) {
+    this.rejectingJobId.set(job.id);
+    this.state.updateJobStatus(job.id, 'REJECTED');
+    setTimeout(() => this.rejectingJobId.set(null), 1200);
+  }
+
+  deliverJob(job: any) {
+    this.deliveringJobId.set(job.id);
+    this.state.updateJobStatus(job.id, 'SUBMITTED');
+    setTimeout(() => this.deliveringJobId.set(null), 1200);
   }
 
   // ── Withdraw Acceptance ───────────────────────────────────────────────────

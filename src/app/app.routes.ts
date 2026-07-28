@@ -108,6 +108,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/client/bookings/my-bookings').then(m => m.ClientBookingsPage)
       },
       {
+        path: 'wallet',
+        loadComponent: () => import('./features/client/settlement-wallet/settlement-wallet.component').then(m => m.SettlementWalletComponent)
+      },
+      {
         path: 'disputes',
         loadComponent: () => import('./shared/components/my-disputes/my-disputes.component').then(m => m.MyDisputesComponent)
       },
@@ -159,6 +163,14 @@ export const routes: Routes = [
       {
         path: 'platform-fees',
         loadComponent: () => import('./features/admin/platform-fees/platform-fees.component').then(m => m.PlatformFeesComponent)
+      },
+      {
+        path: 'platform-revenue',
+        loadComponent: () => import('./features/admin/platform-revenue/platform-revenue.component').then(m => m.PlatformRevenueComponent)
+      },
+      {
+        path: 'analytics',
+        loadComponent: () => import('./features/admin/analytics/enterprise-dashboard.component').then(m => m.EnterpriseDashboardComponent)
       },
       {
         path: 'activity',
