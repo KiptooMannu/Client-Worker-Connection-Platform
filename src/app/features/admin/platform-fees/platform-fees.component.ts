@@ -7,6 +7,7 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../environments/environment';
 
 export interface PlatformFeeBalance {
   totalFeesCollected: number;
@@ -249,7 +250,7 @@ export class PlatformFeesComponent implements OnInit {
     mpesaPhoneNumber: ['']
   });
 
-  private apiUrl = 'http://localhost:8080/api/platform-fees';
+  private apiUrl = `${environment.apiUrl}/platform-fees`;
 
   formatDate(dateStr: string): string {
     return dateStr ? new Date(dateStr).toLocaleDateString() : '';
