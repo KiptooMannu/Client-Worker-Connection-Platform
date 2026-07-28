@@ -105,7 +105,7 @@ const RANGE_OPTIONS = [
                class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
         @if (loading()) {
           @for (i of skeletonTiles; track i) {
-            <div class="bg-white rounded-2xl border border-slate-100 p-4 h-[104px] animate-pulse">
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 min-h-[104px] animate-pulse">
               <div class="w-8 h-8 rounded-lg bg-slate-100 mb-3"></div>
               <div class="h-4 bg-slate-100 rounded w-3/4 mb-2"></div>
               <div class="h-2 bg-slate-50 rounded w-1/2"></div>
@@ -113,15 +113,22 @@ const RANGE_OPTIONS = [
           }
         } @else {
           @for (tile of kpiTiles(); track tile.label) {
-            <div class="bg-white rounded-2xl border border-slate-100 p-4 h-[104px] flex flex-col
+            <!--
+              min-h, not h. A hard 104px left only 32px below the icon row for a
+              20px value and its label, so any label that wrapped to two lines
+              ("PLATFORM REVENUE", "PENDING PAYMENTS", "CONVERSION RATE") spilled
+              out of the box and printed on top of the figure above it. The tile
+              now grows, and grid row stretching keeps every tile in a row equal.
+            -->
+            <div class="bg-white rounded-2xl border border-slate-100 p-4 min-h-[104px] flex flex-col
                         hover:shadow-md transition-shadow">
-              <div class="flex items-start justify-between mb-2">
+              <div class="flex items-start justify-between gap-1.5 mb-2">
                 <div class="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" [ngClass]="tile.tint">
                   <mat-icon class="!text-sm !w-auto !h-auto" [ngClass]="tile.iconTint">{{ tile.icon }}</mat-icon>
                 </div>
                 @if (tile.delta !== undefined) {
                   <!-- Icon + sign carry direction, so the colour isn't the only cue. -->
-                  <span class="flex items-center gap-0.5 text-[9px] font-black px-1.5 py-0.5 rounded-full"
+                  <span class="flex items-center gap-0.5 text-[9px] font-black px-1.5 py-0.5 rounded-full shrink-0"
                         [ngClass]="tile.delta >= 0 ? 'text-emerald-700 bg-emerald-50' : 'text-rose-700 bg-rose-50'">
                     <mat-icon class="!text-[10px] !w-auto !h-auto">
                       {{ tile.delta >= 0 ? 'arrow_upward' : 'arrow_downward' }}
@@ -133,7 +140,10 @@ const RANGE_OPTIONS = [
               <p class="text-base font-black text-slate-900 leading-tight truncate" [title]="tile.value">
                 {{ tile.value }}
               </p>
-              <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-auto leading-tight">
+              <!-- tracking-wide rather than tracking-widest: at 9px in a ~110px
+                   content box the wider spacing was what pushed most of these
+                   labels onto a second line in the first place. -->
+              <p class="text-[9px] font-black text-slate-400 uppercase tracking-wide mt-auto pt-1 leading-tight">
                 {{ tile.label }}
               </p>
             </div>
