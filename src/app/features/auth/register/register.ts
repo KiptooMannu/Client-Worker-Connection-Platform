@@ -2,197 +2,310 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { NavbarComponent } from '../../../shared/components/navbar';
+import { AuthShellComponent } from '../auth-shell/auth-shell';
 import { AuthService, UserRole } from '../../../core/services/auth.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, MatIconModule, MatButtonModule, NavbarComponent],
+  imports: [CommonModule, FormsModule, RouterLink, AuthShellComponent],
   template: `
-    <div class="bg-white text-on-surface font-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-white">
-      <app-navbar [showMessages]="false"></app-navbar>
+    <app-auth-shell
+      mode="register"
+      [heading]="registrationComplete() ? 'Verify your email' : 'Create your account'"
+      [subheading]="
+        registrationComplete()
+          ? ''
+          : 'Join Kazi Konnect in a minute. Choose how you want to use the platform.'
+      "
+      [wide]="!registrationComplete()"
+      [showTabs]="!registrationComplete()"
+    >
+      @if (registrationComplete()) {
+        <!-- ── Step 2: e-mail verification ──────────────────────────────── -->
+        <div class="auth-center">
+          <div class="auth-step-icon">
+            <span class="material-symbols-outlined" aria-hidden="true">mark_email_unread</span>
+          </div>
+          <p class="auth-subheading">
+            We sent a 6-digit code to <strong>{{ email }}</strong>
+          </p>
+        </div>
 
-      <main class="flex-grow flex items-center justify-center px-4 pt-24 pb-8">
-        <!-- Auth Container -->
-        <div class="w-full max-w-[500px] bg-white rounded-2xl shadow-[0_20px_60px_rgba(46,49,146,0.05)] border border-slate-200 p-6 md:p-8">
-          <!-- Header Section -->
-          <div class="text-center mb-6">
-            <h1 class="font-headline-lg text-2xl md:text-3xl text-brand-teal mb-1">Create Account</h1>
-            <p class="font-body-lg text-sm text-secondary">Join the community</p>
+        <form class="auth-form" (ngSubmit)="onVerifyOtp()" novalidate>
+          @if (otpError()) {
+            <div class="auth-alert auth-alert--error" role="alert">
+              <span class="material-symbols-outlined" aria-hidden="true">error</span>
+              <span>{{ otpError() }}</span>
+            </div>
+          }
+          @if (otpSuccess()) {
+            <div class="auth-alert auth-alert--success" role="status">
+              <span class="material-symbols-outlined" aria-hidden="true">check_circle</span>
+              <span>{{ otpSuccess() }}</span>
+            </div>
+          }
+
+          <div class="auth-field">
+            <label class="auth-label auth-center" for="otpCode">Verification code</label>
+            <input
+              class="auth-otp"
+              id="otpCode"
+              name="otpCode"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              maxlength="6"
+              placeholder="000000"
+              [(ngModel)]="otpCode"
+              required
+            />
           </div>
 
-          <!-- Verification Message (shown after registration) -->
-          <div *ngIf="registrationComplete()" class="space-y-6">
-            <div class="text-center mb-4">
-              <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="material-symbols-outlined text-emerald-600 text-3xl">mail</span>
+          <button class="auth-submit" type="submit" [disabled]="otpLoading()">
+            @if (otpLoading()) {
+              <span class="auth-submit-spinner" aria-hidden="true"></span>
+              Verifying…
+            } @else {
+              Verify code
+            }
+          </button>
+        </form>
+
+        <p class="auth-swap">
+          Didn't get it?
+          <button class="auth-text-button" type="button" (click)="resendOtp()" [disabled]="resendLoading()">
+            {{ resendLoading() ? 'Sending…' : 'Resend code' }}
+          </button>
+        </p>
+
+        <hr class="auth-divider-rule" />
+
+        <p class="auth-center">
+          <button class="auth-text-button auth-text-button--muted" type="button" (click)="backToRegister()">
+            Back to registration
+          </button>
+        </p>
+      } @else {
+        <!-- ── Step 1: account details ──────────────────────────────────── -->
+        <form class="auth-form" (ngSubmit)="onSubmit()" novalidate>
+          @if (formError()) {
+            <div class="auth-alert auth-alert--error" role="alert">
+              <span class="material-symbols-outlined" aria-hidden="true">error</span>
+              <span>
+                <strong>We couldn't create your account</strong>
+                {{ formError() }}
+              </span>
+            </div>
+          }
+
+          <div class="auth-grid auth-grid--2">
+            <div class="auth-field">
+              <label class="auth-label" for="firstName">
+                <span>First name <span class="auth-required">*</span></span>
+              </label>
+              <div class="auth-input-wrap">
+                <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">person</span>
+                <input
+                  class="auth-input"
+                  id="firstName"
+                  name="firstName"
+                  type="text"
+                  autocomplete="given-name"
+                  placeholder="John"
+                  [(ngModel)]="firstName"
+                  required
+                />
               </div>
-              <h2 class="font-headline-md text-xl md:text-2xl text-brand-teal mb-1">Verify Your Email</h2>
-              <p class="font-body-md text-sm text-secondary">We sent a 6-digit code to <strong>{{ email }}</strong></p>
             </div>
 
-            <!-- OTP Input Form -->
-            <form (ngSubmit)="onVerifyOtp()" class="space-y-4">
-              <div *ngIf="otpError()" class="rounded-xl border border-rose-200 bg-rose-50 text-rose-900 px-4 py-3 text-sm">
-                {{ otpError() }}
+            <div class="auth-field">
+              <label class="auth-label" for="secondName">
+                <span>Second name <span class="auth-required">*</span></span>
+              </label>
+              <div class="auth-input-wrap">
+                <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">person</span>
+                <input
+                  class="auth-input"
+                  id="secondName"
+                  name="secondName"
+                  type="text"
+                  autocomplete="family-name"
+                  placeholder="Doe"
+                  [(ngModel)]="secondName"
+                  required
+                />
               </div>
-              <div *ngIf="otpSuccess()" class="rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-900 px-4 py-3 text-sm">
-                {{ otpSuccess() }}
-              </div>
-
-              <div class="space-y-2">
-                <label class="font-label-sm text-[11px] font-bold text-secondary uppercase tracking-wider block text-center">Verification Code</label>
-                <div class="flex justify-center gap-2">
-                  <input class="w-full max-w-[200px] h-12 text-center text-xl font-bold tracking-[0.5em] border border-slate-200 rounded-xl focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all outline-none"
-                         type="text" maxlength="6" placeholder="000000" name="otpCode" [(ngModel)]="otpCode" required />
-                </div>
-              </div>
-
-              <button class="w-full h-12 bg-brand-teal text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-brand-teal/10 hover:bg-brand-teal-dark transition-all active:scale-[0.98] disabled:opacity-50"
-                      type="submit" [disabled]="otpLoading()">
-                {{ otpLoading() ? 'VERIFYING...' : 'VERIFY CODE' }}
-              </button>
-            </form>
-
-            <div class="text-center pt-2">
-              <button (click)="resendOtp()" class="text-brand-teal font-bold hover:underline text-sm outline-none" [disabled]="resendLoading()" type="button">
-                {{ resendLoading() ? 'Sending...' : 'Resend Code' }}
-              </button>
-            </div>
-            
-            <div class="pt-4 border-t border-slate-100 text-center">
-              <button (click)="backToRegister()" class="text-secondary font-bold hover:underline text-sm outline-none" type="button">Back to Registration</button>
             </div>
           </div>
 
-          <!-- Registration Form (shown when not complete) -->
-          <form *ngIf="!registrationComplete()" (ngSubmit)="onSubmit()" class="space-y-4">
-            <div *ngIf="formError()" class="rounded-xl border border-rose-200 bg-rose-50 text-rose-900 px-4 py-3">
-              <p class="font-semibold text-sm">Registration error</p>
-              <p class="text-[13px] mt-1">{{ formError() }}</p>
-            </div>
-            <!-- Name Row -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">First Name <span class="text-rose-500">*</span></label>
-                <div class="relative group">
-                  <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
-                         placeholder="John" type="text" name="firstName" [(ngModel)]="firstName" required/>
-                </div>
+          <div class="auth-grid auth-grid--2">
+            <div class="auth-field">
+              <label class="auth-label" for="regEmail">
+                <span>Email <span class="auth-required">*</span></span>
+              </label>
+              <div class="auth-input-wrap">
+                <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">mail</span>
+                <input
+                  class="auth-input"
+                  [class.is-invalid]="validationErrors()['email']"
+                  id="regEmail"
+                  name="email"
+                  type="email"
+                  autocomplete="email"
+                  placeholder="john@example.com"
+                  [(ngModel)]="email"
+                  required
+                />
               </div>
-
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Second Name <span class="text-rose-500">*</span></label>
-                <div class="relative group">
-                  <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
-                         placeholder="Doe" type="text" name="secondName" [(ngModel)]="secondName" required/>
-                </div>
-              </div>
+              @if (validationErrors()['email']) {
+                <p class="auth-error">{{ validationErrors()['email'] }}</p>
+              }
             </div>
 
-            <!-- Email & Role Row -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Email <span class="text-rose-500">*</span></label>
-                <div class="relative group">
-                  <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
-                         placeholder="john@example.com" type="email" name="email" [(ngModel)]="email" required/>
-                </div>
-                <p *ngIf="validationErrors()['email']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['email'] }}</p>
+            <div class="auth-field">
+              <label class="auth-label" for="username">
+                <span>Username <span class="auth-required">*</span></span>
+              </label>
+              <div class="auth-input-wrap">
+                <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">alternate_email</span>
+                <input
+                  class="auth-input"
+                  [class.is-invalid]="validationErrors()['username']"
+                  id="username"
+                  name="username"
+                  type="text"
+                  autocomplete="username"
+                  placeholder="johndoe"
+                  [(ngModel)]="username"
+                  required
+                />
               </div>
-
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Username <span class="text-rose-500">*</span></label>
-                <div class="relative group">
-                  <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
-                         placeholder="username" type="text" name="username" [(ngModel)]="username" required/>
-                </div>
-                <p *ngIf="validationErrors()['username']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['username'] }}</p>
-              </div>
-
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Account Type <span class="text-rose-500">*</span></label>
-                <div class="flex p-1 bg-slate-50 border border-slate-100 rounded-full gap-1 h-11">
-                  <button (click)="role = 'Client'" 
-                          [class.bg-white]="role === 'Client'"
-                          [class.text-brand-teal]="role === 'Client'"
-                          [class.shadow-sm]="role === 'Client'"
-                          [class.text-secondary]="role !== 'Client'"
-                          class="flex-1 rounded-full font-label-sm text-[10px] font-bold uppercase tracking-wider transition-all outline-none" type="button">
-                    Employer
-                  </button>
-                  <button (click)="role = 'Worker'"
-                          [class.bg-white]="role === 'Worker'"
-                          [class.text-brand-teal]="role === 'Worker'"
-                          [class.shadow-sm]="role === 'Worker'"
-                          [class.text-secondary]="role !== 'Worker'"
-                          class="flex-1 rounded-full font-label-sm text-[10px] font-bold uppercase tracking-wider transition-all outline-none" type="button">
-                    Worker
-                  </button>
-                </div>
-              </div>
+              @if (validationErrors()['username']) {
+                <p class="auth-error">{{ validationErrors()['username'] }}</p>
+              }
             </div>
+          </div>
 
-            <!-- Password Row -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Password <span class="text-rose-500">*</span></label>
-                <div class="relative group">
-                  <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
-                         placeholder="••••••••" [type]="showPassword ? 'text' : 'password'" name="password" [(ngModel)]="password" required/>
-                </div>
-                <p *ngIf="validationErrors()['password']" class="text-rose-600 text-[11px] mt-1">{{ validationErrors()['password'] }}</p>
-              </div>
-
-              <div class="space-y-1.5">
-                <label class="font-label-sm text-[11px] font-bold text-on-surface-variant uppercase tracking-wider block ml-1">Confirm <span class="text-rose-500">*</span></label>
-                <div class="relative group">
-                  <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-emerald-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-                  <input class="w-full h-11 pl-11 pr-4 bg-white border border-slate-200 rounded-full focus:ring-4 focus:ring-brand-teal/5 focus:border-brand-teal transition-all text-sm font-body-md text-on-surface outline-none"
-                         placeholder="••••••••" [type]="showPassword ? 'text' : 'password'" name="confirmPassword" [(ngModel)]="confirmPassword" required/>
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Button -->
-            <div class="pt-2">
-              <button class="w-full h-12 bg-on-background text-white font-label-caps text-[11px] font-black tracking-[0.2em] rounded-full shadow-lg shadow-on-background/10 hover:bg-brand-teal transition-all active:scale-[0.98] disabled:opacity-50"
-                      type="submit" [disabled]="loading()">
-                {{ loading() ? 'PLEASE WAIT...' : 'GET STARTED' }}
+          <!-- Given its own full-width row rather than being wedged into a
+               two-column grid: it is the one choice that changes what the rest
+               of the product looks like, so it should read as a decision. -->
+          <div class="auth-field">
+            <label class="auth-label" id="roleLabel">
+              <span>I want to <span class="auth-required">*</span></span>
+            </label>
+            <div class="auth-segment" role="group" aria-labelledby="roleLabel">
+              <button
+                class="auth-segment-option"
+                [class.is-active]="role === 'Client'"
+                type="button"
+                (click)="role = 'Client'"
+                [attr.aria-pressed]="role === 'Client'"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">work</span>
+                Hire people
+              </button>
+              <button
+                class="auth-segment-option"
+                [class.is-active]="role === 'Worker'"
+                type="button"
+                (click)="role = 'Worker'"
+                [attr.aria-pressed]="role === 'Worker'"
+              >
+                <span class="material-symbols-outlined" aria-hidden="true">construction</span>
+                Find work
               </button>
             </div>
-          </form>
-
-          <!-- Footer Link -->
-          <div class="mt-6 text-center">
-            <p class="font-body-md text-sm text-secondary">
-              Already have an account? 
-              <a routerLink="/login" class="text-brand-teal font-bold hover:underline transition-all cursor-pointer">Sign In</a>
+            <p class="auth-hint">
+              {{
+                role === 'Client'
+                  ? 'Post jobs and hire verified professionals near you.'
+                  : 'Build a profile, get verified, and start accepting jobs.'
+              }}
             </p>
           </div>
-        </div>
-      </main>
 
-      <!-- Minimalist Footer -->
-      <footer class="py-6 border-t border-slate-100 bg-white">
-        <div class="flex justify-between items-center px-6 max-w-[1280px] mx-auto w-full">
-          <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">© 2024 Kazi Konnect. Professional.</span>
-          <div class="flex gap-6">
-            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-brand-teal transition-colors cursor-pointer">Terms</a>
-            <a class="text-[10px] font-bold text-secondary uppercase tracking-widest hover:text-brand-teal transition-colors cursor-pointer">Privacy</a>
+          <div class="auth-grid auth-grid--2">
+            <div class="auth-field">
+              <label class="auth-label" for="regPassword">
+                <span>Password <span class="auth-required">*</span></span>
+              </label>
+              <div class="auth-input-wrap">
+                <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">lock</span>
+                <input
+                  class="auth-input auth-input--revealable"
+                  [class.is-invalid]="validationErrors()['password']"
+                  id="regPassword"
+                  name="password"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  autocomplete="new-password"
+                  placeholder="At least 8 characters"
+                  [(ngModel)]="password"
+                  required
+                />
+                <button
+                  class="auth-reveal"
+                  type="button"
+                  (click)="showPassword.set(!showPassword())"
+                  [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+                  [attr.aria-pressed]="showPassword()"
+                >
+                  <span class="material-symbols-outlined" aria-hidden="true">{{
+                    showPassword() ? 'visibility_off' : 'visibility'
+                  }}</span>
+                </button>
+              </div>
+              @if (validationErrors()['password']) {
+                <p class="auth-error">{{ validationErrors()['password'] }}</p>
+              }
+            </div>
+
+            <div class="auth-field">
+              <label class="auth-label" for="confirmPassword">
+                <span>Confirm password <span class="auth-required">*</span></span>
+              </label>
+              <div class="auth-input-wrap">
+                <span class="material-symbols-outlined auth-input-icon" aria-hidden="true">shield</span>
+                <input
+                  class="auth-input"
+                  [class.is-invalid]="confirmPassword.length > 0 && confirmPassword !== password"
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  [type]="showPassword() ? 'text' : 'password'"
+                  autocomplete="new-password"
+                  placeholder="Re-enter your password"
+                  [(ngModel)]="confirmPassword"
+                  required
+                />
+              </div>
+              @if (confirmPassword.length > 0 && confirmPassword !== password) {
+                <p class="auth-error">Passwords do not match.</p>
+              }
+            </div>
           </div>
-        </div>
-      </footer>
-    </div>
+
+          <button class="auth-submit" type="submit" [disabled]="loading()">
+            @if (loading()) {
+              <span class="auth-submit-spinner" aria-hidden="true"></span>
+              Creating account…
+            } @else {
+              Create account
+            }
+          </button>
+        </form>
+
+        <p class="auth-swap">
+          Already have an account?
+          <a routerLink="/login" queryParamsHandling="preserve">Sign in</a>
+        </p>
+
+        <p class="auth-legal">
+          By creating an account you agree to our
+          <a routerLink="/">Terms of Service</a> and <a routerLink="/">Privacy Policy</a>.
+        </p>
+      }
+    </app-auth-shell>
   `
 })
 export class RegisterPage implements OnInit {
@@ -200,7 +313,7 @@ export class RegisterPage implements OnInit {
   private notification = inject(NotificationService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  
+
   firstName = '';
   secondName = '';
   email = '';
@@ -208,19 +321,21 @@ export class RegisterPage implements OnInit {
   password = '';
   confirmPassword = '';
   role: UserRole = 'Client';
+
   loading = signal(false);
-  showPassword = false;
+  showPassword = signal(false);
   registrationComplete = signal(false);
   validationErrors = signal<Record<string, string>>({});
   formError = signal('');
-  
+
   otpCode = '';
   otpLoading = signal(false);
   otpError = signal('');
   otpSuccess = signal('');
   resendLoading = signal(false);
 
-  ngOnInit() {
+  ngOnInit(): void {
+    // The landing page links here as /register?role=worker|client.
     const roleParam = this.route.snapshot.queryParamMap.get('role');
     if (roleParam === 'worker') {
       this.role = 'Worker';
@@ -229,75 +344,73 @@ export class RegisterPage implements OnInit {
     }
   }
 
-  onSubmit() {
-    if (!this.firstName.trim() || !this.secondName.trim() || !this.email.trim() || !this.username.trim() || !this.password.trim()) {
-      this.notification.error('Please fill in all mandatory fields.');
+  onSubmit(): void {
+    const problem = this.firstProblem();
+    if (problem) {
+      // Shown inline beside the fields rather than only as a toast, so the
+      // message stays on screen while the visitor fixes the input.
+      this.formError.set(problem);
       return;
     }
 
-    if (this.firstName.trim().length < 2 || this.firstName.trim().length > 50) {
-      this.notification.error('First name must be 2-50 characters.');
-      return;
-    }
-
-    if (this.secondName.trim().length < 2 || this.secondName.trim().length > 50) {
-      this.notification.error('Second name must be 2-50 characters.');
-      return;
-    }
-
-    if (this.username.trim().length < 3 || this.username.trim().length > 50) {
-      this.notification.error('Username must be 3-50 characters.');
-      return;
-    }
-
-    if (this.password.length < 8) {
-      this.notification.error('Password must be at least 8 characters.');
-      return;
-    }
-
-    if (this.password !== this.confirmPassword) {
-      this.notification.error('Passwords do not match.');
-      return;
-    }
-    
     this.loading.set(true);
     this.formError.set('');
     this.validationErrors.set({});
-    this.auth.register(this.firstName, this.secondName, this.email, this.role, this.password, this.username).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.registrationComplete.set(true);
-      },
-      error: (error: any) => {
-        this.loading.set(false);
 
-        const validationErrors = error?.error?.validationErrors;
-        if (validationErrors && typeof validationErrors === 'object') {
-          this.validationErrors.set(validationErrors as Record<string, string>);
-          return;
-        }
+    this.auth
+      .register(this.firstName.trim(), this.secondName.trim(), this.email.trim(), this.role, this.password, this.username.trim())
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.registrationComplete.set(true);
+        },
+        error: (error: any) => {
+          this.loading.set(false);
 
-        let message = 'Registration failed. Please try again.';
-        if (typeof error?.error === 'string') {
-          try {
-            const parsed = JSON.parse(error.error);
-            message = parsed?.message || parsed?.error || error.error || message;
-          } catch {
-            message = error.error || message;
+          const validationErrors = error?.error?.validationErrors;
+          if (validationErrors && typeof validationErrors === 'object') {
+            this.validationErrors.set(validationErrors as Record<string, string>);
+            this.formError.set('Please correct the highlighted fields.');
+            return;
           }
-        } else if (error?.error?.message) {
-          message = error.error.message;
-        } else if (error?.message) {
-          message = error.message;
-        }
 
-        this.formError.set(message);
-        this.notification.error(message);
-      }
-    });
+          // AuthService already raises the toast for this branch; setting the
+          // inline message here would otherwise double-report the same error.
+          this.formError.set(readErrorMessage(error));
+        }
+      });
   }
 
-  backToRegister() {
+  /** Returns the first failing rule, or null when the form is ready to submit. */
+  private firstProblem(): string | null {
+    if (
+      !this.firstName.trim() ||
+      !this.secondName.trim() ||
+      !this.email.trim() ||
+      !this.username.trim() ||
+      !this.password
+    ) {
+      return 'Please fill in all required fields.';
+    }
+    if (this.firstName.trim().length < 2 || this.firstName.trim().length > 50) {
+      return 'First name must be 2–50 characters.';
+    }
+    if (this.secondName.trim().length < 2 || this.secondName.trim().length > 50) {
+      return 'Second name must be 2–50 characters.';
+    }
+    if (this.username.trim().length < 3 || this.username.trim().length > 50) {
+      return 'Username must be 3–50 characters.';
+    }
+    if (this.password.length < 8) {
+      return 'Password must be at least 8 characters.';
+    }
+    if (this.password !== this.confirmPassword) {
+      return 'Passwords do not match.';
+    }
+    return null;
+  }
+
+  backToRegister(): void {
     this.registrationComplete.set(false);
     this.firstName = '';
     this.secondName = '';
@@ -312,9 +425,9 @@ export class RegisterPage implements OnInit {
     this.otpSuccess.set('');
   }
 
-  onVerifyOtp() {
-    if (!this.otpCode.trim() || this.otpCode.trim().length !== 6) {
-      this.otpError.set('Please enter a valid 6-digit verification code.');
+  onVerifyOtp(): void {
+    if (this.otpCode.trim().length !== 6) {
+      this.otpError.set('Please enter the 6-digit code from your email.');
       return;
     }
 
@@ -325,22 +438,20 @@ export class RegisterPage implements OnInit {
     this.auth.verifyEmail(this.otpCode.trim(), this.email.trim()).subscribe({
       next: () => {
         this.otpLoading.set(false);
-        this.otpSuccess.set('Email verified successfully! Redirecting to login...');
+        this.otpSuccess.set('Email verified. Taking you to sign in…');
         this.notification.success('Email verified successfully!');
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
+        setTimeout(() => this.router.navigate(['/login']), 2000);
       },
       error: (error: any) => {
         this.otpLoading.set(false);
-        const message = error?.error?.message || error?.message || 'Verification failed. The code may be incorrect or expired.';
+        const message =
+          error?.error?.message || error?.message || 'Verification failed. The code may be incorrect or expired.';
         this.otpError.set(message);
-        this.notification.error(message);
       }
     });
   }
 
-  resendOtp() {
+  resendOtp(): void {
     this.resendLoading.set(true);
     this.otpError.set('');
     this.otpSuccess.set('');
@@ -350,13 +461,29 @@ export class RegisterPage implements OnInit {
         this.resendLoading.set(false);
         const msg = typeof response === 'string' ? response : response?.message || 'A new verification code has been sent.';
         this.otpSuccess.set(msg);
-        this.notification.success(msg);
       },
       error: (error: any) => {
         this.resendLoading.set(false);
-        const msg = error?.error || error?.message || 'Failed to resend verification code.';
-        this.otpError.set(msg);
+        this.otpError.set(error?.error || error?.message || 'Failed to resend the verification code.');
       }
     });
   }
+}
+
+function readErrorMessage(error: any): string {
+  const fallback = 'Registration failed. Please try again.';
+  if (!error) return fallback;
+
+  if (typeof error.error === 'string') {
+    try {
+      const parsed = JSON.parse(error.error);
+      return parsed?.message || parsed?.error || error.error || fallback;
+    } catch {
+      return error.error || fallback;
+    }
+  }
+  if (error.error && typeof error.error === 'object') {
+    return error.error.message || error.error.error || fallback;
+  }
+  return error.message || fallback;
 }

@@ -1,0 +1,864 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   AUTHENTICATION
+   Shared design system for the sign-in / sign-up pages. Both routes render the
+   same <app-auth-shell> and draw every form primitive from this file, so the
+   two pages cannot drift into separate designs the way they had before.
+
+   Loaded globally (angular.json → styles) rather than as a component
+   stylesheet because the shell projects its form content via <ng-content>:
+   Angular's view encapsulation scopes styles to the template they are declared
+   in, so shell-scoped rules would never reach the login/register markup.
+
+   Colours come from the --brand-* tokens in styles.css. Note these are plain
+   CSS variables, not Tailwind @theme colours — utilities of the form
+   `ring-brand-teal/5` silently produce nothing, which is why the accents here
+   are written as explicit rgba() values.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Page shell ──────────────────────────────────────────────────────────────
+   Mobile stacks a short image banner above the form; from `lg` up the banner
+   becomes a full-height column beside it. One grid, two configurations, so the
+   showcase markup is written once and never duplicated per breakpoint. */
+.auth-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto 1fr;
+  background: #fff;
+  color: var(--brand-text);
+}
+
+@media (min-width: 1024px) {
+  .auth-page {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    grid-template-rows: 1fr;
+  }
+}
+
+/* ── Icons ───────────────────────────────────────────────────────────────────
+   The global .material-symbols-outlined rule in styles.css applies
+   `letter-spacing: -1em` plus `overflow: hidden` as a guard: if the icon font
+   fails to load, the ligature word ("check_circle") collapses instead of
+   leaking onto the page as text. Once the font *does* load, though, that
+   negative tracking also pulls the real glyph's advance to nothing and the
+   overflow clip shaves it down to a sliver.
+
+   Restoring normal tracking and sizing the box to exactly one em keeps both
+   behaviours: a loaded glyph (1em advance) fits precisely, while un-ligatured
+   fallback text is still clipped to a single character's width. Every icon in
+   this flow therefore sets only `font-size` and inherits its box from here. */
+.auth-page .material-symbols-outlined {
+  letter-spacing: normal !important;
+  line-height: 1 !important;
+  overflow: hidden !important;
+  width: 1em !important;
+  height: 1em !important;
+  flex: none;
+}
+
+/* ── Showcase panel ───────────────────────────────────────────────────────── */
+
+.auth-showcase {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 1.25rem 1.5rem;
+  min-height: 8.5rem;
+  color: #fff;
+  background: #04263a; /* Shows through before the image decodes. */
+}
+
+@media (min-width: 1024px) {
+  .auth-showcase {
+    padding: 2.75rem 2.5rem;
+    min-height: 0;
+  }
+}
+
+.auth-showcase-media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Teal-weighted scrim. Dense enough that white text clears WCAG AA over any
+   part of the photograph, angled so the lower-left copy sits on the darkest
+   region. */
+.auth-showcase-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(155deg, rgba(4, 22, 39, 0.72) 0%, rgba(4, 22, 39, 0.55) 38%, rgba(31, 137, 153, 0.82) 100%),
+    linear-gradient(to top, rgba(4, 22, 39, 0.78) 0%, rgba(4, 22, 39, 0) 55%);
+}
+
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: #fff;
+  text-decoration: none;
+  width: fit-content;
+  border-radius: 0.75rem;
+}
+
+.auth-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.8rem;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.26);
+  backdrop-filter: blur(6px);
+}
+
+.auth-brand-mark .material-symbols-outlined {
+  font-size: 1.35rem;
+}
+
+.auth-brand-name {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+/* The narrative half of the panel — hidden on the mobile banner, where there is
+   only room for the logo. */
+.auth-showcase-body {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .auth-showcase-body {
+    display: block;
+    max-width: 26rem;
+  }
+}
+
+.auth-showcase-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  margin-bottom: 1.15rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.auth-showcase-eyebrow .material-symbols-outlined {
+  font-size: 1rem;
+}
+
+.auth-showcase-title {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.75rem, 2.4vw, 2.4rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+}
+
+.auth-showcase-lede {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.auth-points {
+  list-style: none;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.auth-point {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.auth-point .material-symbols-outlined {
+  margin-top: 0.12rem;
+  font-size: 1.15rem;
+  color: #7fe3ef;
+}
+
+/* Footer strip of the panel: a soft credibility note. */
+.auth-showcase-foot {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .auth-showcase-foot {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem 1.15rem;
+    border-radius: 1.1rem;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+  }
+}
+
+.auth-showcase-foot .material-symbols-outlined {
+  font-size: 1.4rem;
+  color: #7fe3ef;
+}
+
+.auth-showcase-foot p {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* ── Form column ──────────────────────────────────────────────────────────── */
+
+.auth-form-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem 2.75rem;
+  background: #fff;
+}
+
+@media (min-width: 1024px) {
+  .auth-form-col {
+    padding: 2.5rem 3rem;
+    overflow-y: auto;
+  }
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 26.5rem;
+}
+
+/* Register carries twice the fields, so it opts into a wider measure to keep
+   its two-column rows from becoming cramped. */
+.auth-card--wide {
+  max-width: 33rem;
+}
+
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #64748b;
+  text-decoration: none;
+  border-radius: 0.4rem;
+  transition: color 0.18s ease;
+}
+
+.auth-back:hover {
+  color: var(--brand-teal);
+}
+
+.auth-back .material-symbols-outlined {
+  font-size: 1.05rem;
+}
+
+.auth-heading {
+  margin: 0 0 0.35rem;
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--brand-text);
+}
+
+.auth-subheading {
+  margin: 0 0 1.6rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #64748b;
+}
+
+/* ── Mode switcher ───────────────────────────────────────────────────────────
+   Two real links (so the routes stay shareable and the browser's back button
+   behaves) painted as a segmented control. The thumb is a separate element that
+   slides, which animates far more smoothly than transitioning each tab's
+   background and keeps the active state legible without any JS. */
+.auth-tabs {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0.3rem;
+  margin-bottom: 1.75rem;
+  background: #f1f5f9;
+  border: 1px solid #e8edf3;
+  border-radius: 999px;
+}
+
+.auth-tabs-thumb {
+  position: absolute;
+  top: 0.3rem;
+  left: 0.3rem;
+  bottom: 0.3rem;
+  width: calc(50% - 0.3rem);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.22);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.auth-tabs[data-active='register'] .auth-tabs-thumb {
+  transform: translateX(100%);
+}
+
+.auth-tab {
+  position: relative;
+  z-index: 1;
+  padding: 0.7rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  text-align: center;
+  text-decoration: none;
+  color: #64748b;
+  transition: color 0.22s ease;
+}
+
+.auth-tab:hover {
+  color: var(--brand-text);
+}
+
+.auth-tab.is-active {
+  color: var(--brand-teal);
+}
+
+/* ── Form primitives ─────────────────────────────────────────────────────── */
+
+.auth-form {
+  display: grid;
+  gap: 1.05rem;
+}
+
+.auth-grid {
+  display: grid;
+  gap: 1.05rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .auth-grid--2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.auth-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #64748b;
+}
+
+.auth-required {
+  color: #e11d48;
+}
+
+.auth-label-link {
+  font-size: 0.6875rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brand-teal);
+  text-decoration: none;
+}
+
+.auth-label-link:hover {
+  text-decoration: underline;
+}
+
+.auth-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* Centred by transform rather than flex alignment, because the global icon rule
+   forces `display: inline-flex` and this element is taken out of flow. */
+.auth-input-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.15rem;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.18s ease;
+}
+
+.auth-input {
+  width: 100%;
+  height: 3rem;
+  padding: 0 1rem 0 2.85rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.85rem;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--brand-text);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.auth-input::placeholder {
+  color: #a8b4c4;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: var(--brand-teal);
+  box-shadow: 0 0 0 4px rgba(41, 178, 199, 0.15);
+}
+
+.auth-input-wrap:focus-within .auth-input-icon {
+  color: var(--brand-teal);
+}
+
+/* Leaves room for the reveal button so long values never slide underneath it. */
+.auth-input--revealable {
+  padding-right: 3rem;
+}
+
+.auth-input.is-invalid {
+  border-color: #fda4af;
+}
+
+.auth-input.is-invalid:focus {
+  border-color: #e11d48;
+  box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.13);
+}
+
+.auth-reveal {
+  position: absolute;
+  right: 0.55rem;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.6rem;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.18s ease, background 0.18s ease;
+}
+
+.auth-reveal:hover {
+  color: var(--brand-text);
+  background: #f1f5f9;
+}
+
+.auth-reveal .material-symbols-outlined {
+  font-size: 1.2rem;
+}
+
+.auth-error {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: #be123c;
+}
+
+/* Hint text that shares the field's rhythm, used for password rules. */
+.auth-hint {
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: #94a3b8;
+}
+
+/* ── Segmented choice (account type) ─────────────────────────────────────── */
+
+.auth-segment {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem;
+  height: 3rem;
+  padding: 0.28rem;
+  background: #f1f5f9;
+  border: 1px solid #e8edf3;
+  border-radius: 999px;
+}
+
+.auth-segment-option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #64748b;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-segment-option .material-symbols-outlined {
+  font-size: 1.05rem;
+}
+
+.auth-segment-option:hover {
+  color: var(--brand-text);
+}
+
+.auth-segment-option.is-active {
+  background: #fff;
+  color: var(--brand-teal);
+  box-shadow: 0 2px 7px -2px rgba(15, 23, 42, 0.24);
+}
+
+/* ── Checkbox row ────────────────────────────────────────────────────────── */
+
+.auth-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.auth-check input {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex: none;
+  accent-color: var(--brand-teal);
+  cursor: pointer;
+}
+
+.auth-check label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+}
+
+/* ── Alerts ──────────────────────────────────────────────────────────────── */
+
+.auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid;
+  border-radius: 0.85rem;
+  font-size: 0.83rem;
+  line-height: 1.5;
+}
+
+.auth-alert .material-symbols-outlined {
+  margin-top: 0.12rem;
+  font-size: 1.15rem;
+}
+
+.auth-alert strong {
+  display: block;
+  font-weight: 800;
+}
+
+.auth-alert--error {
+  background: #fff1f2;
+  border-color: #fecdd3;
+  color: #9f1239;
+}
+
+.auth-alert--success {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #065f46;
+}
+
+/* ── Primary action ──────────────────────────────────────────────────────── */
+
+.auth-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  height: 3.25rem;
+  margin-top: 0.25rem;
+  padding: 0 1.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--brand-text);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  cursor: pointer;
+  box-shadow: 0 14px 30px -14px rgba(15, 23, 42, 0.55);
+  transition: background 0.2s ease, transform 0.12s ease, box-shadow 0.2s ease;
+}
+
+.auth-submit:hover:not(:disabled) {
+  background: var(--brand-teal);
+  box-shadow: 0 14px 30px -12px rgba(41, 178, 199, 0.5);
+}
+
+.auth-submit:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.auth-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.auth-submit-spinner {
+  width: 0.95rem;
+  height: 0.95rem;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: auth-spin 0.7s linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Quiet secondary action (resend, back a step). */
+.auth-text-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-family: inherit;
+  font-size: 0.83rem;
+  font-weight: 700;
+  color: var(--brand-teal);
+  cursor: pointer;
+  border-radius: 0.35rem;
+}
+
+.auth-text-button:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.auth-text-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.auth-text-button--muted {
+  color: #64748b;
+}
+
+/* ── Divider + federated sign-in ─────────────────────────────────────────── */
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 1.6rem 0 1.1rem;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #a8b4c4;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e8edf3;
+}
+
+.auth-social {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.auth-social-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.9rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: #475569;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.auth-social-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.auth-social-btn img {
+  width: 1.05rem;
+  height: 1.05rem;
+}
+
+.auth-social-btn .material-symbols-outlined {
+  font-size: 1.15rem;
+}
+
+/* ── Verification step ───────────────────────────────────────────────────── */
+
+.auth-step-icon {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  margin: 0 auto 1.1rem;
+  border-radius: 50%;
+  background: var(--brand-teal-soft);
+  color: var(--brand-teal-dark);
+}
+
+.auth-step-icon .material-symbols-outlined {
+  font-size: 1.75rem;
+}
+
+/* Letter-spacing pushes a trailing gap after the last glyph; the matching
+   text-indent pulls the string back so the digits look optically centred. */
+.auth-otp {
+  width: 100%;
+  max-width: 13.5rem;
+  height: 3.5rem;
+  margin: 0 auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 1rem;
+  background: #fff;
+  font-family: inherit;
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 0.5em;
+  text-indent: 0.5em;
+  color: var(--brand-text);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.auth-otp:focus {
+  outline: none;
+  border-color: var(--brand-teal);
+  box-shadow: 0 0 0 4px rgba(41, 178, 199, 0.15);
+}
+
+/* ── Footers ─────────────────────────────────────────────────────────────── */
+
+.auth-swap {
+  margin: 1.6rem 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.auth-swap a {
+  font-weight: 800;
+  color: var(--brand-teal);
+  text-decoration: none;
+}
+
+.auth-swap a:hover {
+  text-decoration: underline;
+}
+
+.auth-legal {
+  margin: 1.5rem 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  color: #a8b4c4;
+}
+
+.auth-legal a {
+  color: #64748b;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.auth-divider-rule {
+  height: 1px;
+  margin: 1.35rem 0;
+  background: #eef2f7;
+  border: 0;
+}
+
+.auth-center {
+  text-align: center;
+}
+
+/* ── Accessibility ───────────────────────────────────────────────────────── */
+
+/* A single visible focus treatment for every interactive element in the flow,
+   so keyboard traversal never loses its place. */
+.auth-page a:focus-visible,
+.auth-page button:focus-visible,
+.auth-page input:focus-visible {
+  outline: 2px solid var(--brand-teal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-tabs-thumb,
+  .auth-submit,
+  .auth-input,
+  .auth-segment-option {
+    transition: none;
+  }
+
+  .auth-submit-spinner {
+    animation-duration: 1.6s;
+  }
+}

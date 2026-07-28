@@ -24,7 +24,7 @@
                 "input": "public"
               }
             ],
-            "styles": ["src/styles.css", "src/landing.css", "src/material-theme.scss"],
+            "styles": ["src/styles.css", "src/landing.css", "src/auth.css", "src/material-theme.scss"],
             "allowedCommonJsDependencies": ["sockjs-client"],
             "outputMode": "static",
             "security": {
