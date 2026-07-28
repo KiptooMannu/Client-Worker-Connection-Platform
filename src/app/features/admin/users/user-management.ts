@@ -34,7 +34,7 @@ import { AuthService } from '../../../core/services/auth.service';
     MatDividerModule
   ],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-1000 p-4 md:p-0">
+    <div class="max-w-7xl mx-auto space-y-6 md:space-y-10 animate-in fade-in duration-1000">
       
       <!-- Detailed Profile Panel (Smooth entry) -->
       @if (selectedUser()) {
@@ -235,9 +235,9 @@ import { AuthService } from '../../../core/services/auth.service';
             </div>
           </div>
           
-          <div class="flex items-center gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <span>Showing {{ pagedUsers.length }} of {{ users.length }} results</span>
-            <div class="flex gap-1">
+            <div class="flex gap-1 shrink-0">
               <button (click)="prevPage()" [disabled]="currentPage() === 1" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all disabled:opacity-40"><mat-icon class="!text-sm">chevron_left</mat-icon></button>
               <button (click)="nextPage()" [disabled]="currentPage() >= totalPages" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-400 hover:bg-slate-50 transition-all disabled:opacity-40"><mat-icon class="!text-sm">chevron_right</mat-icon></button>
             </div>

@@ -39,7 +39,7 @@ import { DocumentUploadComponent } from '../../../shared/components/document-upl
         </div>
       </div>
     } @else {
-      <div class="max-w-4xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
+      <div class="max-w-4xl mx-auto space-y-6 md:space-y-8 font-manrope animate-in fade-in duration-700">
 
       <!-- Page Header -->
       <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 pt-8">

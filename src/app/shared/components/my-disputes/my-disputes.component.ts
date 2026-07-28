@@ -58,8 +58,9 @@ interface Dispute {
     RouterModule
   ],
   template: `
-    <div class="max-w-6xl mx-auto px-4 py-6">
-      <h1 class="text-2xl font-bold text-gray-900 mb-6">My Disputes</h1>
+    <!-- The dashboard layout supplies the horizontal padding. -->
+    <div class="max-w-6xl mx-auto">
+      <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mb-6">My Disputes</h1>
 
       @if (loading) {
         <div class="flex justify-center items-center py-12">
@@ -75,10 +76,10 @@ interface Dispute {
           @for (dispute of disputes; track dispute.id) {
             <mat-card class="hover:shadow-lg transition-shadow">
               <mat-card-content>
-                <div class="flex justify-between items-start mb-4">
-                  <div>
-                    <div class="flex items-center gap-2 mb-2">
-                      <h3 class="text-lg font-semibold text-gray-900">
+                <div class="flex flex-wrap justify-between items-start gap-2 mb-4">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 mb-2 flex-wrap">
+                      <h3 class="text-base sm:text-lg font-semibold text-gray-900">
                         Dispute #{{ dispute.id.slice(0, 8) }}
                       </h3>
                       @if (hasPendingEvidenceRequests(dispute)) {
@@ -94,7 +95,9 @@ interface Dispute {
                   </mat-chip>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4 mb-4">
+                <!-- Single column on phones: two 120px columns cannot hold a full
+                     name or a formatted date without clipping. -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4">
                   <div>
                     <p class="text-xs text-gray-500 font-semibold">Client</p>
                     <p class="text-sm font-medium">{{ dispute.clientProfile.fullName }}</p>

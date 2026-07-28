@@ -75,11 +75,12 @@ interface Withdrawal {
     LineChartComponent
   ],
   template: `
-    <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-1000 p-4 md:p-0">
+    <!-- Padding comes from the dashboard layout. -->
+    <div class="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-1000">
       <!-- Header -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 class="text-2xl font-black text-slate-900 tracking-tight">Settlement Wallet</h1>
+        <div class="min-w-0">
+          <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">Settlement Wallet</h1>
           <p class="text-slate-500 text-sm mt-1">Manage your refund and settlement funds</p>
         </div>
         @if (!summary().isFrozen) {
@@ -110,7 +111,7 @@ interface Withdrawal {
             </div>
             <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">Available</span>
           </div>
-          <p class="text-2xl font-black text-slate-900">{{ summary().availableBalance | currency:'KES' }}</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 break-anywhere">{{ summary().availableBalance | currency:'KES' }}</p>
           <p class="text-xs text-slate-500 mt-1">Available Balance</p>
         </mat-card>
 
@@ -121,7 +122,7 @@ interface Withdrawal {
             </div>
             <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-full">Pending</span>
           </div>
-          <p class="text-2xl font-black text-slate-900">{{ summary().pendingCredits | currency:'KES' }}</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 break-anywhere">{{ summary().pendingCredits | currency:'KES' }}</p>
           <p class="text-xs text-slate-500 mt-1">Pending Credits</p>
         </mat-card>
 
@@ -132,7 +133,7 @@ interface Withdrawal {
             </div>
             <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">+{{ summary().refundedToday | currency:'KES' }}</span>
           </div>
-          <p class="text-2xl font-black text-slate-900">{{ summary().totalRefunded | currency:'KES' }}</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 break-anywhere">{{ summary().totalRefunded | currency:'KES' }}</p>
           <p class="text-xs text-slate-500 mt-1">Total Refunded</p>
         </mat-card>
 
@@ -143,7 +144,7 @@ interface Withdrawal {
             </div>
             <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full">{{ summary().totalWithdrawn | currency:'KES' }}</span>
           </div>
-          <p class="text-2xl font-black text-slate-900">{{ summary().totalSettlementCredits | currency:'KES' }}</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 break-anywhere">{{ summary().totalSettlementCredits | currency:'KES' }}</p>
           <p class="text-xs text-slate-500 mt-1">Total Credits</p>
         </mat-card>
       </div>
@@ -170,17 +171,19 @@ interface Withdrawal {
           </div>
           <div class="space-y-3 max-h-96 overflow-y-auto">
             @for (transaction of recentTransactions(); track transaction.id) {
-              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" [ngClass]="getTransactionTypeBgClass(transaction.transactionType)">
+              <!-- The description is free text from the backend; without
+                   min-w-0 plus truncation a long one widened the whole card. -->
+              <div class="flex items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center" [ngClass]="getTransactionTypeBgClass(transaction.transactionType)">
                     <mat-icon class="!text-sm" [ngClass]="getTransactionTypeIconClass(transaction.transactionType)">{{ getTransactionTypeIcon(transaction.transactionType) }}</mat-icon>
                   </div>
-                  <div>
-                    <p class="text-sm font-bold text-slate-900">{{ transaction.description }}</p>
-                    <p class="text-xs text-slate-500">{{ transaction.timestamp | date:'short' }}</p>
+                  <div class="min-w-0">
+                    <p class="text-sm font-bold text-slate-900 truncate">{{ transaction.description }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ transaction.timestamp | date:'short' }}</p>
                   </div>
                 </div>
-                <p class="text-sm font-black" [ngClass]="getTransactionAmountClass(transaction.transactionType)">
+                <p class="text-sm font-black shrink-0" [ngClass]="getTransactionAmountClass(transaction.transactionType)">
                   {{ getTransactionAmountPrefix(transaction.transactionType) }}{{ transaction.amount | currency:'KES' }}
                 </p>
               </div>
@@ -196,17 +199,18 @@ interface Withdrawal {
           </div>
           <div class="space-y-3 max-h-96 overflow-y-auto">
             @for (withdrawal of recentWithdrawals(); track withdrawal.id) {
-              <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-lg flex items-center justify-center" [ngClass]="getStatusBgClass(withdrawal.status)">
+              <div class="flex items-center justify-between gap-2 p-3 bg-slate-50 rounded-xl">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-8 h-8 shrink-0 rounded-lg flex items-center justify-center" [ngClass]="getStatusBgClass(withdrawal.status)">
                     <mat-icon class="!text-sm" [ngClass]="getStatusIconClass(withdrawal.status)">{{ getStatusIcon(withdrawal.status) }}</mat-icon>
                   </div>
-                  <div>
-                    <p class="text-sm font-bold text-slate-900">{{ withdrawal.withdrawalReference }}</p>
-                    <p class="text-xs text-slate-500">{{ withdrawal.createdAt | date:'short' }}</p>
+                  <div class="min-w-0">
+                    <!-- Withdrawal references are long unbroken strings. -->
+                    <p class="text-sm font-bold text-slate-900 truncate">{{ withdrawal.withdrawalReference }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ withdrawal.createdAt | date:'short' }}</p>
                   </div>
                 </div>
-                <div class="text-right">
+                <div class="text-right shrink-0">
                   <p class="text-sm font-black text-slate-900">{{ withdrawal.amount | currency:'KES' }}</p>
                   <p class="text-xs font-bold" [ngClass]="getStatusTextClass(withdrawal.status)">{{ withdrawal.status }}</p>
                 </div>

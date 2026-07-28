@@ -9,6 +9,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
 import { PlatformStateService } from '../../core/services/platform-state.service';
 import { WebSocketService } from '../../core/services/websocket.service';
+import { AppNavItem, AppNavSection, bottomNavItems } from './nav-model';
 
 @Component({
   selector: 'app-navbar',
@@ -24,12 +25,22 @@ import { WebSocketService } from '../../core/services/websocket.service';
   template: `
     <header class="bg-white text-slate-900 border-b border-slate-100 shadow-sm fixed top-0 left-0 right-0 z-[99999] backdrop-blur-md bg-white/90 transition-all duration-300"
             [class.scrolled]="isScrolled()">
-      <div class="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 md:px-12 h-16 md:h-20 gap-8">
+      <!--
+        The gaps and paddings step up with the viewport. They were previously
+        fixed at "gap-8 px-4", which spent 64px of a 320px screen on whitespace
+        between three blocks that already did not fit.
+      -->
+      <div class="max-w-7xl mx-auto flex items-center px-3 sm:px-5 md:px-8 lg:px-12 h-16 md:h-20 gap-2 sm:gap-4 lg:gap-6">
 
         <!-- Logo Section -->
-        <div class="flex items-center gap-4 md:gap-8 shrink-0">
-          <a routerLink="/" class="flex items-center gap-3 group shrink-0">
-            <div class="w-8 h-8 md:w-10 md:h-10 bg-brand-teal rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-300">
+        <!--
+          "min-w-0" and a shrinkable box: this block used to be "shrink-0", so
+          a long page title could not be truncated and instead pushed the
+          profile menu and hamburger off the right edge of small phones.
+        -->
+        <div class="flex items-center gap-2.5 md:gap-6 min-w-0 flex-1 lg:flex-none">
+          <a routerLink="/" class="flex items-center gap-2.5 group shrink-0" aria-label="Kazi Konnect home">
+            <div class="w-8 h-8 md:w-10 md:h-10 bg-brand-teal rounded-xl flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform duration-300 shrink-0">
               <mat-icon class="!text-lg md:!text-xl">corporate_fare</mat-icon>
             </div>
             <span class="text-lg md:text-xl font-black tracking-tighter text-brand-teal hidden lg:block">KaziKonnect</span>
@@ -37,11 +48,13 @@ import { WebSocketService } from '../../core/services/websocket.service';
 
           <!-- Dynamic Context Title & Badge -->
           @if (pageTitle) {
-            <div class="h-6 w-px bg-slate-200 hidden md:block"></div>
-            <div class="flex items-center gap-3 min-w-0">
-              <h1 class="text-sm font-black text-slate-900 uppercase tracking-widest truncate">{{ pageTitle }}</h1>
+            <div class="h-6 w-px bg-slate-200 hidden md:block shrink-0"></div>
+            <div class="flex items-center gap-2 min-w-0">
+              <h1 class="text-[11px] sm:text-xs md:text-sm font-black text-slate-900 uppercase tracking-wider md:tracking-widest truncate">{{ pageTitle }}</h1>
+              <!-- Hidden on the narrowest phones: "Under Review" plus the page
+                   title cannot both fit beside the account controls at 320px. -->
               @if (badge) {
-                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0"
+                <span class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-widest shrink-0"
                       [ngClass]="getBadgeClass()">
                   <span class="w-1.5 h-1.5 rounded-full" [class.animate-pulse]="badge === 'Pending'"></span>
                   {{ formatBadge() }}
@@ -96,10 +109,10 @@ import { WebSocketService } from '../../core/services/websocket.service';
         </div>
 
         <!-- Right Side Actions -->
-        <div class="flex items-center gap-2 sm:gap-3 md:gap-4 shrink-0">
+        <div class="flex items-center gap-1 sm:gap-2 md:gap-3 shrink-0 ml-auto">
           @if (auth.isAuthenticated()) {
             <!-- Notifications & Messages -->
-            <div class="flex items-center gap-1 sm:gap-2 mr-1 sm:mr-2 border-r border-slate-100 pr-2 sm:pr-4">
+            <div class="flex items-center gap-1 sm:gap-2 sm:mr-1 sm:border-r sm:border-slate-100 sm:pr-3">
               <button (click)="toggleNotifications()"
                       class="relative p-1.5 sm:p-2 text-slate-400 hover:text-slate-900 transition-all rounded-full hover:bg-slate-100 cursor-pointer">
                 <mat-icon class="!text-xl sm:!text-2xl">notifications_none</mat-icon>
@@ -126,24 +139,24 @@ import { WebSocketService } from '../../core/services/websocket.service';
             </div>
 
             <!-- Profile Menu -->
-            <button [matMenuTriggerFor]="profileMenu" class="flex items-center gap-3 p-1.5 hover:bg-slate-50 rounded-xl transition-all cursor-pointer group">
-              <div class="hidden xl:flex flex-col items-end">
+            <button [matMenuTriggerFor]="profileMenu" class="flex items-center gap-2 xl:gap-3 p-1 sm:p-1.5 hover:bg-slate-50 rounded-xl transition-all cursor-pointer group shrink-0" aria-label="Account menu">
+              <div class="hidden xl:flex flex-col items-end min-w-0">
                 <span class="text-[9px] font-black uppercase tracking-widest leading-none mb-1"
                       [ngClass]="getRoleBadgeClass()">
                   {{ formatRole() }}
                 </span>
                 <span class="text-xs font-bold text-slate-900 leading-none max-w-[120px] truncate">{{ auth.currentUser()?.name }}</span>
               </div>
-              <div class="w-9 h-9 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm group-hover:shadow-md transition-all">
+              <div class="w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10 shrink-0 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center overflow-hidden border-2 border-white shadow-sm group-hover:shadow-md transition-all">
                 @if (auth.currentUser()?.avatarUrl) {
                   <img [src]="auth.currentUser()?.avatarUrl" class="w-full h-full object-cover" alt="Avatar">
                 } @else {
-                  <div class="w-full h-full bg-brand-teal text-white text-sm font-black flex items-center justify-center uppercase">
+                  <div class="w-full h-full bg-brand-teal text-white text-xs sm:text-sm font-black flex items-center justify-center uppercase">
                     {{ auth.currentUser()?.name?.charAt(0) || 'U' }}
                   </div>
                 }
               </div>
-              <mat-icon class="text-slate-400 !text-sm !w-auto !h-auto group-hover:text-slate-600 transition-colors">expand_more</mat-icon>
+              <mat-icon class="hidden sm:inline-flex text-slate-400 !text-sm !w-auto !h-auto group-hover:text-slate-600 transition-colors">expand_more</mat-icon>
             </button>
 
             <!-- Profile Dropdown Menu -->
@@ -225,37 +238,58 @@ import { WebSocketService } from '../../core/services/websocket.service';
     <!-- Spacer for fixed header -->
     <div class="h-16 md:h-20"></div>
 
-    <!-- Mobile Bottom Navigation Bar -->
-    @if (auth.isAuthenticated()) {
-      <nav class="fixed bottom-0 left-0 right-0 z-40 lg:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md px-4 py-2 shadow-[0_-8px_40px_-24px_rgba(15,23,42,0.15)] safe-bottom">
-        <div class="flex items-center justify-around">
-          <!-- FIX: getDashboardPath() used here too -->
-          <button [routerLink]="getDashboardPath()" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-teal transition-colors py-1">
-            <mat-icon class="!text-xl">home</mat-icon>
-            <span class="text-[9px] font-black uppercase tracking-wide mt-0.5">Home</span>
-          </button>
+    <!--
+      Mobile bottom navigation — one bar for the whole app.
 
-          <!-- FIX: getMessagesPath() returns correct route -->
-          <button [routerLink]="getMessagesPath()" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-teal transition-colors relative py-1">
-            <mat-icon class="!text-xl">chat_bubble_outline</mat-icon>
-            @if (state.unreadMessagesCount() > 0) {
-              <span class="absolute -top-0.5 -right-1 w-4 h-4 bg-brand-teal text-white text-[9px] font-black flex items-center justify-center rounded-full border-2 border-white">
-                {{ state.unreadMessagesCount() > 9 ? '9+' : state.unreadMessagesCount() }}
-              </span>
-            }
-            <span class="text-[9px] font-black uppercase tracking-wide mt-0.5">Chat</span>
-          </button>
+      Client and worker each used to render their own bar on top of the one the
+      navbar rendered here, so on a phone two bars stacked in the same fixed
+      position and the lower one was unreachable. The client bar also carried
+      six destinations, which at 320px gives each 48px and clipped the labels.
 
-          <!-- FIX: getSettingsPath() returns correct route -->
-          <button [routerLink]="getSettingsPath()" class="flex flex-col items-center justify-center text-slate-500 hover:text-brand-teal transition-colors py-1">
-            <mat-icon class="!text-xl">person</mat-icon>
-            <span class="text-[9px] font-black uppercase tracking-wide mt-0.5">Profile</span>
-          </button>
-        </div>
+      Now the bar is built from the layout's own navigation: four routes plus a
+      Menu button, so each slot gets a comfortable 64px at 320px and everything
+      that does not fit is one tap away in the drawer.
+    -->
+    <!-- Only where a layout supplied navigation. An authenticated user browsing
+         a public page (the landing page uses this navbar too) would otherwise get
+         a bar containing nothing but the Menu button. -->
+    @if (auth.isAuthenticated() && showBottomNav && bottomItems().length > 0) {
+      <nav class="mobile-bar lg:hidden" aria-label="Primary">
+        @for (item of bottomItems(); track item.path) {
+          <a class="mobile-bar-item"
+             [routerLink]="item.path"
+             routerLinkActive="is-active"
+             [routerLinkActiveOptions]="{ exact: !!item.exact }"
+             [class.is-locked]="item.locked"
+             [attr.aria-disabled]="item.locked ? 'true' : null"
+             [attr.tabindex]="item.locked ? -1 : null">
+            <span class="mobile-bar-icon-wrap">
+              <mat-icon class="mobile-bar-icon">{{ item.icon }}</mat-icon>
+              @if (item.locked) {
+                <mat-icon class="mobile-bar-dot-icon">lock</mat-icon>
+              } @else if (item.badge) {
+                <span class="mobile-bar-dot" [ngClass]="'tone-' + (item.badgeTone || 'brand')"></span>
+              }
+            </span>
+            <span class="mobile-bar-label">{{ item.shortLabel || item.label }}</span>
+          </a>
+        }
+
+        <!-- The hamburger is repeated here because the header copy is a long
+             thumb-stretch away on a tall phone. -->
+        <button type="button"
+                class="mobile-bar-item"
+                [class.is-active]="isMobileMenuOpen()"
+                (click)="toggleMobileMenu()"
+                [attr.aria-expanded]="isMobileMenuOpen()"
+                aria-controls="mobile-menu"
+                aria-label="Open menu">
+          <span class="mobile-bar-icon-wrap">
+            <mat-icon class="mobile-bar-icon">{{ isMobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
+          </span>
+          <span class="mobile-bar-label">Menu</span>
+        </button>
       </nav>
-
-      <!-- Bottom spacer for mobile nav -->
-      <div class="lg:hidden h-16"></div>
     }
 
     <!--
@@ -355,6 +389,48 @@ import { WebSocketService } from '../../core/services/websocket.service';
             <span class="nav-row-label">FAQ</span>
             <mat-icon class="nav-row-chevron">arrow_downward</mat-icon>
           </a>
+        } @else if (navSections.length) {
+          <!--
+            The host dashboard's own navigation, so the drawer offers every
+            destination its desktop sidebar does. Previously the drawer showed a
+            fixed handful of links, which meant a client on a phone had no route
+            to their wallet or disputes, and an admin had no mobile route at all
+            to nine of eleven sections.
+          -->
+          @for (section of navSections; track section.label) {
+            <p class="nav-section">{{ section.label }}</p>
+            @for (item of section.items; track item.path) {
+              @if (item.locked) {
+                <!-- Gated destinations stay visible with the reason inline. The
+                     desktop sidebar explained these in a hover tooltip, which a
+                     touch device can never show. -->
+                <div class="nav-row is-locked">
+                  <mat-icon class="nav-row-icon">{{ item.icon }}</mat-icon>
+                  <span class="nav-row-label">
+                    {{ item.label }}
+                    @if (item.lockReason) {
+                      <span class="nav-row-hint">{{ item.lockReason }}</span>
+                    }
+                  </span>
+                  <mat-icon class="nav-row-chevron">lock</mat-icon>
+                </div>
+              } @else {
+                <a class="nav-row"
+                   [routerLink]="item.path"
+                   routerLinkActive="is-active"
+                   [routerLinkActiveOptions]="{ exact: !!item.exact }"
+                   (click)="closeMobileMenu()">
+                  <mat-icon class="nav-row-icon">{{ item.icon }}</mat-icon>
+                  <span class="nav-row-label">{{ item.label }}</span>
+                  @if (item.badge) {
+                    <span class="nav-row-badge" [ngClass]="'tone-' + (item.badgeTone || 'brand')">{{ item.badge }}</span>
+                  } @else {
+                    <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+                  }
+                </a>
+              }
+            }
+          }
         } @else {
           <p class="nav-section">Your workspace</p>
           <a class="nav-row" [routerLink]="getDashboardPath()" routerLinkActive="is-active" (click)="closeMobileMenu()">
@@ -363,37 +439,11 @@ import { WebSocketService } from '../../core/services/websocket.service';
             <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
           </a>
 
-          @if (auth.userRole() === 'Worker') {
-            <a class="nav-row" routerLink="/worker/dashboard" routerLinkActive="is-active" (click)="closeMobileMenu()">
-              <mat-icon class="nav-row-icon">work</mat-icon>
-              <span class="nav-row-label">Find Jobs</span>
-              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
-            </a>
-            <a class="nav-row" routerLink="/worker/history" routerLinkActive="is-active" (click)="closeMobileMenu()">
-              <mat-icon class="nav-row-icon">history</mat-icon>
-              <span class="nav-row-label">My Jobs</span>
-              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
-            </a>
-          }
-
-          @if (auth.userRole() === 'Client') {
-            <a class="nav-row" routerLink="/client/marketplace" routerLinkActive="is-active" (click)="closeMobileMenu()">
-              <mat-icon class="nav-row-icon">groups</mat-icon>
-              <span class="nav-row-label">Hire Workers</span>
-              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
-            </a>
-            <a class="nav-row" routerLink="/client/bookings" routerLinkActive="is-active" (click)="closeMobileMenu()">
-              <mat-icon class="nav-row-icon">event_note</mat-icon>
-              <span class="nav-row-label">My Bookings</span>
-              <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
-            </a>
-          }
-
           <a class="nav-row" [routerLink]="getMessagesPath()" routerLinkActive="is-active" (click)="closeMobileMenu()">
             <mat-icon class="nav-row-icon">chat_bubble</mat-icon>
             <span class="nav-row-label">Messages</span>
             @if (state.unreadMessagesCount() > 0) {
-              <span class="nav-row-badge">{{ state.unreadMessagesCount() > 9 ? '9+' : state.unreadMessagesCount() }}</span>
+              <span class="nav-row-badge tone-brand">{{ state.unreadMessagesCount() > 9 ? '9+' : state.unreadMessagesCount() }}</span>
             } @else {
               <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
             }
@@ -657,6 +707,109 @@ import { WebSocketService } from '../../core/services/websocket.service';
       font-weight: 900;
       text-align: center;
     }
+    .nav-row-badge.tone-warn { background: #f59e0b; }
+    .nav-row-badge.tone-ok { background: #16a34a; }
+    .nav-row-badge.tone-danger { background: #e11d48; }
+
+    /* Gated row: dimmed and inert, with the requirement spelled out beneath the
+       label rather than hidden in a hover tooltip. */
+    .nav-row.is-locked { opacity: 0.55; cursor: not-allowed; }
+    .nav-row.is-locked:hover { background: transparent; }
+    .nav-row-hint {
+      display: block;
+      margin-top: 0.15rem;
+      font-size: 0.66rem;
+      font-weight: 600;
+      line-height: 1.3;
+      color: #94a3b8;
+      white-space: normal;
+    }
+
+    /* ── Mobile bottom bar ─────────────────────────────────────────────────
+       Five equal slots, so at 320px each gets 64px — wide enough for a 20px
+       icon and a 9px uppercase label without clipping. "min-width: 0" on the
+       slots plus ellipsis on the label means a longer word degrades to a
+       trimmed word instead of widening the bar. */
+    .mobile-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 90;
+      display: flex;
+      align-items: stretch;
+      gap: 0.1rem;
+      padding: 0.3rem 0.25rem;
+      padding-bottom: calc(0.3rem + env(safe-area-inset-bottom, 0px));
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid #e2e8f0;
+      box-shadow: 0 -8px 40px -24px rgba(15, 23, 42, 0.15);
+    }
+
+    .mobile-bar-item {
+      flex: 1 1 0;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.1rem;
+      padding: 0.3rem 0.1rem;
+      border: 0;
+      border-radius: 0.7rem;
+      background: none;
+      color: #64748b;
+      font-family: inherit;
+      text-decoration: none;
+      cursor: pointer;
+      transition: color 0.16s ease, background 0.16s ease;
+    }
+    .mobile-bar-item:active { background: #f1f5f9; }
+    .mobile-bar-item.is-active { color: var(--brand-teal, #29b2c7); background: var(--brand-teal-soft, #eaf7f9); }
+    .mobile-bar-item.is-locked { opacity: 0.4; pointer-events: none; }
+    .mobile-bar-item:focus-visible { outline: 2px solid var(--brand-teal, #29b2c7); outline-offset: -2px; }
+
+    .mobile-bar-icon-wrap { position: relative; display: grid; place-items: center; }
+    .mobile-bar-icon {
+      font-size: 1.25rem !important;
+      width: 1.25rem !important;
+      height: 1.25rem !important;
+    }
+    .mobile-bar-dot {
+      position: absolute;
+      top: -1px;
+      right: -3px;
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      background: var(--brand-teal, #29b2c7);
+    }
+    .mobile-bar-dot.tone-warn { background: #f59e0b; }
+    .mobile-bar-dot.tone-ok { background: #16a34a; }
+    .mobile-bar-dot.tone-danger { background: #e11d48; }
+    .mobile-bar-dot-icon {
+      position: absolute;
+      top: -4px;
+      right: -6px;
+      font-size: 0.7rem !important;
+      width: 0.7rem !important;
+      height: 0.7rem !important;
+      color: #f59e0b;
+    }
+
+    .mobile-bar-label {
+      max-width: 100%;
+      font-size: 0.5625rem;
+      font-weight: 900;
+      line-height: 1.1;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     .nav-drawer-foot {
       display: grid;
@@ -704,6 +857,23 @@ export class NavbarComponent implements OnInit, OnDestroy {
   @Input() bottomNavHeight = 64;
   @Input() badge = '';
 
+  /**
+   * The host dashboard's navigation. Drives both the hamburger drawer and the
+   * mobile bottom bar, so a layout declares its destinations once and cannot
+   * end up with a sidebar and a mobile bar that disagree.
+   */
+  @Input() set navSections(value: AppNavSection[]) {
+    this._navSections = value ?? [];
+    this.bottomItems.set(bottomNavItems(this._navSections));
+  }
+  get navSections(): AppNavSection[] {
+    return this._navSections;
+  }
+  private _navSections: AppNavSection[] = [];
+
+  /** Public marketing pages have no bottom bar. */
+  @Input() showBottomNav = true;
+
   auth = inject(AuthService);
   state = inject(PlatformStateService);
   ws = inject(WebSocketService);
@@ -711,6 +881,7 @@ export class NavbarComponent implements OnInit, OnDestroy {
 
   isMobileMenuOpen = signal(false);
   isScrolled = signal(false);
+  bottomItems = signal<AppNavItem[]>([]);
   private routerSubscription?: Subscription;
 
   unreadNotificationsCount = signal(0);

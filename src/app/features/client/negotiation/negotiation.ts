@@ -13,7 +13,8 @@ import { AuthService } from '../../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, FormsModule, MatButtonModule, MatIconModule],
   template: `
-    <div class="min-h-screen bg-slate-50 p-4 font-manrope">
+    <!-- Padding comes from the dashboard layout. -->
+    <div class="bg-slate-50 font-manrope">
 
       @if (!worker()) {
         <!-- Loading State -->
@@ -48,19 +49,21 @@ import { AuthService } from '../../../core/services/auth.service';
                     {{ worker()?.initials || worker()?.name?.charAt(0) || '?' }}
                   }
                 </div>
-                <div class="flex-1">
-                  <div class="flex items-start justify-between gap-4">
-                    <div>
-                      <h1 class="text-2xl font-black text-slate-900 tracking-tight mb-1">{{ worker()?.name }}</h1>
+                <div class="flex-1 min-w-0">
+                  <!-- Wraps: the name and the hourly rate are both 24px black,
+                       ~330px together, against 168px beside the avatar at 320px. -->
+                  <div class="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
+                    <div class="min-w-0">
+                      <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight mb-1 break-anywhere">{{ worker()?.name }}</h1>
                       <p class="text-brand-teal font-black text-[10px] uppercase tracking-widest">{{ worker()?.category }}</p>
                     </div>
-                    <div class="text-right shrink-0">
-                      <p class="text-2xl font-black text-slate-900">KSh {{ worker()?.rate }}</p>
+                    <div class="text-left sm:text-right shrink-0">
+                      <p class="text-xl sm:text-2xl font-black text-slate-900">KSh {{ worker()?.rate }}</p>
                       <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">per hour</p>
                     </div>
                   </div>
 
-                  <div class="flex items-center gap-4 mt-4">
+                  <div class="flex flex-wrap items-center gap-3 sm:gap-4 mt-4">
                     @if ((worker()?.reviews ?? 0) > 0) {
                       <div class="flex items-center gap-1 bg-amber-50 px-2 py-1 rounded-lg border border-amber-100">
                         <mat-icon class="!text-amber-500 !text-sm !w-4 !h-4" style="font-variation-settings: 'FILL' 1;">star</mat-icon>

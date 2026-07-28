@@ -27,12 +27,17 @@ import { SERIES_SCHEME } from './chart-palette';
     </div>
   `,
   styles: [`
+    /* See line-chart: height steps down so axis ticks stay legible at 320px. */
     .chart-container {
       width: 100%;
-      height: 300px;
+      max-width: 100%;
+      min-width: 0;
+      height: 220px;
       position: relative;
       overflow: hidden;
     }
+    @media (min-width: 640px) { .chart-container { height: 260px; } }
+    @media (min-width: 1024px) { .chart-container { height: 300px; } }
     :host ::ng-deep .chart-legend {
       display: flex;
       justify-content: center;

@@ -33,7 +33,7 @@ type HistoryTab = 'wallet' | 'ledger';
         </div>
       </div>
     } @else {
-      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-24 font-manrope animate-in fade-in duration-700">
+      <div class="max-w-5xl mx-auto font-manrope animate-in fade-in duration-700">
 
       <!-- Header -->
       <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
@@ -163,11 +163,11 @@ type HistoryTab = 'wallet' | 'ledger';
           </div>
 
           @if (sortedWalletTransactions().length > walletPageSize) {
-            <div class="p-3 border-t border-outline-variant bg-surface-container-low/30 flex items-center justify-between">
+            <div class="p-3 border-t border-outline-variant bg-surface-container-low/30 flex flex-wrap items-center justify-between gap-2">
               <span class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">
                 Showing {{ walletPageStart() + 1 }}-{{ walletPageEnd() }} of {{ sortedWalletTransactions().length }}
               </span>
-              <div class="flex gap-1.5">
+              <div class="flex flex-wrap gap-1.5">
                 <button (click)="prevWalletPage()" [disabled]="walletPage() === 1"
                         class="w-7 h-7 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover:text-brand-teal transition-all bg-white">
                   <mat-icon class="!text-base">chevron_left</mat-icon>
@@ -275,7 +275,7 @@ type HistoryTab = 'wallet' | 'ledger';
                       </div>
                     } @else {
                       @if (job.status === 'Pending') {
-                        <div class="flex items-center gap-2">
+                        <div class="flex flex-wrap items-center gap-2">
                           <button (click)="openAcceptConfirmModal(job)"
                                   [disabled]="acceptingJobId() === job.id"
                                   class="px-3.5 py-2 bg-brand-teal text-white font-black text-[9px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm active:scale-95 flex items-center gap-1.5 disabled:opacity-50">
@@ -311,7 +311,9 @@ type HistoryTab = 'wallet' | 'ledger';
                             {{ deliveringJobId() === job.id ? 'Delivering...' : 'Deliver' }}
                           </button>
                         } @else {
-                          <div class="flex items-center gap-2">
+                          <!-- Wraps: the status pill, the withdraw button and the
+                               countdown need ~300px side by side. -->
+                          <div class="flex flex-wrap items-center gap-2">
                             <div class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg border border-slate-200">
                               <mat-icon class="!text-sm !w-auto !h-auto text-slate-400">hourglass_empty</mat-icon>
                               <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Waiting for Payment</span>
@@ -343,11 +345,11 @@ type HistoryTab = 'wallet' | 'ledger';
             </div>
 
             @if (filteredJobs().length > pageSize) {
-              <div class="p-3 border-t border-outline-variant bg-surface-container-low/30 flex items-center justify-between">
+              <div class="p-3 border-t border-outline-variant bg-surface-container-low/30 flex flex-wrap items-center justify-between gap-2">
                 <span class="text-[9px] font-black text-on-surface-variant uppercase tracking-widest">
                   Showing {{ pageStart() + 1 }}-{{ pageEnd() }} of {{ filteredJobs().length }}
                 </span>
-                <div class="flex gap-1.5">
+                <div class="flex flex-wrap gap-1.5">
                   <button (click)="prevPage()" [disabled]="currentPage() === 1"
                           class="w-7 h-7 flex items-center justify-center rounded-lg border border-outline-variant text-on-surface-variant disabled:opacity-30 hover:text-brand-teal transition-all bg-white">
                     <mat-icon class="!text-base">chevron_left</mat-icon>

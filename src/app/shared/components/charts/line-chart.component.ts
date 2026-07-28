@@ -29,12 +29,19 @@ import { SERIES_SCHEME } from './chart-palette';
     </div>
   `,
   styles: [`
+    /* Charts size to their container. The height steps down on small screens: a
+       300px plot inside a ~264px-wide card on a 320px phone leaves the axis
+       ticks overlapping each other. */
     .chart-container {
       width: 100%;
-      height: 300px;
+      max-width: 100%;
+      min-width: 0;
+      height: 220px;
       position: relative;
       overflow: hidden;
     }
+    @media (min-width: 640px) { .chart-container { height: 260px; } }
+    @media (min-width: 1024px) { .chart-container { height: 300px; } }
     :host ::ng-deep .chart-legend {
       display: flex;
       justify-content: center;

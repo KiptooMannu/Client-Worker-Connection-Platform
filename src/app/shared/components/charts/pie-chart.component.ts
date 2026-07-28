@@ -23,10 +23,13 @@ import { SLICE_SCHEME } from './chart-palette';
   styles: [`
     .chart-container {
       width: 100%;
-      height: 250px;
+      max-width: 100%;
+      min-width: 0;
+      height: 210px;
       position: relative;
       overflow: hidden;
     }
+    @media (min-width: 640px) { .chart-container { height: 250px; } }
   `]
 })
 export class PieChartComponent {

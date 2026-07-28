@@ -1,5 +1,5 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
-import { provideRouter, withInMemoryScrolling } from '@angular/router';
+import { PreloadAllModules, provideRouter, withInMemoryScrolling, withPreloading } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay, withNoHttpTransferCache } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -21,7 +21,13 @@ export const appConfig: ApplicationConfig = {
       withInMemoryScrolling({
         anchorScrolling: 'enabled',
         scrollPositionRestoration: 'enabled'
-      })
+      }),
+      // Every dashboard route is lazy, and logging in navigates through two of
+      // them in sequence (/worker -> /worker/dashboard), each needing its own
+      // chunk fetched over the network. That is the blank screen after sign-in.
+      // Preloading pulls those chunks in the background once the first screen is
+      // interactive, so the post-login navigation is served from memory.
+      withPreloading(PreloadAllModules)
     ),
     provideClientHydration(withEventReplay(), withNoHttpTransferCache()),
     provideAnimationsAsync(),

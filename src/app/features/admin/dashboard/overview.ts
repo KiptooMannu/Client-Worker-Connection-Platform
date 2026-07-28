@@ -38,7 +38,7 @@ import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../
     PieChartComponent
   ],
   template: `
-    <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-1000 p-4 md:p-0">
+    <div class="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-1000">
       <!-- Header Section -->
       <!-- Compact Authority Header -->
       <div class="flex flex-col gap-4 mb-4">
@@ -337,7 +337,7 @@ import { LineChartComponent, BarChartComponent, PieChartComponent } from '../../
         </div>
 
         @if (totalPages() > 1) {
-          <div class="p-4 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+          <div class="p-4 border-t border-slate-50 bg-slate-50/30 flex flex-wrap items-center justify-between gap-2">
             <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
               Page {{ currentPage() }} of {{ totalPages() }}
             </span>

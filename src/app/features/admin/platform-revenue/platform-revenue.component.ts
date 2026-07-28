@@ -79,7 +79,7 @@ interface Withdrawal {
     LineChartComponent
   ],
   template: `
-    <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-1000 p-4 md:p-0">
+    <div class="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-1000">
       <!-- Header -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -101,7 +101,7 @@ interface Withdrawal {
             </div>
             <span class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">+{{ summary().revenueToday | currency:'KES' }}</span>
           </div>
-          <p class="text-2xl font-black text-slate-900">{{ summary().totalRevenueEarned | currency:'KES' }}</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 break-anywhere">{{ summary().totalRevenueEarned | currency:'KES' }}</p>
           <p class="text-xs text-slate-500 mt-1">Total Revenue</p>
         </mat-card>
 
@@ -112,7 +112,7 @@ interface Withdrawal {
             </div>
             <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full">Available</span>
           </div>
-          <p class="text-2xl font-black text-slate-900">{{ summary().availableBalance | currency:'KES' }}</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 break-anywhere">{{ summary().availableBalance | currency:'KES' }}</p>
           <p class="text-xs text-slate-500 mt-1">Available Balance</p>
         </mat-card>
 
@@ -123,7 +123,7 @@ interface Withdrawal {
             </div>
             <span class="text-xs font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-full">Pending</span>
           </div>
-          <p class="text-2xl font-black text-slate-900">{{ summary().pendingBalance | currency:'KES' }}</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 break-anywhere">{{ summary().pendingBalance | currency:'KES' }}</p>
           <p class="text-xs text-slate-500 mt-1">Pending Balance</p>
         </mat-card>
 
@@ -134,7 +134,7 @@ interface Withdrawal {
             </div>
             <span class="text-xs font-bold text-purple-600 bg-purple-50 px-2 py-1 rounded-full">{{ summary().totalCompletedTransactions }}</span>
           </div>
-          <p class="text-2xl font-black text-slate-900">{{ summary().totalWithdrawn | currency:'KES' }}</p>
+          <p class="text-xl sm:text-2xl font-black text-slate-900 break-anywhere">{{ summary().totalWithdrawn | currency:'KES' }}</p>
           <p class="text-xs text-slate-500 mt-1">Total Withdrawn</p>
         </mat-card>
       </div>

@@ -36,10 +36,12 @@ const FILTER_KEY = 'kazi_marketplace_filters';
     BarChartComponent
   ],
   template: `
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 animate-in fade-in duration-700 pb-24 lg:pb-12 font-manrope">
+    <!-- Horizontal padding and the bottom-nav clearance are the layout's job now;
+         doubling them here left only 264px of content at 320px. -->
+    <div class="max-w-5xl mx-auto animate-in fade-in duration-700 font-manrope">
 
       <!-- Hero -->
-      <section class="pt-8 pb-6">
+      <section class="pb-6">
         <p class="text-[9px] font-black uppercase tracking-[0.25em] text-brand-teal mb-3">Verified Professionals</p>
         <h1 class="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight mb-2">
           Find the right person<br class="hidden sm:block"> for the job.
@@ -157,8 +159,10 @@ const FILTER_KEY = 'kazi_marketplace_filters';
       </div>
 
       <!-- Results header -->
-      <div class="flex items-center justify-between mb-4 px-1">
-        <div class="flex items-center gap-3">
+      <!-- Wraps: the count, the clear-filters link and the sort select together
+           need ~310px, which does not fit a 320px viewport on one line. -->
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4 px-1">
+        <div class="flex items-center gap-3 min-w-0">
           <span class="text-sm font-black text-slate-900">{{ filteredWorkers().length }} workers found</span>
           @if (hasActiveFilters()) {
             <button (click)="clearFilters()"
@@ -257,11 +261,16 @@ const FILTER_KEY = 'kazi_marketplace_filters';
       }
 
       <!-- Pagination -->
+      <!-- Up to five page numbers plus prev/next is seven 36px controls and six
+           8px gaps — 300px, wider than a 320px viewport's content box. Smaller
+           controls on mobile bring it to 260px, and flex-wrap guarantees it can
+           never overflow however many numbers are shown. -->
       @if (totalPages() > 1) {
-        <div class="flex items-center justify-center gap-2 pb-6">
+        <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 pb-6">
           <button (click)="goToPage(currentPage() - 1)"
                   [disabled]="currentPage() === 1"
-                  class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-brand-teal hover:border-brand-teal disabled:opacity-30 transition-all">
+                  aria-label="Previous page"
+                  class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-brand-teal hover:border-brand-teal disabled:opacity-30 transition-all">
             <mat-icon class="!text-base">chevron_left</mat-icon>
           </button>
 
@@ -270,14 +279,15 @@ const FILTER_KEY = 'kazi_marketplace_filters';
                     [ngClass]="page === currentPage()
                       ? 'bg-brand-teal text-white border-brand-teal'
                       : 'bg-white text-slate-400 border-slate-200 hover:text-brand-teal'"
-                    class="w-9 h-9 flex items-center justify-center rounded-xl border text-[10px] font-black transition-all">
+                    class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center rounded-xl border text-[10px] font-black transition-all">
               {{ page }}
             </button>
           }
 
           <button (click)="goToPage(currentPage() + 1)"
                   [disabled]="currentPage() === totalPages()"
-                  class="w-9 h-9 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-brand-teal hover:border-brand-teal disabled:opacity-30 transition-all">
+                  aria-label="Next page"
+                  class="w-8 h-8 sm:w-9 sm:h-9 shrink-0 flex items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 hover:text-brand-teal hover:border-brand-teal disabled:opacity-30 transition-all">
             <mat-icon class="!text-base">chevron_right</mat-icon>
           </button>
         </div>

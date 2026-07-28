@@ -68,7 +68,7 @@ type ModalType = 'force_complete' | 'full_refund' | 'cancel_job' | 'request_evid
     MatProgressBarModule, MatTooltipModule
   ],
   template: `
-    <div class="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-700 p-4 md:p-0">
+    <div class="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-700">
 
       <!-- ── Header ─────────────────────────────────────────────────────── -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
@@ -92,12 +92,15 @@ type ModalType = 'force_complete' | 'full_refund' | 'cancel_job' | 'request_evid
         @for (stat of summaryStats(); track stat.label) {
           <mat-card class="!rounded-2xl !border !shadow-sm !p-4 bg-white transition-all"
                     [class]="stat.urgent ? '!border-rose-200 !bg-rose-50/60' : '!border-slate-100'">
-            <div class="flex items-center gap-3">
+            <!-- Two columns at 320px leaves ~108px inside each card, of which the
+                 icon takes 48px. Without min-w-0 the widest labels
+                 ("AWAITING FUNDING") pushed past the card edge. -->
+            <div class="flex items-center gap-3 min-w-0">
               <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" [class]="stat.iconBg">
                 <mat-icon class="!text-sm" [class]="stat.iconColor">{{ stat.icon }}</mat-icon>
               </div>
-              <div>
-                <p class="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">{{ stat.label }}</p>
+              <div class="min-w-0">
+                <p class="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1 truncate">{{ stat.label }}</p>
                 <p class="text-xl font-black leading-none" [class]="stat.urgent ? 'text-rose-700' : 'text-slate-900'">{{ stat.value }}</p>
               </div>
             </div>

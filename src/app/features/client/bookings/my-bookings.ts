@@ -43,7 +43,8 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
     DisputeStatusButtonComponent
   ],
   template: `
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 animate-in fade-in duration-700 font-manrope">
+    <!-- Padding comes from the dashboard layout. -->
+    <div class="max-w-5xl mx-auto animate-in fade-in duration-700 font-manrope">
 
       <!-- Escrow Progress Bar -->
       @if (currentBooking()) {
@@ -59,9 +60,9 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
       }
 
       <!-- Header -->
-      <div class="flex justify-between items-center mb-6">
-        <div>
-          <h1 class="text-xl font-black text-slate-900 tracking-tight">My Work History</h1>
+      <div class="flex flex-wrap justify-between items-center gap-3 mb-6">
+        <div class="min-w-0">
+          <h1 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">My Work History</h1>
           <p class="text-slate-500 font-medium text-[11px]">Track your work and payments here.</p>
         </div>
         <button (click)="showHistory()"
@@ -125,7 +126,9 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
               <div class="px-5 py-3.5 hover:bg-slate-50/50 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4">
 
                 <!-- Worker Info -->
-                <div class="flex items-center gap-3.5 min-w-[240px]">
+                <!-- The 240px floor only applies once the row is side-by-side;
+                     on a phone the card's content box is 256px wide. -->
+                <div class="flex items-center gap-3.5 min-w-0 sm:min-w-[240px]">
                   <div class="h-9 w-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 font-bold text-[10px] uppercase border border-slate-200 overflow-hidden shrink-0">
                     @if ($any(b).workerImage) { <img [src]="$any(b).workerImage" class="w-full h-full object-cover"> }
                     @else { {{ b.workerInitials }} }
@@ -287,11 +290,13 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
 
           <!-- Pagination -->
           @if (totalPages() > 1) {
-            <div class="p-3 border-t border-slate-50 bg-slate-50/30 flex items-center justify-between">
+            <!-- Wraps: the "showing x of y" caption plus seven pager controls
+                 need ~340px, against a 256px card interior at 320px. -->
+            <div class="p-3 border-t border-slate-50 bg-slate-50/30 flex flex-wrap items-center justify-between gap-2">
               <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                 Showing {{ pageStart() + 1 }}-{{ pageEnd() }} of {{ filteredBookings().length }}
               </span>
-              <div class="flex gap-1.5">
+              <div class="flex flex-wrap gap-1.5">
                 <button (click)="goToPage(currentPage() - 1)" [disabled]="currentPage() === 1"
                         class="w-7 h-7 flex items-center justify-center rounded-lg border border-slate-200
                                text-slate-400 disabled:opacity-30 hover:text-brand-teal transition-all bg-white">

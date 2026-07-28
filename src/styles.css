@@ -76,6 +76,163 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════
+   RESPONSIVE FOUNDATION — 320px → ultra-wide
+   The app is verified at 320/360/375/390/414px, tablet, laptop, desktop and
+   ultra-wide. The rules below are the shared guarantees every screen relies
+   on, so individual components don't each re-solve them.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Height of the mobile bottom nav, incl. the iOS home-indicator inset.
+     Screens pad their last element by this so nothing hides behind the bar. */
+  --bottom-nav-height: 4.25rem;
+  --bottom-nav-safe: calc(4.25rem + env(safe-area-inset-bottom, 0px));
+}
+
+html {
+  /* 320px is the narrowest supported viewport; below that we scroll rather
+     than crush the layout into unreadability. */
+  min-width: 320px;
+}
+
+body {
+  max-width: 100%;
+  /* `clip` rather than `hidden`: it kills stray horizontal scrolling without
+     creating a scroll container, so `position: sticky` keeps working. This is
+     a backstop — real overflow is fixed at the component level. */
+  overflow-x: clip;
+}
+
+/* The single highest-leverage anti-overflow rule in a flex-heavy codebase.
+   `flex: 1 1 0%` still carries `min-width: auto`, so a flex child cannot
+   shrink below its content's min-content width — one long email address or
+   an un-truncated table then pushes the whole page sideways. */
+.flex-1,
+.flex-auto,
+main {
+  min-width: 0;
+}
+
+/* Media never dictates layout width. */
+img, svg, video, canvas, iframe {
+  max-width: 100%;
+}
+
+img, video {
+  height: auto;
+}
+
+/* Safe-area helpers. `pb-safe` was already used by the dashboard layouts but
+   had never been defined anywhere, so the bottom bars were sitting under the
+   iOS home indicator. */
+.pb-safe { padding-bottom: env(safe-area-inset-bottom, 0px); }
+.pt-safe { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+/* Clears the fixed mobile bottom nav. */
+.pb-bottom-nav { padding-bottom: var(--bottom-nav-safe); }
+@media (min-width: 1024px) {
+  .pb-bottom-nav { padding-bottom: 3rem; }
+}
+
+/* Horizontal rails (filter chips, tab strips) scroll instead of wrapping into
+   a broken grid, without a scrollbar eating vertical space on desktop. */
+.no-scrollbar,
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* Unbreakable strings — emails, M-Pesa refs, transaction ids, URLs — are the
+   most common cause of a card overflowing on a 320px screen. */
+.break-anywhere {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+/* Wrapper for any wide data table: the table keeps its comfortable column
+   widths and scrolls inside its card rather than widening the page. */
+.table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* Page shell. Caps line length on desktop but opens up on ultra-wide displays
+   instead of leaving a 1400px column marooned in the middle of a 3440px screen. */
+.app-container {
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+}
+@media (min-width: 1800px) {
+  .app-container { max-width: 1680px; }
+}
+@media (min-width: 2400px) {
+  .app-container { max-width: 1920px; }
+}
+
+/* Touch targets: 44px minimum on pointer-coarse devices. */
+@media (pointer: coarse) {
+  .touch-target {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
+/* Angular Material dialogs default to a width that overflows small phones. */
+@media (max-width: 640px) {
+  .mat-mdc-dialog-panel,
+  .mat-mdc-dialog-container {
+    max-width: calc(100vw - 1.5rem) !important;
+  }
+  .mat-mdc-dialog-surface {
+    max-width: 100% !important;
+  }
+}
+
+/* Material menus (profile dropdown) must not run off a 320px viewport. */
+.mat-mdc-menu-panel {
+  max-width: calc(100vw - 1.5rem) !important;
+}
+
+/* Material tables are wider than any phone. Three admin screens each had their
+   own copy of this rule; it belongs in one place and applies to all of them. */
+.mat-mdc-table {
+  max-width: 100%;
+}
+
+@media (max-width: 768px) {
+  .mat-mdc-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* The paginator puts the page-size label, the range label and the buttons on a
+   single line, which needs ~420px. Below that it wraps instead of overflowing. */
+@media (max-width: 640px) {
+  .mat-mdc-paginator-container {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    row-gap: 0.25rem;
+    padding-inline: 0.5rem !important;
+  }
+  .mat-mdc-paginator-page-size {
+    margin-right: 0.5rem !important;
+  }
+}
+
 .tonal-layer-1 {
     background-color: #ffffff;
     box-shadow: 0 2px 4px rgba(0,0,0,0.04);

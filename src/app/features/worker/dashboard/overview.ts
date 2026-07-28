@@ -1,4 +1,4 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, inject, signal, computed, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -8,7 +8,6 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { NotificationService } from '../../../core/services/notification.service';
 import { RouterLink, Router } from '@angular/router';
 import { PlatformStateService } from '../../../core/services/platform-state.service';
-import { AuthService } from '../../../core/services/auth.service';
 import { AnalyticsService, WorkerEarningsData } from '../../../shared/services/analytics.service';
 import { LineChartComponent, BarChartComponent } from '../../../shared/components/charts';
 import { FormsModule } from '@angular/forms';
@@ -180,8 +179,22 @@ import { FormsModule } from '@angular/forms';
                       <p class="font-black text-sm text-brand-teal">KSh {{ req.earnings }}</p>
                     </div>
                     <div class="flex gap-2">
-                      <button (click)="state.acceptBooking(req.id)" class="px-5 py-2 bg-brand-teal text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">Accept</button>
-                      <button (click)="state.deleteJobRequest(req.id)" class="px-4 py-2 border border-outline-variant text-on-surface-variant font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-error/10 hover:text-error hover:border-error/20 transition-all">Decline</button>
+                      <button (click)="state.acceptBooking(req.id)"
+                              [disabled]="state.isAnyPending('acceptBooking:' + req.id) || state.isAnyPending('deleteJobRequest:' + req.id)"
+                              class="px-4 sm:px-5 py-2 bg-brand-teal text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                        @if (state.isPending('acceptBooking:' + req.id)) {
+                          <mat-icon class="!text-xs !w-auto !h-auto animate-spin">progress_activity</mat-icon>
+                        }
+                        {{ state.isPending('acceptBooking:' + req.id) ? 'Accepting' : 'Accept' }}
+                      </button>
+                      <button (click)="state.deleteJobRequest(req.id)"
+                              [disabled]="state.isAnyPending('acceptBooking:' + req.id) || state.isAnyPending('deleteJobRequest:' + req.id)"
+                              class="px-3 sm:px-4 py-2 border border-outline-variant text-on-surface-variant font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-error/10 hover:text-error hover:border-error/20 transition-all inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                        @if (state.isPending('deleteJobRequest:' + req.id)) {
+                          <mat-icon class="!text-xs !w-auto !h-auto animate-spin">progress_activity</mat-icon>
+                        }
+                        {{ state.isPending('deleteJobRequest:' + req.id) ? 'Declining' : 'Decline' }}
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -241,18 +254,28 @@ import { FormsModule } from '@angular/forms';
                         <p class="text-[10px] uppercase tracking-widest text-amber-600 font-bold leading-none mb-1">Client Offer</p>
                         <p class="font-black text-sm text-amber-700">KSh {{ job.negotiatedPrice }}</p>
                       </div>
-                      <div class="flex gap-2">
+                      <!-- Wraps at 320px: three buttons plus gaps need ~230px. -->
+                      <div class="flex flex-wrap gap-2">
                         <button (click)="acceptClientOffer(job.id)"
-                                class="px-3 py-2 bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">
-                          Accept
+                                [disabled]="offerBusy(job.id)"
+                                class="px-3 py-2 bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                          @if (acceptingOfferId() === job.id) {
+                            <mat-icon class="!text-xs !w-auto !h-auto animate-spin">progress_activity</mat-icon>
+                          }
+                          {{ acceptingOfferId() === job.id ? 'Accepting' : 'Accept' }}
                         </button>
                         <button (click)="openCounterOfferModal(job)"
-                                class="px-3 py-2 bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm">
+                                [disabled]="offerBusy(job.id)"
+                                class="px-3 py-2 bg-indigo-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:opacity-90 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
                           Counter
                         </button>
                         <button (click)="rejectClientOffer(job.id)"
-                                class="px-3 py-2 border border-rose-200 text-rose-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-rose-50 transition-all">
-                          Decline
+                                [disabled]="offerBusy(job.id)"
+                                class="px-3 py-2 border border-rose-200 text-rose-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-rose-50 transition-all inline-flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed">
+                          @if (rejectingOfferId() === job.id) {
+                            <mat-icon class="!text-xs !w-auto !h-auto animate-spin">progress_activity</mat-icon>
+                          }
+                          {{ rejectingOfferId() === job.id ? 'Declining' : 'Decline' }}
                         </button>
                       </div>
                     </div>
@@ -472,9 +495,13 @@ import { FormsModule } from '@angular/forms';
             
             <!-- Submit Button - Shows only when profile is complete and not yet submitted -->
             @if (canSubmitForReview()) {
-              <button (click)="submit()" 
-                      class="w-full mt-8 py-3 bg-brand-teal text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-brand-teal/10 active:scale-95">
-                Submit for Review
+              <button (click)="submit()"
+                      [disabled]="state.isPending('submitForVerification')"
+                      class="w-full mt-8 py-3 bg-brand-teal text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:opacity-90 transition-all shadow-lg shadow-brand-teal/10 active:scale-95 inline-flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100">
+                @if (state.isPending('submitForVerification')) {
+                  <mat-icon class="!text-sm !w-auto !h-auto animate-spin">progress_activity</mat-icon>
+                }
+                {{ state.isPending('submitForVerification') ? 'Submitting…' : 'Submit for Review' }}
               </button>
             }
             
@@ -571,7 +598,6 @@ export class WorkerDashboardOverviewPage implements OnInit {
 
   private notification = inject(NotificationService);
   private router = inject(Router);
-  private auth = inject(AuthService);
   private analyticsService = inject(AnalyticsService);
 
   // Analytics data
@@ -579,6 +605,17 @@ export class WorkerDashboardOverviewPage implements OnInit {
   loading = signal(true);
 
   worker = this.state.currentWorker;
+
+  constructor() {
+    // Fire the earnings request as soon as the profile id is known, and only
+    // once. Reading `worker()` inside the effect is what registers the
+    // dependency, so this re-runs when the profile resolves.
+    effect(() => {
+      const workerId = this.worker().id;
+      if (!workerId || this.earningsRequested) return;
+      this.loadWorkerEarningsData();
+    });
+  }
 
   // Pagination for Job Requests
   requestPage = signal(1);
@@ -714,6 +751,19 @@ export class WorkerDashboardOverviewPage implements OnInit {
   counterOfferPrice = signal<number | null>(null);
   counterOfferLoading = signal(false);
 
+  /**
+   * Which client offer is being accepted or declined. Tracked per job id rather
+   * than as a single boolean so a spinner appears on the row that was tapped,
+   * and so the other rows stay usable.
+   */
+  acceptingOfferId = signal<string | null>(null);
+  rejectingOfferId = signal<string | null>(null);
+
+  /** All three actions on a row are locked while any one of them is running. */
+  offerBusy(jobId: string): boolean {
+    return this.acceptingOfferId() === jobId || this.rejectingOfferId() === jobId;
+  }
+
   completionPercentage = computed(() => {
     let score = 0;
     if (this.isProfileStepComplete()) score += 33;
@@ -745,11 +795,15 @@ export class WorkerDashboardOverviewPage implements OnInit {
 
   // Accept client's counter-offer
   acceptClientOffer(jobId: string) {
+    if (this.offerBusy(jobId)) return;
+    this.acceptingOfferId.set(jobId);
     this.state.acceptCounterOffer(jobId).subscribe({
       next: () => {
+        this.acceptingOfferId.set(null);
         this.notification.success('✓ You accepted the client\'s offer!');
       },
       error: (err) => {
+        this.acceptingOfferId.set(null);
         this.notification.error('❌ Failed to accept offer: ' + (err.error?.message || err.message));
       }
     });
@@ -757,11 +811,15 @@ export class WorkerDashboardOverviewPage implements OnInit {
 
   // Reject client's counter-offer
   rejectClientOffer(jobId: string) {
+    if (this.offerBusy(jobId)) return;
+    this.rejectingOfferId.set(jobId);
     this.state.rejectCounterOffer(jobId).subscribe({
       next: () => {
+        this.rejectingOfferId.set(null);
         this.notification.success('✓ You declined the client\'s offer.');
       },
       error: (err) => {
+        this.rejectingOfferId.set(null);
         this.notification.error('❌ Failed to decline offer: ' + (err.error?.message || err.message));
       }
     });
@@ -806,17 +864,28 @@ export class WorkerDashboardOverviewPage implements OnInit {
   }
 
   ngOnInit() {
-    this.loadWorkerEarningsData();
+    // Nothing to do here: the earnings request is driven by the effect in the
+    // constructor, which waits for the worker profile id to resolve.
   }
 
+  /**
+   * The earnings endpoint is keyed by WorkerProfile id and the API rejects a
+   * request for anyone else's profile. This used to send `auth.currentUser().id`
+   * — the *User* id — so every worker's own dashboard was refused, which is the
+   * 400 on /api/analytics/worker/{id}/earnings.
+   *
+   * It also fired from ngOnInit, before the profile had loaded, when the id was
+   * not yet known at all. An effect defers the call until it is.
+   */
+  private earningsRequested = false;
+
   private loadWorkerEarningsData() {
-    const user = this.auth.currentUser();
-    const workerId = user?.id;
+    const workerId = this.worker().id;
     if (!workerId) {
-      this.loading.set(false);
       return;
     }
 
+    this.earningsRequested = true;
     const endDate = new Date();
     const startDate = new Date();
     startDate.setMonth(startDate.getMonth() - 6);

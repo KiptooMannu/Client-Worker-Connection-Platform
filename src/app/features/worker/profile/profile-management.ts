@@ -45,7 +45,7 @@ import { DocumentUploadComponent } from '../../../shared/components/document-upl
         </div>
       </div>
     } @else {
-      <div class="max-w-3xl mx-auto space-y-8 pb-24 font-manrope animate-in fade-in duration-700">
+      <div class="max-w-3xl mx-auto space-y-6 md:space-y-8 font-manrope animate-in fade-in duration-700">
         
         <!-- Rejection Alert -->
         @if (status === 'Rejected' && rejectionReason) {
@@ -379,9 +379,13 @@ import { DocumentUploadComponent } from '../../../shared/components/document-upl
                   <mat-icon class="!text-[18px]">arrow_back</mat-icon>
                   Back
                 </button>
-                <button (click)="saveProfile()" class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md shadow-lg shadow-brand-teal/10 flex items-center justify-center gap-2">
-                  <mat-icon class="!text-[18px]">save</mat-icon>
-                  Save All Changes
+                <!-- isSaving already existed but nothing was bound to it, so the
+                     save button stayed live for the whole request. -->
+                <button (click)="saveProfile()"
+                        [disabled]="isSaving()"
+                        class="flex-1 bg-brand-teal text-white py-4 rounded-lg font-label-md text-label-md shadow-lg shadow-brand-teal/10 flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+                  <mat-icon class="!text-[18px]" [class.animate-spin]="isSaving()">{{ isSaving() ? 'progress_activity' : 'save' }}</mat-icon>
+                  {{ isSaving() ? 'Saving…' : 'Save All Changes' }}
                 </button>
               </div>
             </div>

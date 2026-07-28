@@ -25,7 +25,8 @@ import { PlatformStateService } from '../../core/services/platform-state.service
     MatDividerModule
   ],
   template: `
-    <div class="max-w-4xl mx-auto space-y-6 md:space-y-8 pb-24 font-manrope animate-in fade-in slide-in-from-bottom-4 duration-1000 px-4 md:px-0">
+    <!-- Padding and bottom-nav clearance come from the dashboard layout. -->
+    <div class="max-w-4xl mx-auto space-y-6 md:space-y-8 font-manrope animate-in fade-in slide-in-from-bottom-4 duration-1000">
       <!-- Profile Hero (Optimized for Small Screens) -->
       <section class="flex flex-col items-center pt-8 md:pt-12 relative overflow-hidden rounded-[1.5rem] md:rounded-[2rem] bg-slate-900 p-6 md:p-12 text-white mb-6 md:mb-12">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-primary/20 via-transparent to-transparent"></div>
@@ -50,7 +51,9 @@ import { PlatformStateService } from '../../core/services/platform-state.service
 
         <div class="text-center mt-6 md:mt-8 z-10">
           <h1 class="text-xl md:text-3xl font-black text-white tracking-tighter mb-1 md:mb-2">{{ auth.currentUser()?.name }}</h1>
-          <p class="text-white/50 text-[10px] md:text-xs font-black uppercase tracking-widest">
+          <!-- Long email addresses are the usual cause of this line overflowing
+               its card on a 320px screen. -->
+          <p class="text-white/50 text-[10px] md:text-xs font-black uppercase tracking-widest break-anywhere">
             {{ auth.currentUser()?.email }} | {{ auth.currentUser()?.role === 'Client' ? 'Employer' : auth.currentUser()?.role }}
           </p>
           <p class="text-white/60 text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] mt-2">

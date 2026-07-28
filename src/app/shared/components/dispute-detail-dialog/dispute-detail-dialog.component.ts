@@ -28,7 +28,10 @@ interface DisputeDetailData {
     MatProgressSpinnerModule
   ],
   template: `
-    <div class="p-6 min-w-[600px] max-w-[800px]">
+    <!-- A 600px floor forced 280px of horizontal scroll inside the dialog on a
+         320px phone. The dialog now fills the available width and only reaches
+         for 600px once the viewport can actually supply it. -->
+    <div class="p-4 sm:p-6 w-full sm:min-w-[min(600px,80vw)] max-w-[800px]">
       <h2 class="text-xl font-black text-slate-900 mb-4">Dispute Details</h2>
       
       @if (loading) {

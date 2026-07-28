@@ -14,7 +14,7 @@ import { NotificationService } from '../../../core/services/notification.service
   standalone: true,
   imports: [CommonModule, MatCardModule, MatButtonModule, MatIconModule, MatTableModule, MatChipsModule],
   template: `
-    <div class="max-w-7xl mx-auto space-y-10 animate-in fade-in duration-1000 p-4 md:p-0">
+    <div class="max-w-7xl mx-auto space-y-6 md:space-y-10 animate-in fade-in duration-1000">
       
       <!-- Header Section -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 border-b border-slate-100 pb-10">
@@ -141,7 +141,7 @@ import { NotificationService } from '../../../core/services/notification.service
             Load Historical Archives
           </button>
           @if (visibleLogs().length > pageSize) {
-            <div class="flex items-center gap-2">
+            <div class="flex flex-wrap items-center justify-center gap-2">
               <button (click)="prevPage()" [disabled]="currentPage === 1" class="px-3 py-2 rounded-lg border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 disabled:opacity-40">Prev</button>
               @for (p of pageNumbers; track p) {
                 <button

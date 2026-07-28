@@ -510,6 +510,8 @@ interface UserContact {
       grid-template-columns: 320px 1fr;
       height: calc(100vh - 120px);
       min-height: 500px;
+      max-width: 100%;
+      min-width: 0;
       border-radius: 20px;
       overflow: hidden;
       border: 1px solid #e2e8f0;
@@ -519,7 +521,19 @@ interface UserContact {
     }
 
     @media (max-width: 768px) {
-      .messages-shell { grid-template-columns: 1fr; }
+      /*
+        One column, sized to the visible viewport rather than a 500px floor.
+        dvh tracks the collapsing browser chrome on mobile, and the subtractions
+        are the fixed header, the page padding and the bottom nav — so the chat
+        fills exactly the space available instead of pushing the page into a
+        second scrollbar on a 568px-tall phone.
+      */
+      .messages-shell {
+        grid-template-columns: 1fr;
+        height: calc(100dvh - 4rem - 2rem - var(--bottom-nav-safe, 4.25rem));
+        min-height: 22rem;
+        border-radius: 16px;
+      }
       .sidebar--hidden { display: none; }
       .chat-pane { display: none; }
       .chat-pane--visible { display: flex; }

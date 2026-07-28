@@ -81,7 +81,7 @@ type ResolutionType = 'force_complete' | 'full_refund' | 'partial_refund' | 'req
     FormsModule
   ],
   template: `
-    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 mt-6">
+    <div class="max-w-[1200px] mx-auto">
       <button mat-stroked-button color="primary" class="!rounded-2xl !px-5 !py-3 !text-sm !font-bold" (click)="goBack()">
         <mat-icon>arrow_back</mat-icon>
         Back to Disputes

@@ -64,17 +64,19 @@ interface Booking {
     RouterLink
   ],
   template: `
-    <div class="max-w-4xl mx-auto pb-32 lg:pb-24 font-manrope animate-in fade-in duration-700">
+    <!-- Horizontal insets come from the dashboard layout; this page used to add
+         its own p-4/mx-4 on top, leaving 264px of content at 320px. -->
+    <div class="max-w-4xl mx-auto pb-40 lg:pb-8 font-manrope animate-in fade-in duration-700">
       <!-- Breadcrumb Navigation -->
-      <nav class="p-4 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-        <a routerLink="/employer" class="hover:text-slate-900 transition-colors">Marketplace</a>
-        <mat-icon class="!text-[10px] !w-auto !h-auto">chevron_right</mat-icon>
-        <span class="text-slate-900">{{ workerData().name }}</span>
+      <nav class="pb-4 flex items-center gap-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest min-w-0">
+        <a routerLink="/client/marketplace" class="hover:text-slate-900 transition-colors shrink-0">Marketplace</a>
+        <mat-icon class="!text-[10px] !w-auto !h-auto shrink-0">chevron_right</mat-icon>
+        <span class="text-slate-900 truncate">{{ workerData().name }}</span>
       </nav>
 
       <!-- Profile Header / Hero -->
-      <section class="mx-4 mb-6">
-        <div class="bg-slate-900 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-2xl">
+      <section class="mb-6">
+        <div class="bg-slate-900 rounded-[1.5rem] sm:rounded-[2rem] p-5 sm:p-8 text-white relative overflow-hidden shadow-2xl">
           <!-- Subtle Decoration -->
           <div class="absolute right-[-20px] top-[-20px] w-32 h-32 border-[16px] border-white/5 rounded-full"></div>
           
@@ -120,7 +122,7 @@ interface Booking {
       </section>
 
       <!-- Desktop/Tablet Split View -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mx-4">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- Main Details -->
         <main class="lg:col-span-8 space-y-6">
           <!-- Quick Stats -->
@@ -324,31 +326,37 @@ interface Booking {
         </aside>
       </div>
 
-      <!-- Spacer div to prevent content from being hidden behind sticky bar -->
-      <div class="lg:hidden h-32"></div>
-
       <!-- Sticky Mobile Engagement Bar -->
-      <div class="lg:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50" 
-           style="padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));">
-        <div class="max-w-md mx-auto flex items-center justify-between gap-4">
-          <div>
+      <!--
+        The price block and both buttons need ~325px on one line, so at 320px and
+        360px they used to overflow the viewport. The button pair now carries a
+        12rem floor: when the row cannot fit it drops to its own line and both
+        buttons stretch, instead of pushing "Hire Now" off-screen.
+      -->
+      <div class="lg:hidden fixed bottom-0 left-0 right-0 px-3 pt-3 bg-white/95 backdrop-blur-md border-t border-slate-200 z-50"
+           style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));">
+        <div class="max-w-md mx-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <div class="shrink-0">
             <div class="flex items-baseline gap-1">
-              <span class="text-xl font-black text-slate-900 tracking-tighter">KSh {{ workerData().rate }}</span>
+              <span class="text-lg sm:text-xl font-black text-slate-900 tracking-tighter">KSh {{ workerData().rate }}</span>
             </div>
             <div class="flex items-center gap-0.5 mt-0.5">
               <mat-icon class="!text-xs !w-auto !h-auto text-amber-400" style="font-variation-settings: 'FILL' 1;">star</mat-icon>
               <span class="text-[9px] font-black text-slate-500 ml-1">{{ workerData().reviews }} reviews</span>
             </div>
           </div>
-          <div class="flex gap-2">
-            <button (click)="message()" 
-                    class="bg-blue-50 border-2 border-blue-400 text-blue-600 font-black py-3 px-4 rounded-xl text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 active:scale-95">
+          <div class="flex gap-2 flex-1 min-w-[12rem] justify-end">
+            <button (click)="message()"
+                    class="flex-1 max-w-[10rem] bg-blue-50 border-2 border-blue-400 text-blue-600 font-black py-3 px-3 rounded-xl text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 active:scale-95">
               <mat-icon class="!text-xs !w-auto !h-auto">handshake</mat-icon>
               Negotiate
             </button>
-            <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()" 
-                    class="bg-slate-900 hover:bg-slate-800 text-white font-black py-3 px-6 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30">
-              {{ hasPendingRequest() ? 'PENDING' : (hiring() ? 'SENDING...' : 'HIRE NOW') }}
+            <button (click)="hire()" [disabled]="hasPendingRequest() || hiring()"
+                    class="flex-1 max-w-[10rem] bg-slate-900 hover:bg-slate-800 text-white font-black py-3 px-3 rounded-xl text-[10px] uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-30 flex items-center justify-center gap-1.5">
+              @if (hiring()) {
+                <mat-icon class="!text-xs !w-auto !h-auto animate-spin">progress_activity</mat-icon>
+              }
+              {{ hasPendingRequest() ? 'PENDING' : (hiring() ? 'SENDING' : 'HIRE NOW') }}
             </button>
           </div>
         </div>
@@ -366,42 +374,21 @@ interface Booking {
       vertical-align: middle; 
     }
     
-    /* Enhanced bottom spacing to prevent overlap */
-    .pb-32 {
-      padding-bottom: 8rem !important;
-    }
-    
-    /* Mobile specific adjustments */
+    /*
+      Clearance for the sticky bar is now a single Tailwind pb-40 on the page
+      wrapper. There used to be three overlapping mechanisms — a pb-32 class, an
+      !important override raising it to 11rem, and a 128px spacer element —
+      which together reserved over 300px of empty space at the foot of the page.
+      The button padding override has gone too: it fought the flex sizing that
+      keeps the bar on one line.
+    */
     @media (max-width: 640px) {
-      .pb-32 {
-        padding-bottom: 11rem !important; /* Extra space for mobile */
-      }
-      
-      /* Ensure sticky bar doesn't overlap content */
       .fixed.bottom-0 {
         height: auto;
-        min-height: 80px;
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05);
       }
-      
-      /* Better spacing for mobile buttons */
-      .fixed.bottom-0 .max-w-md {
-        gap: 0.5rem;
-      }
-      
-      .fixed.bottom-0 button {
-        font-size: 9px !important;
-        padding: 0.75rem 1rem !important;
-      }
     }
-    
-    /* Safe area support for notched phones */
-    @supports (padding: max(0px)) {
-      .fixed.bottom-0 {
-        padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
-      }
-    }
-    
+
     /* Smooth animations */
     .animate-in {
       animation: fadeIn 0.7s ease-out;

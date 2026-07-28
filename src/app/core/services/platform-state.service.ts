@@ -227,6 +227,43 @@ export class PlatformStateService {
   availableLocations = signal<string[]>([]);
   isLoadingWorkers = signal(false);
   updatingJobIds = signal<Set<string>>(new Set());
+
+  // ── Pending-operation registry ───────────────────────────────────────────
+  /**
+   * Which write operations are in flight, keyed by operation name and — where it
+   * matters — the row being acted on.
+   *
+   * The worker-facing mutations here (accept, decline, delete, submit for
+   * review) subscribe internally and return void, so a caller had no way to
+   * know an operation was running: buttons stayed live and a double tap fired
+   * the request twice. Rather than change those signatures and risk a caller
+   * that never subscribes, the service records its own progress and components
+   * read it through `isPending()`.
+   */
+  private pendingOps = signal<Record<string, boolean>>({});
+
+  /** True while the named operation is in flight. Reactive inside templates. */
+  isPending(key: string): boolean {
+    return this.pendingOps()[key] === true;
+  }
+
+  /** True while any operation whose key starts with the prefix is in flight. */
+  isAnyPending(prefix: string): boolean {
+    const ops = this.pendingOps();
+    return Object.keys(ops).some(key => ops[key] && key.startsWith(prefix));
+  }
+
+  private beginOp(key: string) {
+    this.pendingOps.update(ops => ({ ...ops, [key]: true }));
+  }
+
+  private endOp(key: string) {
+    this.pendingOps.update(ops => {
+      const next = { ...ops };
+      delete next[key];
+      return next;
+    });
+  }
   walletBalance = signal(0);
   walletTransactions = signal<WalletTransaction[]>([]);
   walletLoading = signal(false);
@@ -1291,8 +1328,12 @@ private getInitialWorkerState(): WorkerProfile {
   submitForVerification() {
     const userId = this.currentWorker().userId || this.auth.currentUser()?.id;
     if (!userId) return;
+    if (this.isPending('submitForVerification')) return;
 
-    this.http.put(`${this.apiUrl}/workers/profile/${userId}/submit`, {}).subscribe({
+    this.beginOp('submitForVerification');
+    this.http.put(`${this.apiUrl}/workers/profile/${userId}/submit`, {}).pipe(
+      finalize(() => this.endOp('submitForVerification'))
+    ).subscribe({
       next: (data: any) => {
         const mapped = this.mapWorkerProfile(data);
         this.currentWorker.set(mapped);
@@ -1355,7 +1396,13 @@ private getInitialWorkerState(): WorkerProfile {
   }
 
   acceptBooking(bookingId: string) {
-    this.http.put<any>(`${this.apiUrl}/jobs/${bookingId}/status?status=ACCEPTED`, {}).subscribe({
+    const op = `acceptBooking:${bookingId}`;
+    if (this.isPending(op)) return;
+
+    this.beginOp(op);
+    this.http.put<any>(`${this.apiUrl}/jobs/${bookingId}/status?status=ACCEPTED`, {}).pipe(
+      finalize(() => this.endOp(op))
+    ).subscribe({
       next: () => {
         const user = this.auth.currentUser();
         if (user?.role === 'Worker' && this.currentWorker().userId) {
@@ -1368,7 +1415,13 @@ private getInitialWorkerState(): WorkerProfile {
   }
 
   declineBooking(bookingId: string) {
-    this.http.put<any>(`${this.apiUrl}/jobs/${bookingId}/status?status=REJECTED`, {}).subscribe({
+    const op = `declineBooking:${bookingId}`;
+    if (this.isPending(op)) return;
+
+    this.beginOp(op);
+    this.http.put<any>(`${this.apiUrl}/jobs/${bookingId}/status?status=REJECTED`, {}).pipe(
+      finalize(() => this.endOp(op))
+    ).subscribe({
       next: () => {
         const user = this.auth.currentUser();
         if (user?.role === 'Worker' && this.currentWorker().userId) {
@@ -1381,7 +1434,13 @@ private getInitialWorkerState(): WorkerProfile {
   }
 
   deleteJobRequest(jobId: string) {
-    this.http.delete<any>(`${this.apiUrl}/jobs/${jobId}`).subscribe({
+    const op = `deleteJobRequest:${jobId}`;
+    if (this.isPending(op)) return;
+
+    this.beginOp(op);
+    this.http.delete<any>(`${this.apiUrl}/jobs/${jobId}`).pipe(
+      finalize(() => this.endOp(op))
+    ).subscribe({
       next: () => {
         const user = this.auth.currentUser();
         if (user?.role === 'Worker' && this.currentWorker().userId) {

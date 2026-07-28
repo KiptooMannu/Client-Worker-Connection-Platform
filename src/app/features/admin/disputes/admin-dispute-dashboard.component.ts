@@ -38,7 +38,7 @@ import { AuthService } from '../../../core/services/auth.service';
     MatDialogModule
   ],
   template: `
-    <div class="max-w-7xl mx-auto space-y-6 p-4 md:p-6 animate-in fade-in duration-700">
+    <div class="max-w-7xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-700">
       <!-- Header Section -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>

@@ -48,7 +48,7 @@ const RANGE_OPTIONS = [
     DonutChartComponent
   ],
   template: `
-    <div class="max-w-[1600px] mx-auto space-y-6 p-4 md:p-0">
+    <div class="max-w-[1600px] mx-auto space-y-4 md:space-y-6">
 
       <!-- Header + range filter. Filters sit in one row above the charts. -->
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
