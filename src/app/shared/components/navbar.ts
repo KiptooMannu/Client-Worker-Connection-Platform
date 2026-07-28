@@ -328,21 +328,32 @@ import { WebSocketService } from '../../core/services/websocket.service';
             <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
           </a>
 
-          <p class="nav-section">Company</p>
-          <a class="nav-row" [routerLink]="['/']" fragment="about" (click)="closeMobileMenu()">
+          <!--
+            These jump to sections of the landing page. They previously pointed
+            at "about" and "contact", neither of which is an id that exists in
+            landing.html, so both were dead links — the targets below are the
+            page's actual section landmarks.
+          -->
+          <p class="nav-section">On the home page</p>
+          <a class="nav-row" [routerLink]="['/']" fragment="features" (click)="closeMobileMenu()">
             <mat-icon class="nav-row-icon">info</mat-icon>
-            <span class="nav-row-label">About Us</span>
-            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+            <span class="nav-row-label">Why Kazi Konnect</span>
+            <mat-icon class="nav-row-chevron">arrow_downward</mat-icon>
+          </a>
+          <a class="nav-row" [routerLink]="['/']" fragment="how-it-works" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">layers</mat-icon>
+            <span class="nav-row-label">Platform overview</span>
+            <mat-icon class="nav-row-chevron">arrow_downward</mat-icon>
+          </a>
+          <a class="nav-row" [routerLink]="['/']" fragment="testimonials" (click)="closeMobileMenu()">
+            <mat-icon class="nav-row-icon">reviews</mat-icon>
+            <span class="nav-row-label">Reviews</span>
+            <mat-icon class="nav-row-chevron">arrow_downward</mat-icon>
           </a>
           <a class="nav-row" [routerLink]="['/']" fragment="faq" (click)="closeMobileMenu()">
             <mat-icon class="nav-row-icon">help</mat-icon>
             <span class="nav-row-label">FAQ</span>
-            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
-          </a>
-          <a class="nav-row" [routerLink]="['/']" fragment="contact" (click)="closeMobileMenu()">
-            <mat-icon class="nav-row-icon">mail</mat-icon>
-            <span class="nav-row-label">Contact</span>
-            <mat-icon class="nav-row-chevron">chevron_right</mat-icon>
+            <mat-icon class="nav-row-chevron">arrow_downward</mat-icon>
           </a>
         } @else {
           <p class="nav-section">Your workspace</p>
