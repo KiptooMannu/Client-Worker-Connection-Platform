@@ -1,19 +1,4 @@
 {
-    "//": [
-        "The rewrite deliberately excludes paths ending in a file extension. It used",
-        "to be a blanket /(.*) -> /index.html, so a request for a missing build asset",
-        "such as /admin-layout-572YJ7EE.js was answered with index.html and HTTP 200.",
-        "The browser then tried to evaluate HTML as an ES module and reported 'Failed",
-        "to fetch dynamically imported module', which gives no hint that the real",
-        "problem is a chunk name from an older build. Excluding extensions lets a",
-        "missing asset return an honest 404, while SPA routes such as",
-        "/admin/dashboard still fall through to index.html.",
-        "",
-        "The headers stop the browser caching index.html. That file names every",
-        "hashed chunk, so a cached copy is precisely what leaves a client asking for",
-        "chunks a newer deployment no longer has. The hashed assets stay immutable,",
-        "since their filename changes whenever their contents do."
-    ],
     "rewrites": [
         {
             "source": "/((?!.*\\.[a-zA-Z0-9]+$).*)",
