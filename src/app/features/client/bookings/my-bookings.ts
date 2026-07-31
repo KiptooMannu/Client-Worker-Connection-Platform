@@ -197,8 +197,8 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
                       </div>
                     }
 
-                    <!-- PAY button -->
-                    @if (b.status === 'Accepted' || b.status === 'ACCEPTED' || b.status === 'Awaiting Funding' || b.status === 'AWAITING_FUNDING') {
+                    <!-- PAY / CANCEL button -->
+                    @if ((b.status === 'Pending' || b.status === 'PENDING' || b.status === 'Accepted' || b.status === 'ACCEPTED' || b.status === 'Awaiting Funding' || b.status === 'AWAITING_FUNDING') && !b.escrowFunded) {
                       <div class="flex items-center gap-2">
                         <button (click)="openPayModal(b)"
                                 class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-[9px] font-black
@@ -217,7 +217,7 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
                     }
 
                     <!-- RETRY button -->
-                    @else if (b.status === 'Rejected' || b.status === 'REJECTED' || b.paymentStatus?.toLowerCase() === 'failed' || b.paymentStatus?.toLowerCase() === 'payout_failed') {
+                    @else if (b.paymentStatus?.toLowerCase() === 'failed' || b.paymentStatus?.toLowerCase() === 'payout_failed') {
                       <button (click)="openPayModal(b, true)"
                               class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-[9px] font-black
                                      uppercase tracking-widest hover:bg-rose-700 transition-all active:scale-95 shadow-sm">
@@ -274,7 +274,7 @@ import { CancelHireDialogComponent } from '../../../shared/components/cancel-hir
 
                     <!-- CANCEL button -->
                     @else if (b.status === 'Pending') {
-                      <button (click)="state.updateJobStatus(b.id, 'CANCELLED')"
+                      <button (click)="openCancelHireDialog(b)"
                               class="px-2.5 py-1.5 border border-slate-200 text-slate-400 rounded-lg text-[9px]
                                      font-black uppercase tracking-widest hover:text-rose-600 hover:border-rose-100 transition-all bg-white active:scale-95">
                         Cancel

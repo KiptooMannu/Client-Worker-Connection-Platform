@@ -270,7 +270,18 @@ export class PlatformStateService {
 
   updateJobStatus(jobId: string, status: string) {
     this.updateJobStatusRequest(jobId, status).subscribe({
-      next: () => this.notification.success(`Job status updated to ${status}`)
+      next: () => {
+        const message = status === 'REVISION_REQUESTED'
+          ? 'Revision request sent successfully.'
+          : status === 'ACCEPTED'
+            ? 'Job accepted successfully.'
+            : status === 'REJECTED'
+              ? 'Job rejected successfully.'
+              : status === 'SUBMITTED'
+                ? 'Work submitted successfully.'
+                : `Job status updated to ${status}`;
+        this.notification.success(message);
+      }
     });
   }
 
