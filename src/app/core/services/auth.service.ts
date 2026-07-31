@@ -105,10 +105,7 @@ export class AuthService {
       }),
       catchError(error => {
         console.error('[AuthService] Login error:', error);
-        const message = typeof error.error === 'string'
-          ? error.error
-          : error.error?.message || 'Login failed. Please check your credentials.';
-        this.notification.error(message);
+        // Error is handled inline in the login component, not via top notification
         return throwError(() => error);
       })
     );
@@ -131,9 +128,7 @@ export class AuthService {
         if (validationErrors && typeof validationErrors === 'object') {
           return throwError(() => error);
         }
-
-        const errorMsg = this.getErrorMessage(error, 'Registration failed. Please try again.');
-        this.notification.error(errorMsg);
+        // Error is handled inline in the register component, not via top notification
         return throwError(() => error);
       })
     );
