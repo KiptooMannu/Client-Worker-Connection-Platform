@@ -58,10 +58,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     userRole = user.role;
   }
   
-  // Fallback: try to get token from localStorage for cases where signal isn't updated yet
+  // Fallback: try to get token from sessionStorage or localStorage for cases where signal isn't updated yet
   if (!token && isPlatformBrowser(platformId)) {
-    token = sessionStorage.getItem('auth_token');
-    const savedUser = sessionStorage.getItem('pro_user');
+    token = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
+    const savedUser = sessionStorage.getItem('pro_user') || localStorage.getItem('pro_user');
     if (savedUser && !userRole) {
       try {
         const parsedUser = JSON.parse(savedUser);

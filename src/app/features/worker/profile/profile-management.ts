@@ -95,8 +95,9 @@ import { DocumentUploadComponent } from '../../../shared/components/document-upl
 
             <!-- Profile Info -->
             <div class="flex-1">
-              <h1 class="text-2xl font-black text-brand-teal">{{ worker().name || 'Worker' }}</h1>
+              <h1 class="text-2xl font-black text-brand-teal">{{ getAccountName() || 'Worker' }}</h1>
               <p class="text-on-surface-variant text-sm mt-1">{{ worker().category }}</p>
+              <p class="text-xs text-on-surface-variant/80 mt-2">Managed from account</p>
               <div class="flex items-center gap-4 mt-4 p-4 bg-white border border-outline-variant rounded-xl shadow-sm">
                 <div class="text-right">
                   <span class="text-[10px] font-black text-on-surface-variant uppercase tracking-widest block">Profile Ready</span>
@@ -131,10 +132,11 @@ import { DocumentUploadComponent } from '../../../shared/components/document-upl
             <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="space-y-2">
-                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name <span class="text-error">*</span></label>
-                  <input [ngModel]="form.name()" (ngModelChange)="form.name.set($event)" 
-                         class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md focus:border-brand-teal focus:ring-0 transition-colors" 
-                         placeholder="Julian Thorne">
+                  <label class="font-label-md text-label-md text-on-surface-variant ml-1">Full Name</label>
+                  <div class="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 font-body-md text-body-md text-on-surface-variant/90">
+                    {{ getAccountName() || 'Not available' }}
+                  </div>
+                  <p class="text-xs text-on-surface-variant">This is taken from your account registration and cannot be changed here.</p>
                 </div>
                 <div class="space-y-2">
                   <label class="font-label-md text-label-md text-on-surface-variant ml-1">Phone Number <span class="text-error">*</span></label>
@@ -497,6 +499,10 @@ export class WorkerProfilePage implements OnInit {
     this.loadWorkerData();
   }
 
+getAccountName(): string {
+    return this.auth.currentUser()?.name || this.worker().name || '';
+  }
+
  private loadWorkerData() {
   const userId = this.auth.currentUser()?.id;
   
@@ -675,7 +681,7 @@ export class WorkerProfilePage implements OnInit {
     this.isSaving.set(true);
     
     // Get the current form values
-    const fullName = this.form.name();
+    const fullName = this.getAccountName();
     const category = this.form.category();
     const hourlyRate = this.form.rate() !== null ? Number(this.form.rate()) : 0;
     const bio = this.form.bio();
@@ -763,7 +769,7 @@ export class WorkerProfilePage implements OnInit {
 
   private getProfileUpdates(): any {
     return {
-      fullName: this.form.name(),
+      fullName: this.getAccountName(),
       phoneNumber: this.form.phoneNumber(),
       category: this.form.category(),
       hourlyRate: this.form.rate() !== null ? Number(this.form.rate()) : undefined,

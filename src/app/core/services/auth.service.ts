@@ -39,18 +39,19 @@ export class AuthService {
 
   constructor(private router: Router) {
     if (isPlatformBrowser(this.platformId)) {
-      const savedUser = sessionStorage.getItem('pro_user');
+      const savedUser = sessionStorage.getItem('pro_user') || localStorage.getItem('pro_user');
       if (savedUser) {
         try {
           const user = JSON.parse(savedUser);
+          const storedToken = sessionStorage.getItem('auth_token') || localStorage.getItem('auth_token');
 
           if (!user.token) {
-            user.token = sessionStorage.getItem('auth_token');
+            user.token = storedToken;
           }
           this.userSignal.set(user);
-          console.log('[AuthService] User restored from sessionStorage with role:', user.role);
-        } catch (e) {
-          console.error('[AuthService] Failed to parse saved user:', e);
+          console.log('[AuthService] User restored from storage with role:', user.role);
+        } catch (error) {
+          console.warn('[AuthService] Failed to restore user from storage', error);
         }
       }
 
@@ -94,6 +95,8 @@ export class AuthService {
           // Store token separately for interceptor access
           sessionStorage.setItem('auth_token', token);
           sessionStorage.setItem('pro_user', JSON.stringify(user));
+          localStorage.setItem('auth_token', token);
+          localStorage.setItem('pro_user', JSON.stringify(user));
           console.log('[AuthService] User logged in with role:', user.role, 'Token stored:', token.substring(0, 20) + '...');
         }
 
@@ -171,6 +174,8 @@ export class AuthService {
     if (isPlatformBrowser(this.platformId)) {
       sessionStorage.removeItem('pro_user');
       sessionStorage.removeItem('auth_token');
+      localStorage.removeItem('pro_user');
+      localStorage.removeItem('auth_token');
       console.log('[AuthService] User logged out');
     }
     this.notification.success('You have been logged out successfully.');
@@ -184,6 +189,7 @@ export class AuthService {
       this.userSignal.set(updated);
       if (isPlatformBrowser(this.platformId)) {
         sessionStorage.setItem('pro_user', JSON.stringify(updated));
+        localStorage.setItem('pro_user', JSON.stringify(updated));
       }
     }
   }
